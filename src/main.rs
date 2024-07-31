@@ -17,7 +17,8 @@ use tracing::{info_span, Span};
 
 use crate::state::AppState;
 
-mod hue;
+pub mod hue;
+
 mod mdns;
 mod mqtt;
 mod routes;
