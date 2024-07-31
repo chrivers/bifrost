@@ -36,6 +36,8 @@ impl Client {
 
     pub fn into_stream(mut self) -> impl Stream<Item = Result<Event, Infallible>> {
         try_stream! {
+            yield Event::default().comment("hi");
+
             while let Ok(message) = self.connection.poll().await {
                 let rumqttc::v5::Event::Incoming(msg) = message else {
                     continue
