@@ -17,11 +17,11 @@ use tracing::{info_span, Span};
 
 pub mod hue;
 
+mod config;
 mod mdns;
 mod mqtt;
 mod routes;
 mod state;
-mod config;
 
 use state::AppState;
 

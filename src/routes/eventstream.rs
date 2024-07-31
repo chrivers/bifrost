@@ -13,7 +13,13 @@ pub async fn get_clip_v2(
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let conf = state.mqtt_config();
 
-    let mut client = Client::new("rust-mqtt", &conf.username, &conf.password, &conf.host, 1883);
+    let mut client = Client::new(
+        "rust-mqtt",
+        &conf.username,
+        &conf.password,
+        &conf.host,
+        1883,
+    );
 
     for topic in &conf.topics {
         log::debug!("Subscribing to [{topic}]");

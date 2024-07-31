@@ -11,7 +11,9 @@ use serde_json::{json, Value};
 use tracing::info;
 use uuid::Uuid;
 
-use crate::hue::v1::{ApiResourceType, ApiUserConfig, Capabilities, HueResult, NewUser, NewUserReply};
+use crate::hue::v1::{
+    ApiResourceType, ApiUserConfig, Capabilities, HueResult, NewUser, NewUserReply,
+};
 use crate::state::AppState;
 
 async fn get_api() -> impl IntoResponse {
@@ -58,7 +60,7 @@ async fn get_api_user_resource(
         ApiResourceType::Scenes => Json(json!({})),
         ApiResourceType::Schedules => Json(json!({})),
         ApiResourceType::Sensors => Json(json!({})),
-        ApiResourceType::Capabilities => Json(json!(Capabilities::new()))
+        ApiResourceType::Capabilities => Json(json!(Capabilities::new())),
     }
 }
 
