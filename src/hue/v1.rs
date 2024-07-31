@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use super::date_format;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HueError {
     #[serde(rename = "type")]
@@ -192,8 +194,9 @@ pub struct ApiConfig {
     pub netmask: Ipv4Addr,
     pub gateway: Ipv4Addr,
     pub timezone: String,
-    #[serde(rename = "UTC")]
+    #[serde(with = "date_format::utc", rename = "UTC")]
     pub utc: DateTime<Utc>,
+    #[serde(with = "date_format::local")]
     pub localtime: DateTime<Local>,
     pub whitelist: HashMap<Uuid, Whitelist>,
 }
