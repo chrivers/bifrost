@@ -90,12 +90,23 @@ impl Default for ConnectionState {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ApiInternetServices {
     pub internet: ConnectionState,
     pub remoteaccess: ConnectionState,
     pub swupdate: ConnectionState,
     pub time: ConnectionState,
+}
+
+impl Default for ApiInternetServices {
+    fn default() -> Self {
+        Self {
+            internet: ConnectionState::Connected,
+            remoteaccess: ConnectionState::Connected,
+            swupdate: ConnectionState::Connected,
+            time: ConnectionState::Connected,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
