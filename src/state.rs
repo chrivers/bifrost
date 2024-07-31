@@ -32,7 +32,7 @@ impl AppState {
     pub fn bridge_id(&self) -> String {
         let mac = self.mac().bytes();
         format!(
-            "{:02x}{:02x}{:02x}FFFE{:02x}{:02x}{:02x}",
+            "{:02X}{:02X}{:02X}FFFE{:02X}{:02X}{:02X}",
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
         )
     }
