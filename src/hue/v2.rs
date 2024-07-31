@@ -227,50 +227,22 @@ pub struct On {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
-    id: Uuid,
     id_v1: String,
-    /* alert: { */
-    /*     action_values: [ */
-    /*         breathe */
-    /*     ] */
-    /* }, */
     alert: Value,
     color: LightColor,
     color_temperature: ColorTemperature,
     color_temperature_delta: Delta,
     dimming: Dimming,
     dimming_delta: Delta,
-    /* dynamics: { */
-    /*     speed: 0, */
-    /*     speed_valid: false, */
-    /*     status: none, */
-    /*     status_values: [ */
-    /*         none, */
-    /*         dynamic_palette */
-    /*     ] */
-    /* }, */
-    /* effects: { */
-    /*     effect_values: [ */
-    /*         no_effect, */
-    /*         candle, */
-    /*         fire, */
-    /*         prism */
-    /*     ], */
-    /*     status: no_effect, */
-    /*     status_values: [ */
-    /*         no_effect, */
-    /*         candle, */
-    /*         fire, */
-    /*         prism */
-    /*     ] */
-    /* }, */
-    /* identify: {}, */
-    metadata: LightMetadata,
-    /* mode: normal, */
-    /* on: { */
-    /*     on: true */
-    /* }, */
+    dynamics: Value,
+    effects: Value,
+    identify: Value,
+    metadata: Metadata,
+    mode: String,
+    on: On,
     owner: ResourceLink,
+    powerup: Value,
+    signaling: Value,
     /* powerup: { */
     /*     color: { */
     /*         color_temperature: { */
@@ -301,6 +273,106 @@ pub struct Light {
     /*         alternating */
     /*     ] */
     /* }, */
+}
+
+impl Light {
+    pub fn new(id: u32, owner: ResourceLink) -> Self {
+        Self {
+            id_v1: format!("/lights/{id}"),
+            alert: json!({"action_values": ["breathe"]}),
+            color: LightColor {
+                gamut: ColorGamut {
+                    red: XY {
+                        x: 0.6915,
+                        y: 0.3083,
+                    },
+                    green: XY { x: 0.17, y: 0.7 },
+                    blue: XY {
+                        x: 0.1532,
+                        y: 0.0475,
+                    },
+                },
+                gamut_type: "C".to_string(),
+                xy: XY { x: 0.4573, y: 0.41 },
+            },
+            color_temperature: ColorTemperature {
+                mirek_schema: MirekSchema {
+                    mirek_maximum: 500,
+                    mirek_minimum: 153,
+                },
+                mirek_valid: true,
+                mirek: 366,
+            },
+            color_temperature_delta: Delta {},
+            dimming: Dimming {
+                brightness: 100.0,
+                min_dim_level: 0.20000000298023224,
+            },
+            dimming_delta: Delta {},
+            dynamics: json!({
+                "speed": 0,
+                "speed_valid": false,
+                "status": "none",
+                "status_values": [
+                    "none",
+                    "dynamic_palette",
+                ]
+            }),
+            effects: json!({
+                "effect_values": [
+                    "no_effect",
+                    "candle",
+                    "fire",
+                    "prism"
+                ],
+                "status": "no_effect",
+                "status_values": [
+                    "no_effect",
+                    "candle",
+                    "fire",
+                    "prism"
+                ]
+            }),
+            identify: json!({}),
+            mode: "normal".to_string(),
+            on: On { on: true },
+            metadata: Metadata {
+                archetype: "spot_bulb".to_string(),
+                name: "Light 1".to_string(),
+            },
+            owner,
+            powerup: json!({
+                "color": {
+                    "color_temperature": {
+                        "mirek": 366
+                    },
+                    "mode": "color_temperature"
+                },
+                "configured": true,
+                "dimming": {
+                    "dimming": {
+                        "brightness": 100
+                    },
+                    "mode": "dimming"
+                },
+                "on": {
+                    "mode": "on",
+                    "on": {
+                        "on": true
+                    }
+                },
+                "preset": "safety"
+            }),
+            signaling: json!({
+                "signal_values": [
+                    "no_signal",
+                    "on_off",
+                    "on_off_color",
+                    "alternating"
+                ]
+            }),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
