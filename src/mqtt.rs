@@ -51,7 +51,7 @@ impl Client {
                 /* log::info!("{publ:?}"); */
                 yield Event::default()
                     .id(format!("{}:0", chrono::Utc::now().timestamp()))
-                    .json_data(js)
+                    .json_data([js])
                     .unwrap()
             }
         }
