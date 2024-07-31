@@ -594,6 +594,19 @@ pub struct ResourceLink {
     pub rtype: ResourceType,
 }
 
+impl ResourceLink {
+    pub fn new(rid: Uuid, rtype: ResourceType) -> Self {
+        Self { rid, rtype }
+    }
+
+    pub fn to(rid: Uuid, res: &Resource) -> Self {
+        Self {
+            rid,
+            rtype: res.rtype(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimeZone {
     pub time_zone: String,
