@@ -2,9 +2,10 @@ use std::net::Ipv4Addr;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::body::Body;
+use axum::extract::Request;
 use axum::routing::get;
 use axum::ServiceExt;
-use axum::{http::Request, response::Response, Router};
+use axum::{response::Response, Router};
 use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
 
@@ -42,7 +43,7 @@ fn router(appstate: AppState) -> Router<()> {
         )
         .layer(
             TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<_>| {
+                .make_span_with(|request: &Request| {
                     info_span!(
                         "http",
                         method = ?request.method(),
@@ -92,7 +93,7 @@ async fn main() {
     let ip = appstate.ip();
 
     let normalized = NormalizePathLayer::trim_trailing_slash().layer(router(appstate));
-    let svc = ServiceExt::<axum::extract::Request>::into_make_service(normalized);
+    let svc = ServiceExt::<Request>::into_make_service(normalized);
 
     let http = tokio::spawn(http_server(ip, svc.clone()));
     let https = tokio::spawn(https_server(ip, svc));
