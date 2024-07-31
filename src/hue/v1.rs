@@ -37,7 +37,7 @@ pub struct ApiShortConfig {
 impl Default for ApiShortConfig {
     fn default() -> Self {
         Self {
-            apiversion: "1.60.0".to_string(),
+            apiversion: "1.65.0".to_string(),
             bridgeid: "0000000000000000".to_string(),
             datastoreversion: "163".to_string(),
             factorynew: false,
@@ -46,7 +46,7 @@ impl Default for ApiShortConfig {
             name: "Bifrost Bridge".to_string(),
             replacesbridgeid: None,
             starterkitid: "".to_string(),
-            swversion: "1960149090".to_string(),
+            swversion: "1965111030".to_string(),
         }
     }
 }
