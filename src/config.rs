@@ -16,7 +16,7 @@ pub struct BridgeConfig {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MqttConfig {
-    pub host: Ipv4Addr,
+    pub host: String,
     pub username: String,
     pub password: String,
     pub ha_discovery_topic: String,

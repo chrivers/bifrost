@@ -3,7 +3,7 @@ use std::net::Ipv4Addr;
 use mac_address::MacAddress;
 use uuid::{uuid, Uuid};
 
-use crate::config::AppConfig;
+use crate::config::{AppConfig, MqttConfig};
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Capabilities};
 use crate::hue::v2::{Bridge, ClipResourceType, Resource, ResourceLink, TimeZone};
 
@@ -23,6 +23,10 @@ impl AppState {
 
     pub fn ip(&self) -> Ipv4Addr {
         self.conf.bridge.ipaddress
+    }
+
+    pub fn mqtt_config(&self) -> &MqttConfig {
+        &self.conf.mqtt
     }
 
     pub fn bridge_id(&self) -> String {
