@@ -31,9 +31,9 @@ async fn post_api(Json(j): Json<NewUser>) -> impl IntoResponse {
     Json(vec![HueResult::Success(res)])
 }
 
-async fn get_api_user(state: State<AppState>, Path(_username): Path<String>) -> impl IntoResponse {
+async fn get_api_user(state: State<AppState>, Path(username): Path<Uuid>) -> impl IntoResponse {
     Json(ApiUserConfig {
-        config: state.api_config(),
+        config: state.api_config(username),
         groups: HashMap::new(),
         lights: HashMap::new(),
         resourcelinks: HashMap::new(),
@@ -46,11 +46,11 @@ async fn get_api_user(state: State<AppState>, Path(_username): Path<String>) -> 
 
 async fn get_api_user_resource(
     State(state): State<AppState>,
-    Path((_username, resource)): Path<(String, ApiResourceType)>,
+    Path((username, resource)): Path<(Uuid, ApiResourceType)>,
 ) -> Json<Value> {
     /* info!("user {username} resource {resource:?}"); */
     match resource {
-        ApiResourceType::Config => Json(json!(state.api_config())),
+        ApiResourceType::Config => Json(json!(state.api_config(username))),
         ApiResourceType::Groups => Json(json!({})),
         ApiResourceType::Lights => Json(json!({})),
         ApiResourceType::Resourcelinks => Json(json!({})),

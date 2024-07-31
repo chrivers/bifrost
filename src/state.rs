@@ -45,15 +45,22 @@ impl AppState {
         }
     }
 
-    pub fn api_config(&self) -> ApiConfig {
-        let config = ApiConfig::default();
+    pub fn api_config(&self, username: Uuid) -> ApiConfig {
         ApiConfig {
             short_config: self.api_short_config(),
             ipaddress: self.conf.bridge.ipaddress,
             netmask: self.conf.bridge.netmask,
             gateway: self.conf.bridge.gateway,
             timezone: self.conf.bridge.timezone.clone(),
-            ..config
+            whitelist: HashMap::from([(
+                username,
+                Whitelist {
+                    create_date: "2020-01-01T01:01:01".to_string(),
+                    last_use_date: "2020-01-01T01:01:01".to_string(),
+                    name: "User#foo".to_string(),
+                },
+            )]),
+            ..ApiConfig::default()
         }
     }
 

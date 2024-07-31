@@ -165,9 +165,9 @@ impl SoftwareUpdate2 {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Whitelist {
-    create_date: String,
-    last_use_date: String,
-    name: String,
+    pub create_date: String,
+    pub last_use_date: String,
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
