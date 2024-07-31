@@ -234,20 +234,13 @@ impl Default for ApiConfig {
             proxyport: Default::default(),
             swupdate2: SoftwareUpdate2::new(),
             zigbeechannel: 25,
-            ipaddress: "10.0.0.2".parse::<Ipv4Addr>().unwrap(),
-            netmask: "255.255.255.0".parse::<Ipv4Addr>().unwrap(),
-            gateway: "10.0.0.1".parse::<Ipv4Addr>().unwrap(),
+            ipaddress: Ipv4Addr::UNSPECIFIED,
+            netmask: Ipv4Addr::UNSPECIFIED,
+            gateway: Ipv4Addr::UNSPECIFIED,
             timezone: "Europe/London".to_string(),
             utc: "2020-01-01T01:01:01".to_string(),
             localtime: "2020-01-01T01:01:01".to_string(),
-            whitelist: HashMap::from([(
-                uuid!("12345678-1234-1234-1234-12345678abcd"),
-                Whitelist {
-                    create_date: "2020-01-01T01:01:01".to_string(),
-                    last_use_date: "2020-01-01T01:01:01".to_string(),
-                    name: "Device#Name".to_string(),
-                },
-            )]),
+            whitelist: HashMap::new(),
         }
     }
 }

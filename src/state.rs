@@ -45,6 +45,10 @@ impl AppState {
         let config = ApiConfig::default();
         ApiConfig {
             short_config: self.api_short_config(),
+            ipaddress: self.conf.bridge.ipaddress,
+            netmask: self.conf.bridge.netmask,
+            gateway: self.conf.bridge.gateway,
+            timezone: self.conf.bridge.timezone.clone(),
             ..config
         }
     }
