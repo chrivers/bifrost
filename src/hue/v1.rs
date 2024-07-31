@@ -129,29 +129,6 @@ pub struct DeviceTypes {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SoftwareUpdate {
-    checkforupdate: bool,
-    devicetypes: DeviceTypes,
-    notify: bool,
-    text: String,
-    updatestate: u32,
-    url: String,
-}
-
-impl Default for SoftwareUpdate {
-    fn default() -> Self {
-        Self {
-            checkforupdate: Default::default(),
-            devicetypes: Default::default(),
-            notify: true,
-            text: Default::default(),
-            updatestate: Default::default(),
-            url: Default::default(),
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct SoftwareUpdate2 {
     autoinstall: Value,
     bridge: Value,
