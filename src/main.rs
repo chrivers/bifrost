@@ -9,13 +9,10 @@ use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
 
 use hyper::body::Incoming;
-use mac_address::MacAddress;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
-
-use crate::state::AppState;
 
 pub mod hue;
 
@@ -23,6 +20,9 @@ mod mdns;
 mod mqtt;
 mod routes;
 mod state;
+mod config;
+
+use state::AppState;
 
 fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &Span) {
     span.record(
@@ -77,41 +77,25 @@ async fn https_server(listen_addr: Ipv4Addr, svc: impl MakeService<SocketAddr, R
         .unwrap();
 }
 
-use clap::Parser;
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Name of emulated bridge
-    #[arg(short, long, default_value_t = String::from("Bifrost"))]
-    name: String,
-
-    /// Mac address to use for api results
-    #[arg(short, long)]
-    mac: MacAddress,
-
-    /// Ip address to listen on
-    #[clap(short = 'l', long)]
-    ip: Ipv4Addr,
-}
-
 #[tokio::main]
 async fn main() {
     colog::init();
 
-    let args = Args::parse();
+    let config = config::parse("config.yaml").unwrap();
 
-    let appstate = AppState::new(args.mac);
+    let appstate = AppState::new(config);
 
-    log::info!("Serving mac [{}]", args.mac);
+    log::info!("Serving mac [{}]", appstate.mac());
 
     let _mdns = mdns::register_mdns(&appstate);
+
+    let ip = appstate.ip();
 
     let normalized = NormalizePathLayer::trim_trailing_slash().layer(router(appstate));
     let svc = ServiceExt::<axum::extract::Request>::into_make_service(normalized);
 
-    let http = tokio::spawn(http_server(args.ip, svc.clone()));
-    let https = tokio::spawn(https_server(args.ip, svc));
+    let http = tokio::spawn(http_server(ip, svc.clone()));
+    let https = tokio::spawn(https_server(ip, svc));
 
     let _ = tokio::join!(http, https);
 }

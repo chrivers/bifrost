@@ -1,21 +1,32 @@
+use std::net::Ipv4Addr;
+
 use mac_address::MacAddress;
 use uuid::{uuid, Uuid};
 
+use crate::config::AppConfig;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Capabilities};
 use crate::hue::v2::{Bridge, ClipResourceType, Resource, ResourceLink, TimeZone};
 
 #[derive(Clone, Debug)]
 pub struct AppState {
-    mac: MacAddress,
+    conf: AppConfig,
 }
 
 impl AppState {
-    pub fn new(mac: MacAddress) -> Self {
-        Self { mac }
+    pub fn new(conf: AppConfig) -> Self {
+        Self { conf }
+    }
+
+    pub fn mac(&self) -> MacAddress {
+        self.conf.bridge.mac
+    }
+
+    pub fn ip(&self) -> Ipv4Addr {
+        self.conf.bridge.ipaddress
     }
 
     pub fn bridge_id(&self) -> String {
-        let mac = self.mac.bytes();
+        let mac = self.mac().bytes();
         format!(
             "{:02x}{:02x}{:02x}FFFE{:02x}{:02x}{:02x}",
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
@@ -25,7 +36,7 @@ impl AppState {
     pub fn api_short_config(&self) -> ApiShortConfig {
         ApiShortConfig {
             bridgeid: self.bridge_id(),
-            mac: self.mac,
+            mac: self.mac(),
             ..Default::default()
         }
     }

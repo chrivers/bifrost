@@ -3,7 +3,7 @@ use std::{collections::HashMap, net::Ipv4Addr};
 use mac_address::MacAddress;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HueError {
