@@ -268,6 +268,7 @@ dependencies = [
  "config",
  "futures",
  "hyper",
+ "iana-time-zone",
  "log",
  "mac_address",
  "mdns-sd",
