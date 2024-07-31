@@ -1,20 +1,142 @@
+use std::collections::HashMap;
 use std::net::Ipv4Addr;
+use std::sync::Arc;
 
 use mac_address::MacAddress;
-use uuid::{uuid, Uuid};
+use serde_json::{json, Value};
+use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig};
-use crate::hue::v1::{ApiConfig, ApiShortConfig, Capabilities};
-use crate::hue::v2::{Bridge, ClipResourceType, Resource, ResourceLink, TimeZone};
+use crate::hue::v1::{ApiConfig, ApiShortConfig, Capabilities, Whitelist};
+use crate::hue::v2::{
+    Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
+    ResourceType, Room, RoomArchetypes, TimeZone,
+};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct AppState {
     conf: AppConfig,
+    pub res: Arc<Mutex<Resources>>,
+}
+
+pub struct Resources {
+    id_v1: u32,
+    pub res: HashMap<Uuid, Resource>,
+}
+
+impl Resources {
+    pub fn new() -> Self {
+        Self {
+            id_v1: 1,
+            res: HashMap::new(),
+        }
+    }
+
+    fn next_idv1(&mut self) -> u32 {
+        self.id_v1 += 1;
+        self.id_v1
+    }
+
+    fn add(&mut self, link: ResourceLink, obj: Resource) {
+        if link.rtype != obj.rtype() {
+            panic!(
+                "Link type failed: {:?} expected but {:?} given",
+                link.rtype,
+                obj.rtype()
+            );
+        }
+
+        self.add_named(link.rid, obj);
+    }
+
+    fn add_named(&mut self, uuid: Uuid, obj: Resource) {
+        self.res.insert(uuid, obj);
+    }
+
+    pub fn link(&self, rtype: ResourceType) -> ResourceLink {
+        ResourceLink {
+            rid: Uuid::new_v4(),
+            rtype,
+        }
+    }
+
+    pub fn add_bridge(&mut self, bridge_id: String) {
+        let link_device = self.link(ResourceType::Device);
+        let link_bridge = self.link(ResourceType::Bridge);
+
+        let dev = Device {
+            product_data: DeviceProductData::hue_bridge_v2(),
+            metadata: Metadata::hue_bridge("bifrost"),
+            identify: json!({}),
+            services: vec![link_bridge.clone()],
+        };
+
+        let br = Bridge {
+            bridge_id,
+            owner: link_device.clone(),
+            time_zone: TimeZone {
+                time_zone: "Europe/Copenhagen".to_string(),
+            },
+        };
+
+        self.add(link_device, Resource::Device(dev));
+        self.add(link_bridge, Resource::Bridge(br));
+    }
+
+    pub fn add_light(&mut self) -> ResourceLink {
+        let link_device = self.link(ResourceType::Device);
+        let link_light = self.link(ResourceType::Light);
+
+        let dev = Device {
+            product_data: DeviceProductData::hue_color_spot(),
+            metadata: Metadata::spot_bulb("Hue color spot 1"),
+            identify: json!({}),
+            services: vec![link_light.clone()],
+        };
+
+        let light = Light::new(self.next_idv1(), link_device.clone());
+
+        let res = link_device.clone();
+
+        self.add(link_device, Resource::Device(dev));
+        self.add(link_light, Resource::Light(light));
+
+        res
+    }
+
+    pub fn add_room(&mut self, children: &[ResourceLink]) {
+        let link_room = self.link(ResourceType::Room);
+
+        let room = Room {
+            id_v1: "/room/1".to_string(),
+            children: children.to_owned(),
+            metadata: Metadata::room(RoomArchetypes::Computer, "Room 1"),
+            services: vec![],
+        };
+
+        self.add(link_room, Resource::Room(room));
+    }
+
+    pub fn to_json(&self) -> Value {
+        json!({})
+    }
 }
 
 impl AppState {
     pub fn new(conf: AppConfig) -> Self {
-        Self { conf }
+        Self {
+            conf,
+            res: Arc::new(Mutex::new(Resources::new())),
+        }
+    }
+
+    pub async fn init(&mut self) {
+        let mut res = self.res.lock().await;
+
+        res.add_bridge(self.bridge_id());
+        let link = res.add_light();
+        res.add_room(&[link])
     }
 
     pub fn mac(&self) -> MacAddress {
@@ -64,23 +186,35 @@ impl AppState {
         }
     }
 
-    pub fn get_bridge(&self) -> Resource {
-        let bridge_id = self.bridge_id();
-        let bridge = Bridge {
-            id: Uuid::new_v5(
-                &Uuid::NAMESPACE_URL,
-                format!("{bridge_id}device").as_bytes(),
-            ),
-            bridge_id,
-            owner: ResourceLink {
-                rid: uuid!("00000000-0000-0000-0000-000000000000"),
-                rtype: ClipResourceType::Device,
-            },
-            time_zone: TimeZone {
-                time_zone: "Europe/London".to_string(),
-            },
-        };
-        Resource::Bridge(bridge)
+    pub async fn get_resources(&self) -> Vec<ResourceRecord> {
+        self.res
+            .lock()
+            .await
+            .res
+            .iter()
+            .map(ResourceRecord::from_ref)
+            .collect()
+    }
+
+    pub async fn get_resources_by_type(&self, ty: ResourceType) -> Vec<ResourceRecord> {
+        self.res
+            .lock()
+            .await
+            .res
+            .iter()
+            .filter(|(_, r)| r.rtype() == ty)
+            .map(ResourceRecord::from_ref)
+            .collect()
+    }
+
+    pub async fn get_resource(&self, ty: ResourceType, id: Uuid) -> Option<ResourceRecord> {
+        self.res
+            .lock()
+            .await
+            .res
+            .get(&id)
+            .filter(|id| id.rtype() == ty)
+            .map(|r| ResourceRecord::from_ref((&id, r)))
     }
 
     pub fn capabilities(&self) -> Capabilities {

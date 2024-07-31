@@ -84,7 +84,8 @@ async fn main() {
 
     let config = config::parse("config.yaml").unwrap();
 
-    let appstate = AppState::new(config);
+    let mut appstate = AppState::new(config);
+    appstate.init().await;
 
     log::info!("Serving mac [{}]", appstate.mac());
 
