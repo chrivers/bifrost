@@ -47,7 +47,10 @@ impl Client {
 
                 let js = serde_json::from_slice(&publ.payload[..]).unwrap_or(json!({}));
                 /* log::info!("{publ:?}"); */
-                yield Event::default().json_data(js).unwrap()
+                yield Event::default()
+                    .id(format!("{}:0", chrono::Utc::now().timestamp()))
+                    .json_data(js)
+                    .unwrap()
             }
         }
     }
