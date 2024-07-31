@@ -1,5 +1,6 @@
 use std::{collections::HashMap, net::Ipv4Addr};
 
+use chrono::{DateTime, Local, Utc};
 use mac_address::MacAddress;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -192,8 +193,8 @@ pub struct ApiConfig {
     pub gateway: Ipv4Addr,
     pub timezone: String,
     #[serde(rename = "UTC")]
-    pub utc: String,
-    pub localtime: String,
+    pub utc: DateTime<Utc>,
+    pub localtime: DateTime<Local>,
     pub whitelist: HashMap<Uuid, Whitelist>,
 }
 
@@ -249,9 +250,9 @@ impl Default for ApiConfig {
             ipaddress: Ipv4Addr::UNSPECIFIED,
             netmask: Ipv4Addr::UNSPECIFIED,
             gateway: Ipv4Addr::UNSPECIFIED,
-            timezone: "Europe/London".to_string(),
-            utc: "2020-01-01T01:01:01".to_string(),
-            localtime: "2020-01-01T01:01:01".to_string(),
+            timezone: iana_time_zone::get_timezone().unwrap_or_else(|_| "none".to_string()),
+            utc: Utc::now(),
+            localtime: Local::now(),
             whitelist: HashMap::new(),
         }
     }
