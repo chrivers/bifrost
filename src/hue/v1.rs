@@ -62,6 +62,7 @@ pub enum ApiResourceType {
     Scenes,
     Schedules,
     Sensors,
+    Capabilities,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
