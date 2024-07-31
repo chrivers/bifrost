@@ -221,6 +221,22 @@ impl Resource {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ResourceRecord {
+    id: Uuid,
+    #[serde(flatten)]
+    pub obj: Resource,
+}
+
+impl ResourceRecord {
+    pub fn from_ref((id, obj): (&Uuid, &Resource)) -> Self {
+        Self {
+            id: *id,
+            obj: obj.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct V2Reply<T> {
     pub data: Vec<T>,
     pub errors: Vec<String>,
