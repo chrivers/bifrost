@@ -23,13 +23,13 @@ pub enum ResourceType {
     ZigbeeDeviceDiscovery,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DollarRef {
     #[serde(rename = "$ref")]
     dref: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
     configuration_schema: DollarRef,
     description: String,
@@ -41,21 +41,21 @@ pub struct BehaviorScript {
     version: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Bridge {
     pub bridge_id: String,
     pub owner: ResourceLink,
     pub time_zone: TimeZone,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BridgeHome {
     children: Vec<ResourceLink>,
     id_v1: String,
     services: Vec<ResourceLink>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Device {
     pub product_data: DeviceProductData,
     pub metadata: Metadata,
@@ -63,7 +63,7 @@ pub struct Device {
     pub services: Vec<ResourceLink>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeviceProductData {
     pub model_id: String,
     pub manufacturer_name: String,
@@ -73,7 +73,7 @@ pub struct DeviceProductData {
     pub software_version: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Entertainment {
     equalizer: bool,
     id_v1: String,
@@ -84,30 +84,30 @@ pub struct Entertainment {
     segments: EntertainmentSegments,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentSegments {
     configurable: bool,
     max_segments: u32,
     segments: Vec<EntertainmentSegment>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentSegment {
     length: u32,
     start: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GeofenceClient {
     name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Geolocation {
     is_configured: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupedLight {
     alert: Value,
     color: Value,
@@ -122,7 +122,7 @@ pub struct GroupedLight {
     signaling: Value,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Homekit {
     status: String,
     status_values: Vec<String>,
@@ -141,59 +141,59 @@ impl Default for Homekit {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct XY {
     x: f32,
     y: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorGamut {
     red: XY,
     green: XY,
     blue: XY,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightColor {
     gamut: ColorGamut,
     gamut_type: String,
     xy: XY,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MirekSchema {
     mirek_minimum: u32,
     mirek_maximum: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperatureUpdate {
     mirek: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperature {
     mirek: u32,
     mirek_schema: MirekSchema,
     mirek_valid: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dimming {
     brightness: f64,
     min_dim_level: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DimmingUpdate {
     brightness: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Delta {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Metadata {
     pub name: String,
     archetype: String,
@@ -220,12 +220,12 @@ impl Metadata {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct On {
     on: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
     id: Uuid,
     id_v1: String,
@@ -303,13 +303,13 @@ pub struct Light {
     /* }, */
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Matter {
     has_qr_code: bool,
     max_fabrics: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum RoomArchetypes {
     LivingRoom,
@@ -354,7 +354,7 @@ pub enum RoomArchetypes {
     Other,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Room {
     pub children: Vec<ResourceLink>,
     pub id_v1: String,
@@ -362,20 +362,20 @@ pub struct Room {
     pub services: Vec<ResourceLink>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneAction {
     color_temperature: ColorTemperatureUpdate,
     dimming: DimmingUpdate,
     on: On,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneActionElement {
     action: SceneAction,
     target: ResourceLink,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     appdata: Option<String>,
@@ -383,12 +383,12 @@ pub struct SceneMetadata {
     name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneStatus {
     active: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scene {
     actions: Vec<SceneActionElement>,
     auto_dynamic: bool,
@@ -416,7 +416,7 @@ pub struct Scene {
     status: SceneStatus,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SmartScene {
     /* active_timeslot: { */
     /*     timeslot_id: 3, */
@@ -430,13 +430,13 @@ pub struct SmartScene {
     week_timeslots: Value,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ZigbeeConnectivityStatus {
     ConnectivityIssue,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
     id_v1: String,
     mac_address: String,
@@ -444,13 +444,13 @@ pub struct ZigbeeConnectivity {
     status: ZigbeeConnectivityStatus,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeDeviceDiscovery {
     owner: ResourceLink,
     status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Resource {
     BehaviorScript(BehaviorScript),
@@ -516,13 +516,13 @@ pub struct V2Reply<T> {
     pub errors: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ResourceLink {
     pub rid: Uuid,
     pub rtype: ResourceType,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimeZone {
     pub time_zone: String,
 }
