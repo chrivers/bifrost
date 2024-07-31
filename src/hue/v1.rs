@@ -68,7 +68,7 @@ pub enum ApiResourceType {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewUser {
     devicetype: String,
-    generateclientkey: bool,
+    generateclientkey: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
