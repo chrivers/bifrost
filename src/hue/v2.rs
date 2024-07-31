@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
-pub enum ClipResourceType {
+pub enum ResourceType {
     BehaviorScript,
     Bridge,
     BridgeHome,
@@ -201,6 +201,25 @@ pub enum Resource {
     ZigbeeDeviceDiscovery(ZigbeeDeviceDiscovery),
 }
 
+impl Resource {
+    pub fn rtype(&self) -> ResourceType {
+        match self {
+            Self::BehaviorScript(_) => ResourceType::BehaviorScript,
+            Self::Bridge(_) => ResourceType::Bridge,
+            Self::BridgeHome(_) => ResourceType::BridgeHome,
+            Self::Device(_) => ResourceType::Device,
+            Self::Entertainment(_) => ResourceType::Entertainment,
+            Self::GeofenceClient(_) => ResourceType::GeofenceClient,
+            Self::GroupedLight(_) => ResourceType::GroupedLight,
+            Self::Light(_) => ResourceType::Light,
+            Self::Room(_) => ResourceType::Room,
+            Self::Scene(_) => ResourceType::Scene,
+            Self::ZigbeeConnectivity(_) => ResourceType::ZigbeeConnectivity,
+            Self::ZigbeeDeviceDiscovery(_) => ResourceType::ZigbeeDeviceDiscovery,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct V2Reply<T> {
     pub data: Vec<T>,
@@ -210,7 +229,7 @@ pub struct V2Reply<T> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceLink {
     pub rid: Uuid,
-    pub rtype: ClipResourceType,
+    pub rtype: ResourceType,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
