@@ -25,6 +25,7 @@ pub enum ResourceType {
     SmartScene,
     ZigbeeConnectivity,
     ZigbeeDeviceDiscovery,
+    Zone,
 }
 
 impl ResourceType {
@@ -556,6 +557,15 @@ pub struct ZigbeeDeviceDiscovery {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Zone {
+    id_v1: Option<String>,
+    pub metadata: Metadata,
+    pub children: Vec<ResourceLink>,
+    #[serde(default)]
+    pub services: Vec<ResourceLink>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Resource {
     BehaviorScript(BehaviorScript),
@@ -576,6 +586,7 @@ pub enum Resource {
     SmartScene(SmartScene),
     ZigbeeConnectivity(ZigbeeConnectivity),
     ZigbeeDeviceDiscovery(ZigbeeDeviceDiscovery),
+    Zone(Zone),
 }
 
 impl Resource {
@@ -600,6 +611,7 @@ impl Resource {
             Self::SmartScene(_) => ResourceType::SmartScene,
             Self::ZigbeeConnectivity(_) => ResourceType::ZigbeeConnectivity,
             Self::ZigbeeDeviceDiscovery(_) => ResourceType::ZigbeeDeviceDiscovery,
+            Self::Zone(_) => ResourceType::Zone,
         }
     }
 
@@ -623,6 +635,7 @@ impl Resource {
             ResourceType::SmartScene => Self::SmartScene(from_value(obj)?),
             ResourceType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
             ResourceType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
+            ResourceType::Zone => Self::Zone(from_value(obj)?),
         };
         Ok(res)
     }
