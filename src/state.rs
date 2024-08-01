@@ -38,14 +38,12 @@ impl Resources {
         self.id_v1
     }
 
-    fn add(&mut self, link: ResourceLink, obj: Resource) {
-        if link.rtype != obj.rtype() {
-            panic!(
+    fn add(&mut self, link: &ResourceLink, obj: Resource) {
+        assert!(link.rtype == obj.rtype(),
                 "Link type failed: {:?} expected but {:?} given",
                 link.rtype,
                 obj.rtype()
-            );
-        }
+        );
 
         self.add_named(link.rid, obj);
     }
@@ -129,23 +127,23 @@ impl AppState {
         }
     }
 
-    pub async fn init(&mut self) {
+    pub async fn init(&self) {
         let mut res = self.res.lock().await;
 
         res.add_bridge(self.bridge_id());
         let link = res.add_light();
-        res.add_room(&[link])
+        res.add_room(&[link]);
     }
 
-    pub fn mac(&self) -> MacAddress {
+    pub const fn mac(&self) -> MacAddress {
         self.conf.bridge.mac
     }
 
-    pub fn ip(&self) -> Ipv4Addr {
+    pub const fn ip(&self) -> Ipv4Addr {
         self.conf.bridge.ipaddress
     }
 
-    pub fn mqtt_config(&self) -> &MqttConfig {
+    pub const fn mqtt_config(&self) -> &MqttConfig {
         &self.conf.mqtt
     }
 

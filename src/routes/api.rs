@@ -33,6 +33,7 @@ async fn post_api(Json(j): Json<NewUser>) -> impl IntoResponse {
     Json(vec![HueResult::Success(res)])
 }
 
+#[allow(clippy::zero_sized_map_values)]
 async fn get_api_user(state: State<AppState>, Path(username): Path<Uuid>) -> impl IntoResponse {
     Json(ApiUserConfig {
         config: state.api_config(username),
@@ -53,12 +54,12 @@ async fn get_api_user_resource(
     /* info!("user {username} resource {resource:?}"); */
     match resource {
         ApiResourceType::Config => Json(json!(state.api_config(username))),
-        ApiResourceType::Groups => Json(json!({})),
-        ApiResourceType::Lights => Json(json!({})),
-        ApiResourceType::Resourcelinks => Json(json!({})),
-        ApiResourceType::Rules => Json(json!({})),
-        ApiResourceType::Scenes => Json(json!({})),
-        ApiResourceType::Schedules => Json(json!({})),
+        ApiResourceType::Groups |
+        ApiResourceType::Lights |
+        ApiResourceType::Resourcelinks |
+        ApiResourceType::Rules |
+        ApiResourceType::Scenes |
+        ApiResourceType::Schedules |
         ApiResourceType::Sensors => Json(json!({})),
         ApiResourceType::Capabilities => Json(json!(Capabilities::new())),
     }

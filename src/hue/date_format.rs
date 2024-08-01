@@ -42,6 +42,6 @@ pub mod local {
         let dt = NaiveDateTime::parse_from_str(&s, super::FORMAT).map_err(Error::custom)?;
         dt.and_local_timezone(Local)
             .single()
-            .ok_or(Error::custom("Localtime conversion failed"))
+            .ok_or_else(|| Error::custom("Localtime conversion failed"))
     }
 }
