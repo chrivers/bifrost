@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
 use crate::hue::best_guess_timezone;
@@ -601,6 +601,32 @@ impl Resource {
             Self::ZigbeeConnectivity(_) => ResourceType::ZigbeeConnectivity,
             Self::ZigbeeDeviceDiscovery(_) => ResourceType::ZigbeeDeviceDiscovery,
         }
+    }
+
+    pub fn from_value(rtype: ResourceType, obj: Value) -> Result<Self, serde_json::Error> {
+        let res = match rtype {
+            ResourceType::BehaviorScript => Resource::BehaviorScript(from_value(obj)?),
+            ResourceType::BehaviorInstance => Resource::BehaviorInstance(from_value(obj)?),
+            ResourceType::Bridge => Resource::Bridge(from_value(obj)?),
+            ResourceType::BridgeHome => Resource::BridgeHome(from_value(obj)?),
+            ResourceType::Device => Resource::Device(from_value(obj)?),
+            ResourceType::Entertainment => Resource::Entertainment(from_value(obj)?),
+            ResourceType::GeofenceClient => Resource::GeofenceClient(from_value(obj)?),
+            ResourceType::Geolocation => Resource::Geolocation(from_value(obj)?),
+            ResourceType::GroupedLight => Resource::GroupedLight(from_value(obj)?),
+            ResourceType::Homekit => Resource::Homekit(from_value(obj)?),
+            ResourceType::Light => Resource::Light(from_value(obj)?),
+            ResourceType::Matter => Resource::Matter(from_value(obj)?),
+            ResourceType::PublicImage => Resource::PublicImage(from_value(obj)?),
+            ResourceType::Room => Resource::Room(from_value(obj)?),
+            ResourceType::Scene => Resource::Scene(from_value(obj)?),
+            ResourceType::SmartScene => Resource::SmartScene(from_value(obj)?),
+            ResourceType::ZigbeeConnectivity => Resource::ZigbeeConnectivity(from_value(obj)?),
+            ResourceType::ZigbeeDeviceDiscovery => {
+                Resource::ZigbeeDeviceDiscovery(from_value(obj)?)
+            }
+        };
+        Ok(res)
     }
 }
 
