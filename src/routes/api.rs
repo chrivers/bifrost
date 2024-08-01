@@ -54,13 +54,13 @@ async fn get_api_user_resource(
     /* info!("user {username} resource {resource:?}"); */
     match resource {
         ApiResourceType::Config => Json(json!(state.api_config(username))),
-        ApiResourceType::Groups |
-        ApiResourceType::Lights |
-        ApiResourceType::Resourcelinks |
-        ApiResourceType::Rules |
-        ApiResourceType::Scenes |
-        ApiResourceType::Schedules |
-        ApiResourceType::Sensors => Json(json!({})),
+        ApiResourceType::Groups
+        | ApiResourceType::Lights
+        | ApiResourceType::Resourcelinks
+        | ApiResourceType::Rules
+        | ApiResourceType::Scenes
+        | ApiResourceType::Schedules
+        | ApiResourceType::Sensors => Json(json!({})),
         ApiResourceType::Capabilities => Json(json!(Capabilities::new())),
     }
 }

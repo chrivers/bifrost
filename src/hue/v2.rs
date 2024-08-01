@@ -640,7 +640,9 @@ pub struct TimeZone {
 impl TimeZone {
     #[must_use]
     pub fn best_guess() -> Self {
-        Self { time_zone: best_guess_timezone() }
+        Self {
+            time_zone: best_guess_timezone(),
+        }
     }
 }
 

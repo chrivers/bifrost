@@ -10,7 +10,8 @@ use uuid::Uuid;
 use crate::config::{AppConfig, MqttConfig};
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::hue::v2::{
-    Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord, ResourceType, Room, RoomArchetypes, Scene, TimeZone
+    Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
+    ResourceType, Room, RoomArchetypes, Scene, TimeZone,
 };
 
 #[derive(Clone)]
@@ -38,10 +39,11 @@ impl Resources {
     }
 
     fn add(&mut self, link: &ResourceLink, obj: Resource) {
-        assert!(link.rtype == obj.rtype(),
-                "Link type failed: {:?} expected but {:?} given",
-                link.rtype,
-                obj.rtype()
+        assert!(
+            link.rtype == obj.rtype(),
+            "Link type failed: {:?} expected but {:?} given",
+            link.rtype,
+            obj.rtype()
         );
 
         self.add_named(link.rid, obj);
