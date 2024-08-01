@@ -1,3 +1,30 @@
+#![warn(
+    clippy::all,
+    clippy::correctness,
+    clippy::pedantic,
+    clippy::cargo,
+    clippy::nursery,
+    clippy::perf,
+    clippy::style
+)]
+#![allow(
+    clippy::cargo_common_metadata,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::if_not_else,
+    clippy::inline_always,
+    clippy::many_single_char_names,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::module_name_repetitions,
+    clippy::multiple_crate_versions,
+    clippy::similar_names,
+    clippy::future_not_send
+)]
+
+
 use std::net::Ipv4Addr;
 use std::{net::SocketAddr, time::Duration};
 
