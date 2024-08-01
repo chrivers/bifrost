@@ -50,7 +50,7 @@ impl Default for ApiShortConfig {
             modelid: crate::hue::HUE_BRIDGE_V2_MODEL_ID.to_string(),
             name: "Bifrost Bridge".to_string(),
             replacesbridgeid: None,
-            starterkitid: "".to_string(),
+            starterkitid: String::new(),
             swversion: "1965111030".to_string(),
         }
     }
@@ -155,6 +155,8 @@ pub struct SoftwareUpdate2 {
 }
 
 impl SoftwareUpdate2 {
+    #[allow(clippy::new_without_default)]
+    #[must_use]
     pub fn new() -> Self {
         Self {
             autoinstall: json!({ "on": true, "install": false, "updatetime": "T14:00:00" }),
@@ -176,6 +178,7 @@ pub struct Whitelist {
     pub name: String,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiConfig {
     pub analyticsconsent: bool,
@@ -224,6 +227,7 @@ pub struct ApiSchedule {}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiSensor {}
 
+#[allow(clippy::zero_sized_map_values)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiUserConfig {
     pub config: ApiConfig,
@@ -240,14 +244,14 @@ impl Default for ApiConfig {
     fn default() -> Self {
         Self {
             analyticsconsent: false,
-            backup: Default::default(),
-            short_config: Default::default(),
+            backup: ApiBackup::default(),
+            short_config: ApiShortConfig::default(),
             dhcp: true,
-            internetservices: Default::default(),
+            internetservices: ApiInternetServices::default(),
             linkbutton: Default::default(),
             portalconnection: ConnectionState::Disconnected,
             portalservices: Default::default(),
-            portalstate: Default::default(),
+            portalstate: PortalState::default(),
             proxyaddress: "none".to_string(),
             proxyport: Default::default(),
             swupdate2: SoftwareUpdate2::new(),
@@ -270,8 +274,9 @@ pub struct Capacity {
 }
 
 impl Capacity {
-    pub fn new(total: u32, available: u32) -> Self {
-        Self { total, available }
+    #[must_use]
+    pub const fn new(total: u32, available: u32) -> Self {
+        Self { available, total }
     }
 }
 
@@ -319,6 +324,7 @@ pub struct Capabilities {
 }
 
 impl Capabilities {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             lights: Capacity::new(63, 60),
