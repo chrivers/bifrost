@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::hue::best_guess_timezone;
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ResourceType {
     BehaviorScript,
@@ -202,6 +202,7 @@ pub struct Metadata {
 }
 
 impl Metadata {
+    #[must_use]
     pub fn new(archetype: &str, name: &str) -> Self {
         Self {
             name: name.to_string(),
@@ -209,14 +210,17 @@ impl Metadata {
         }
     }
 
+    #[must_use]
     pub fn room(archetype: RoomArchetypes, name: &str) -> Self {
         Self::new(json!(archetype).as_str().unwrap(), name)
     }
 
+    #[must_use]
     pub fn hue_bridge(name: &str) -> Self {
         Self::new("bridge_v2", name)
     }
 
+    #[must_use]
     pub fn spot_bulb(name: &str) -> Self {
         Self::new("spot_bulb", name)
     }
@@ -278,6 +282,7 @@ pub struct Light {
 }
 
 impl Light {
+    #[must_use]
     pub fn new(id: u32, owner: ResourceLink) -> Self {
         Self {
             id_v1: format!("/lights/{id}"),
@@ -308,7 +313,7 @@ impl Light {
             color_temperature_delta: Delta {},
             dimming: Dimming {
                 brightness: 100.0,
-                min_dim_level: 0.20000000298023224,
+                min_dim_level: 0.2,
             },
             dimming_delta: Delta {},
             dynamics: json!({
@@ -546,7 +551,8 @@ pub enum Resource {
 }
 
 impl Resource {
-    pub fn rtype(&self) -> ResourceType {
+    #[must_use]
+    pub const fn rtype(&self) -> ResourceType {
         match self {
             Self::BehaviorScript(_) => ResourceType::BehaviorScript,
             Self::Bridge(_) => ResourceType::Bridge,
@@ -576,6 +582,7 @@ pub struct ResourceRecord {
 }
 
 impl ResourceRecord {
+    #[must_use]
     pub fn from_ref((id, obj): (&Uuid, &Resource)) -> Self {
         Self {
             id: *id,
@@ -597,11 +604,13 @@ pub struct ResourceLink {
 }
 
 impl ResourceLink {
-    pub fn new(rid: Uuid, rtype: ResourceType) -> Self {
+    #[must_use]
+    pub const fn new(rid: Uuid, rtype: ResourceType) -> Self {
         Self { rid, rtype }
     }
 
-    pub fn to(rid: Uuid, res: &Resource) -> Self {
+    #[must_use]
+    pub const fn to(rid: Uuid, res: &Resource) -> Self {
         Self {
             rid,
             rtype: res.rtype(),
@@ -615,12 +624,14 @@ pub struct TimeZone {
 }
 
 impl TimeZone {
+    #[must_use]
     pub fn best_guess() -> Self {
         Self { time_zone: best_guess_timezone() }
     }
 }
 
 impl DeviceProductData {
+    #[must_use]
     pub fn hue_color_spot() -> Self {
         Self {
             model_id: "LCG002".to_string(),
@@ -632,6 +643,7 @@ impl DeviceProductData {
         }
     }
 
+    #[must_use]
     pub fn hue_bridge_v2() -> Self {
         Self {
             certified: true,
