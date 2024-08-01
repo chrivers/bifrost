@@ -398,7 +398,7 @@ pub struct Matter {
     max_fabrics: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum RoomArchetypes {
     LivingRoom,
