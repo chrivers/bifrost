@@ -17,6 +17,7 @@ use crate::hue::v2::{
     Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
     ResourceType, Room, RoomArchetypes, Scene, TimeZone,
 };
+use crate::error::{ApiError, ApiResult};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -82,16 +83,16 @@ impl Resources {
         let _ = self.chan.send(evt);
     }
 
-    pub fn delete(&mut self, link: &ResourceLink) {
-        let evt = EventBlock::delete(
-            serde_json::to_value(self.get_resource_by_id(link.rid).unwrap()).unwrap(),
-        );
+    pub fn delete(&mut self, link: &ResourceLink) -> ApiResult<()> {
+        let evt = EventBlock::delete(&link)?;
 
-        self.res.remove(&link.rid);
+        self.res.remove(&link.rid).ok_or(ApiError::NotFound(link.rid))?;
 
         log::info!("evt: {evt:?}");
 
         let _ = self.chan.send(evt);
+
+        Ok(())
     }
 
     pub fn add_bridge(&mut self, bridge_id: String) {
@@ -168,10 +169,11 @@ impl Resources {
             .map(|r| ResourceRecord::from_ref((&id, r)))
     }
 
-    pub fn get_resource_by_id(&self, id: Uuid) -> Option<ResourceRecord> {
+    pub fn get_resource_by_id(&self, id: Uuid) -> Result<ResourceRecord, ApiError> {
         self.res
             .get(&id)
             .map(|r| ResourceRecord::from_ref((&id, r)))
+            .ok_or(ApiError::NotFound(id))
     }
 
     pub fn get_resources(&self) -> Vec<ResourceRecord> {

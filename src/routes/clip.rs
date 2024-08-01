@@ -130,7 +130,7 @@ async fn delete_resource_id(
 ) -> ApiV2Result {
     log::info!("DELETE {rtype:?}/{id}");
     let link = rtype.link_to(id);
-    state.res.lock().await.delete(&link);
+    state.res.lock().await.delete(&link)?;
 
     V2Reply::ok(link)
 }
