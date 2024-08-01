@@ -605,26 +605,24 @@ impl Resource {
 
     pub fn from_value(rtype: ResourceType, obj: Value) -> Result<Self, serde_json::Error> {
         let res = match rtype {
-            ResourceType::BehaviorScript => Resource::BehaviorScript(from_value(obj)?),
-            ResourceType::BehaviorInstance => Resource::BehaviorInstance(from_value(obj)?),
-            ResourceType::Bridge => Resource::Bridge(from_value(obj)?),
-            ResourceType::BridgeHome => Resource::BridgeHome(from_value(obj)?),
-            ResourceType::Device => Resource::Device(from_value(obj)?),
-            ResourceType::Entertainment => Resource::Entertainment(from_value(obj)?),
-            ResourceType::GeofenceClient => Resource::GeofenceClient(from_value(obj)?),
-            ResourceType::Geolocation => Resource::Geolocation(from_value(obj)?),
-            ResourceType::GroupedLight => Resource::GroupedLight(from_value(obj)?),
-            ResourceType::Homekit => Resource::Homekit(from_value(obj)?),
-            ResourceType::Light => Resource::Light(from_value(obj)?),
-            ResourceType::Matter => Resource::Matter(from_value(obj)?),
-            ResourceType::PublicImage => Resource::PublicImage(from_value(obj)?),
-            ResourceType::Room => Resource::Room(from_value(obj)?),
-            ResourceType::Scene => Resource::Scene(from_value(obj)?),
-            ResourceType::SmartScene => Resource::SmartScene(from_value(obj)?),
-            ResourceType::ZigbeeConnectivity => Resource::ZigbeeConnectivity(from_value(obj)?),
-            ResourceType::ZigbeeDeviceDiscovery => {
-                Resource::ZigbeeDeviceDiscovery(from_value(obj)?)
-            }
+            ResourceType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
+            ResourceType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
+            ResourceType::Bridge => Self::Bridge(from_value(obj)?),
+            ResourceType::BridgeHome => Self::BridgeHome(from_value(obj)?),
+            ResourceType::Device => Self::Device(from_value(obj)?),
+            ResourceType::Entertainment => Self::Entertainment(from_value(obj)?),
+            ResourceType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
+            ResourceType::Geolocation => Self::Geolocation(from_value(obj)?),
+            ResourceType::GroupedLight => Self::GroupedLight(from_value(obj)?),
+            ResourceType::Homekit => Self::Homekit(from_value(obj)?),
+            ResourceType::Light => Self::Light(from_value(obj)?),
+            ResourceType::Matter => Self::Matter(from_value(obj)?),
+            ResourceType::PublicImage => Self::PublicImage(from_value(obj)?),
+            ResourceType::Room => Self::Room(from_value(obj)?),
+            ResourceType::Scene => Self::Scene(from_value(obj)?),
+            ResourceType::SmartScene => Self::SmartScene(from_value(obj)?),
+            ResourceType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
+            ResourceType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
         };
         Ok(res)
     }
