@@ -117,7 +117,7 @@ async fn https_server(
 async fn main() -> ApiResult<()> {
     colog::init();
 
-    let config = config::parse("config.yaml").unwrap();
+    let config = config::parse("config.yaml")?;
 
     let appstate = AppState::new(config);
     if let Ok(fd) = File::open("state.yaml") {

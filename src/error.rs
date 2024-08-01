@@ -13,6 +13,9 @@ pub enum ApiError {
     IOError(#[from] std::io::Error),
 
     #[error(transparent)]
+    ConfigError(#[from] config::ConfigError),
+
+    #[error(transparent)]
     MqttError(#[from] rumqttc::v5::ClientError),
 
     #[error(transparent)]
