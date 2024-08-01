@@ -75,9 +75,7 @@ impl Resources {
         let br = Bridge {
             bridge_id,
             owner: link_device.clone(),
-            time_zone: TimeZone {
-                time_zone: "Europe/Copenhagen".to_string(),
-            },
+            time_zone: TimeZone::best_guess(),
         };
 
         self.add(link_device, Resource::Device(dev));

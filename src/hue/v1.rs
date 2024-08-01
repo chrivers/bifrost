@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::hue::best_guess_timezone;
+
 use super::date_format;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -253,7 +255,7 @@ impl Default for ApiConfig {
             ipaddress: Ipv4Addr::UNSPECIFIED,
             netmask: Ipv4Addr::UNSPECIFIED,
             gateway: Ipv4Addr::UNSPECIFIED,
-            timezone: iana_time_zone::get_timezone().unwrap_or_else(|_| "none".to_string()),
+            timezone: best_guess_timezone(),
             utc: Utc::now(),
             localtime: Local::now(),
             whitelist: HashMap::new(),

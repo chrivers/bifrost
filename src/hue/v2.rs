@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::hue::best_guess_timezone;
+
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ResourceType {
@@ -610,6 +612,12 @@ impl ResourceLink {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimeZone {
     pub time_zone: String,
+}
+
+impl TimeZone {
+    pub fn best_guess() -> Self {
+        Self { time_zone: best_guess_timezone() }
+    }
 }
 
 impl DeviceProductData {
