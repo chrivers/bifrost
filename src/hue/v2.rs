@@ -38,10 +38,7 @@ impl ResourceType {
 
     #[must_use]
     pub fn link_to(self, rid: Uuid) -> ResourceLink {
-        ResourceLink {
-            rid,
-            rtype: self,
-        }
+        ResourceLink { rid, rtype: self }
     }
 }
 
@@ -64,8 +61,7 @@ pub struct BehaviorScript {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BehaviorInstance {
-}
+pub struct BehaviorInstance {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Bridge {

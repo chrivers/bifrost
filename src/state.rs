@@ -92,7 +92,6 @@ impl Resources {
         log::info!("evt: {evt:?}");
 
         let _ = self.chan.send(evt);
-
     }
 
     pub fn add_bridge(&mut self, bridge_id: String) {
