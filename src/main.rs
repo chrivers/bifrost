@@ -24,7 +24,7 @@
     clippy::future_not_send
 )]
 
-
+use std::fs::File;
 use std::net::Ipv4Addr;
 use std::{net::SocketAddr, time::Duration};
 
@@ -112,7 +112,11 @@ async fn main() {
     let config = config::parse("config.yaml").unwrap();
 
     let appstate = AppState::new(config);
-    appstate.init().await;
+    if let Ok(fd) = File::open("state.yaml") {
+        appstate.res.lock().await.load(fd).unwrap();
+    } else {
+        appstate.res.lock().await.init(&appstate.bridge_id());
+    }
 
     log::info!("Serving mac [{}]", appstate.mac());
 

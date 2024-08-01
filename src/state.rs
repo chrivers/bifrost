@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{Read, Write};
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 
@@ -33,6 +35,21 @@ impl Resources {
         }
     }
 
+    pub fn load(&mut self, rdr: impl Read) -> Result<(), serde_yaml::Error> {
+        self.res = serde_yaml::from_reader(rdr)?;
+        Ok(())
+    }
+
+    pub fn save(&self, wr: impl Write) -> Result<(), serde_yaml::Error> {
+        serde_yaml::to_writer(wr, &self.res)
+    }
+
+    pub fn init(&mut self, bridge_id: &str) {
+        self.add_bridge(bridge_id.to_owned());
+        let link = self.add_light();
+        self.add_room_init(&[link]);
+    }
+
     fn next_idv1(&mut self) -> u32 {
         self.id_v1 += 1;
         self.id_v1
@@ -47,6 +64,10 @@ impl Resources {
         );
 
         self.add_named(link.rid, obj);
+
+        if let Ok(fd) = File::create("state.yaml") {
+            self.save(fd).unwrap();
+        }
     }
 
     fn add_named(&mut self, uuid: Uuid, obj: Resource) {
@@ -95,7 +116,7 @@ impl Resources {
         res
     }
 
-    pub fn add_room(&mut self, children: &[ResourceLink]) {
+    pub fn add_room_init(&mut self, children: &[ResourceLink]) {
         let link_room = ResourceType::Room.link();
 
         let room = Room {
@@ -113,6 +134,37 @@ impl Resources {
         self.add(&link, Resource::Scene(scene));
         link
     }
+
+    pub fn add_room(&mut self, room: Room) -> ResourceLink {
+        let link = ResourceType::Room.link();
+        self.add(&link, Resource::Room(room));
+        link
+    }
+
+    pub fn get_resource(&self, ty: ResourceType, id: Uuid) -> Option<ResourceRecord> {
+        self.res
+            .get(&id)
+            .filter(|id| id.rtype() == ty)
+            .map(|r| ResourceRecord::from_ref((&id, r)))
+    }
+
+    pub fn get_resource_by_id(&self, id: Uuid) -> Option<ResourceRecord> {
+        self.res
+            .get(&id)
+            .map(|r| ResourceRecord::from_ref((&id, r)))
+    }
+
+    pub fn get_resources(&self) -> Vec<ResourceRecord> {
+        self.res.iter().map(ResourceRecord::from_ref).collect()
+    }
+
+    pub fn get_resources_by_type(&self, ty: ResourceType) -> Vec<ResourceRecord> {
+        self.res
+            .iter()
+            .filter(|(_, r)| r.rtype() == ty)
+            .map(ResourceRecord::from_ref)
+            .collect()
+    }
 }
 
 impl AppState {
@@ -121,14 +173,6 @@ impl AppState {
             conf,
             res: Arc::new(Mutex::new(Resources::new())),
         }
-    }
-
-    pub async fn init(&self) {
-        let mut res = self.res.lock().await;
-
-        res.add_bridge(self.bridge_id());
-        let link = res.add_light();
-        res.add_room(&[link]);
     }
 
     pub const fn mac(&self) -> MacAddress {
@@ -179,33 +223,14 @@ impl AppState {
     }
 
     pub async fn get_resources(&self) -> Vec<ResourceRecord> {
-        self.res
-            .lock()
-            .await
-            .res
-            .iter()
-            .map(ResourceRecord::from_ref)
-            .collect()
+        self.res.lock().await.get_resources()
     }
 
     pub async fn get_resources_by_type(&self, ty: ResourceType) -> Vec<ResourceRecord> {
-        self.res
-            .lock()
-            .await
-            .res
-            .iter()
-            .filter(|(_, r)| r.rtype() == ty)
-            .map(ResourceRecord::from_ref)
-            .collect()
+        self.res.lock().await.get_resources_by_type(ty)
     }
 
     pub async fn get_resource(&self, ty: ResourceType, id: Uuid) -> Option<ResourceRecord> {
-        self.res
-            .lock()
-            .await
-            .res
-            .get(&id)
-            .filter(|id| id.rtype() == ty)
-            .map(|r| ResourceRecord::from_ref((&id, r)))
+        self.res.lock().await.get_resource(ty, id)
     }
 }

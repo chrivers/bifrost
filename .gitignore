@@ -2,4 +2,5 @@
 /cert.pem
 /notes
 /config.yaml
+/state.yaml
 *~
