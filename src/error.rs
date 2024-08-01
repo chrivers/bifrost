@@ -6,6 +6,12 @@ pub enum ApiError {
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
+    #[error(transparent)]
+    SerdeYaml(#[from] serde_yaml::Error),
+
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+
     #[error("Request failed: {0}")]
     Fail(&'static str),
 
