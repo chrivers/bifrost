@@ -52,16 +52,9 @@ impl Resources {
         self.res.insert(uuid, obj);
     }
 
-    pub fn link(&self, rtype: ResourceType) -> ResourceLink {
-        ResourceLink {
-            rid: Uuid::new_v4(),
-            rtype,
-        }
-    }
-
     pub fn add_bridge(&mut self, bridge_id: String) {
-        let link_device = self.link(ResourceType::Device);
-        let link_bridge = self.link(ResourceType::Bridge);
+        let link_device = ResourceType::Device.link();
+        let link_bridge = ResourceType::Bridge.link();
 
         let dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
@@ -76,13 +69,13 @@ impl Resources {
             time_zone: TimeZone::best_guess(),
         };
 
-        self.add(link_device, Resource::Device(dev));
-        self.add(link_bridge, Resource::Bridge(br));
+        self.add(&link_device, Resource::Device(dev));
+        self.add(&link_bridge, Resource::Bridge(br));
     }
 
     pub fn add_light(&mut self) -> ResourceLink {
-        let link_device = self.link(ResourceType::Device);
-        let link_light = self.link(ResourceType::Light);
+        let link_device = ResourceType::Device.link();
+        let link_light = ResourceType::Light.link();
 
         let dev = Device {
             product_data: DeviceProductData::hue_color_spot(),
@@ -95,14 +88,14 @@ impl Resources {
 
         let res = link_device.clone();
 
-        self.add(link_device, Resource::Device(dev));
-        self.add(link_light, Resource::Light(light));
+        self.add(&link_device, Resource::Device(dev));
+        self.add(&link_light, Resource::Light(light));
 
         res
     }
 
     pub fn add_room(&mut self, children: &[ResourceLink]) {
-        let link_room = self.link(ResourceType::Room);
+        let link_room = ResourceType::Room.link();
 
         let room = Room {
             id_v1: "/room/1".to_string(),
@@ -111,7 +104,7 @@ impl Resources {
             services: vec![],
         };
 
-        self.add(link_room, Resource::Room(room));
+        self.add(&link_room, Resource::Room(room));
     }
 
     pub fn to_json(&self) -> Value {

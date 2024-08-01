@@ -25,6 +25,15 @@ pub enum ResourceType {
     ZigbeeDeviceDiscovery,
 }
 
+impl ResourceType {
+    pub fn link(self) -> ResourceLink {
+        ResourceLink {
+            rid: Uuid::new_v4(),
+            rtype: self,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DollarRef {
     #[serde(rename = "$ref")]
