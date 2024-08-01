@@ -12,6 +12,12 @@ pub enum ApiError {
     #[error(transparent)]
     IOError(#[from] std::io::Error),
 
+    #[error(transparent)]
+    MqttError(#[from] rumqttc::v5::ClientError),
+
+    #[error(transparent)]
+    AxumError(#[from] axum::Error),
+
     #[error("Request failed: {0}")]
     Fail(&'static str),
 

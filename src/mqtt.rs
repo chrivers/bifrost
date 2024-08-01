@@ -1,4 +1,4 @@
-use std::{convert::Infallible, time::Duration};
+use std::time::Duration;
 
 use async_stream::try_stream;
 use axum::response::sse::Event;
@@ -8,6 +8,8 @@ use serde_json::json;
 use rumqttc::v5::mqttbytes::v5::{Filter, Packet, RetainForwardRule};
 use rumqttc::v5::mqttbytes::QoS;
 use rumqttc::v5::{AsyncClient, EventLoop, MqttOptions};
+
+use crate::error::ApiResult;
 
 pub struct Client {
     client: AsyncClient,
@@ -28,14 +30,15 @@ impl Client {
         Self { client, connection }
     }
 
-    pub async fn subscribe(&self, topic: &str) {
+    pub async fn subscribe(&self, topic: &str) -> ApiResult<()> {
         let mut f = Filter::new(topic, QoS::AtLeastOnce);
         f.retain_forward_rule = RetainForwardRule::OnEverySubscribe;
-        self.client.subscribe_many([f]).await.unwrap();
+        self.client.subscribe_many([f]).await?;
+        Ok(())
     }
 
     #[allow(unreachable_code, unused_variables)]
-    pub fn into_stream(mut self) -> impl Stream<Item = Result<Event, Infallible>> {
+    pub fn into_stream(mut self) -> impl Stream<Item = ApiResult<Event>> {
         try_stream! {
             yield Event::default().comment("hi");
 
@@ -54,8 +57,7 @@ impl Client {
                 /* log::info!("{publ:?}"); */
                 yield Event::default()
                     .id(format!("{}:0", chrono::Utc::now().timestamp()))
-                    .json_data([js])
-                    .unwrap()
+                    .json_data([js])?
             }
         }
     }
