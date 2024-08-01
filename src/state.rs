@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 
+use chrono::Utc;
 use mac_address::MacAddress;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
@@ -70,8 +71,8 @@ impl AppState {
             whitelist: HashMap::from([(
                 username,
                 Whitelist {
-                    create_date: "2020-01-01T01:01:01".to_string(),
-                    last_use_date: "2020-01-01T01:01:01".to_string(),
+                    create_date: Utc::now(),
+                    last_use_date: Utc::now(),
                     name: "User#foo".to_string(),
                 },
             )]),
