@@ -18,6 +18,7 @@ pub enum ResourceType {
     Homekit,
     Light,
     Matter,
+    PublicImage,
     Room,
     Scene,
     SmartScene,
@@ -167,8 +168,8 @@ pub struct ColorGamut {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightColor {
-    gamut: ColorGamut,
-    gamut_type: String,
+    gamut: Option<ColorGamut>,
+    gamut_type: Option<String>,
     xy: XY,
 }
 
@@ -297,7 +298,7 @@ impl Light {
             id_v1: format!("/lights/{id}"),
             alert: json!({"action_values": ["breathe"]}),
             color: LightColor {
-                gamut: ColorGamut {
+                gamut: Some(ColorGamut {
                     red: XY {
                         x: 0.6915,
                         y: 0.3083,
@@ -307,8 +308,8 @@ impl Light {
                         x: 0.1532,
                         y: 0.0475,
                     },
-                },
-                gamut_type: "C".to_string(),
+                }),
+                gamut_type: Some("C".to_string()),
                 xy: XY { x: 0.4573, y: 0.41 },
             },
             color_temperature: ColorTemperature {
@@ -452,7 +453,8 @@ pub struct Room {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneAction {
-    color_temperature: ColorTemperatureUpdate,
+    color: Option<LightColor>,
+    color_temperature: Option<ColorTemperatureUpdate>,
     dimming: DimmingUpdate,
     on: On,
 }
@@ -467,7 +469,7 @@ pub struct SceneActionElement {
 pub struct SceneMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     appdata: Option<String>,
-    image: ResourceLink,
+    image: Option<ResourceLink>,
     name: String,
 }
 
@@ -479,9 +481,10 @@ pub struct SceneStatus {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scene {
     actions: Vec<SceneActionElement>,
+    #[serde(default)]
     auto_dynamic: bool,
     group: ResourceLink,
-    id_v1: String,
+    id_v1: Option<String>,
     metadata: SceneMetadata,
     /* palette: { */
     /*     color: [], */
@@ -499,9 +502,9 @@ pub struct Scene {
     /*     effects: [] */
     /* }, */
     palette: Value,
-    recall: Value,
+    recall: Option<Value>,
     speed: f64,
-    status: SceneStatus,
+    status: Option<SceneStatus>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
