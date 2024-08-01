@@ -1,8 +1,11 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize)]
+use super::date_format;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase", tag = "type")]
 pub enum Event {
     Add(Add),
@@ -11,23 +14,38 @@ pub enum Event {
     Error(Error),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EventBlock {
-    id: Uuid,
+    #[serde(with = "date_format::utc")]
+    pub creationtime: DateTime<Utc>,
+    pub id: Uuid,
     #[serde(flatten)]
-    event: Event,
+    pub event: Event,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Add {}
+impl EventBlock {
+    #[must_use]
+    pub fn add(data: Value) -> Self {
+        Self {
+            creationtime: Utc::now(),
+            id: Uuid::new_v4(),
+            event: Event::Add(Add { data: vec![data] }),
+        }
+    }
+}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Add {
+    pub data: Vec<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Update {
-    data: Vec<Value>,
+    pub data: Vec<Value>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Delete {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Error {}

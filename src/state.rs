@@ -6,10 +6,12 @@ use std::sync::Arc;
 
 use mac_address::MacAddress;
 use serde_json::json;
+use tokio::sync::broadcast::{Receiver, Sender};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig};
+use crate::hue::event::EventBlock;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::hue::v2::{
     Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
@@ -25,6 +27,7 @@ pub struct AppState {
 pub struct Resources {
     id_v1: u32,
     pub res: HashMap<Uuid, Resource>,
+    pub chan: Sender<EventBlock>,
 }
 
 impl Resources {
@@ -32,6 +35,7 @@ impl Resources {
         Self {
             id_v1: 1,
             res: HashMap::new(),
+            chan: Sender::new(10),
         }
     }
 
@@ -68,6 +72,14 @@ impl Resources {
         if let Ok(fd) = File::create("state.yaml") {
             self.save(fd).unwrap();
         }
+
+        let evt = EventBlock::add(
+            serde_json::to_value(self.get_resource_by_id(link.rid).unwrap()).unwrap(),
+        );
+
+        log::info!("evt: {evt:?}");
+
+        let _ = self.chan.send(evt);
     }
 
     fn add_named(&mut self, uuid: Uuid, obj: Resource) {
@@ -185,6 +197,10 @@ impl AppState {
 
     pub const fn mqtt_config(&self) -> &MqttConfig {
         &self.conf.mqtt
+    }
+
+    pub async fn channel(&self) -> Receiver<EventBlock> {
+        self.res.lock().await.chan.subscribe()
     }
 
     pub fn bridge_id(&self) -> String {

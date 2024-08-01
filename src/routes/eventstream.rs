@@ -1,34 +1,26 @@
-use std::convert::Infallible;
 use std::time::Duration;
 
 use axum::extract::State;
 use axum::response::sse::{Event, Sse};
 use futures::stream::Stream;
+use futures::StreamExt;
+use tokio_stream::wrappers::BroadcastStream;
 
-use crate::mqtt::Client;
 use crate::state::AppState;
 
 pub async fn get_clip_v2(
     State(state): State<AppState>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    let conf = state.mqtt_config();
+) -> Sse<impl Stream<Item = Result<Event, axum::Error>>> {
+    let hello = tokio_stream::iter([Ok(Event::default().comment("hi"))]);
 
-    let mut client = Client::new(
-        "rust-mqtt",
-        &conf.username,
-        &conf.password,
-        &conf.host,
-        1883,
-    );
+    let raw = BroadcastStream::new(state.channel().await);
+    let stream = raw.map(|e| {
+        Event::default()
+            .id(format!("{}:0", chrono::Utc::now().timestamp()))
+            .json_data([e.unwrap()])
+    });
 
-    for topic in &conf.topics {
-        log::debug!("Subscribing to [{topic}]");
-        client.subscribe(topic).await;
-    }
-
-    let stream = client.into_stream();
-
-    Sse::new(stream).keep_alive(
+    Sse::new(hello.chain(stream)).keep_alive(
         axum::response::sse::KeepAlive::new()
             .interval(Duration::from_secs(5))
             .text("keep-alive"),
