@@ -1,10 +1,49 @@
-use axum::extract::State;
-use axum::{extract::Path, response::IntoResponse, routing::get, Json, Router};
+use axum::{
+    extract::{Path, State},
+    response::{IntoResponse, Response},
+    routing::get,
+    Json, Router,
+};
+use serde::Serialize;
 use serde_json::Value;
 use uuid::Uuid;
 
-use crate::hue::v2::{ResourceLink, ResourceType, Room, Scene, V2Reply};
+use crate::hue::v2::{ResourceType, Room, Scene, V2Reply};
+use crate::routes::ApiError;
 use crate::state::AppState;
+
+type ApiResult = Result<Json<V2Reply<Value>>, ApiError>;
+
+impl<T: Serialize> V2Reply<T> {
+    #[allow(clippy::unnecessary_wraps)]
+    fn ok(obj: T) -> ApiResult {
+        Ok(Json(V2Reply {
+            data: vec![serde_json::to_value(obj).unwrap()],
+            errors: vec![],
+        }))
+    }
+
+    #[allow(clippy::unnecessary_wraps)]
+    fn list(data: Vec<T>) -> ApiResult {
+        Ok(Json(V2Reply {
+            data: data
+                .into_iter()
+                .map(|e| serde_json::to_value(e).unwrap())
+                .collect(),
+            errors: vec![],
+        }))
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        Json(V2Reply::<Value> {
+            data: vec![],
+            errors: vec![format!("{}", self)],
+        })
+        .into_response()
+    }
+}
 
 async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
     Json(V2Reply {
@@ -13,14 +52,8 @@ async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
     })
 }
 
-async fn get_resource(
-    State(state): State<AppState>,
-    Path(rtype): Path<ResourceType>,
-) -> impl IntoResponse {
-    Json(V2Reply {
-        data: state.get_resources_by_type(rtype).await,
-        errors: vec![],
-    })
+async fn get_resource(State(state): State<AppState>, Path(rtype): Path<ResourceType>) -> ApiResult {
+    V2Reply::list(state.get_resources_by_type(rtype).await)
 }
 
 async fn post_resource(
@@ -31,24 +64,15 @@ async fn post_resource(
     log::info!("POST {rtype:?}: {req:?}");
 }
 
-async fn get_scene(State(state): State<AppState>) -> impl IntoResponse {
-    Json(V2Reply {
-        data: state.get_resources_by_type(ResourceType::Scene).await,
-        errors: vec![],
-    })
+async fn get_scene(State(state): State<AppState>) -> ApiResult {
+    V2Reply::list(state.get_resources_by_type(ResourceType::Scene).await)
 }
 
-async fn get_room(State(state): State<AppState>) -> impl IntoResponse {
-    Json(V2Reply {
-        data: state.get_resources_by_type(ResourceType::Room).await,
-        errors: vec![],
-    })
+async fn get_room(State(state): State<AppState>) -> ApiResult {
+    V2Reply::list(state.get_resources_by_type(ResourceType::Room).await)
 }
 
-async fn post_scene(
-    State(state): State<AppState>,
-    Json(req): Json<Value>,
-) -> axum::response::Result<Json<V2Reply<ResourceLink>>> {
+async fn post_scene(State(state): State<AppState>, Json(req): Json<Value>) -> ApiResult {
     log::info!("POST scene: {}", serde_json::to_string(&req).unwrap());
     let scn = serde_json::from_value::<Scene>(req);
     println!("{:?}", &scn);
@@ -56,16 +80,11 @@ async fn post_scene(
 
     log::info!("POST scene: {scene:#?}");
     let link = state.res.lock().await.add_scene(scene);
-    Ok(Json(V2Reply {
-        data: vec![link],
-        errors: vec![],
-    }))
+
+    V2Reply::ok(link)
 }
 
-async fn post_room(
-    State(state): State<AppState>,
-    Json(req): Json<Value>,
-) -> axum::response::Result<Json<V2Reply<ResourceLink>>> {
+async fn post_room(State(state): State<AppState>, Json(req): Json<Value>) -> ApiResult {
     log::info!("POST room: {}", serde_json::to_string(&req).unwrap());
     let scn = serde_json::from_value::<Room>(req);
     println!("{:?}", &scn);
@@ -74,49 +93,46 @@ async fn post_room(
 
     log::info!("POST room: {room:#?}");
     let link = state.res.lock().await.add_room(room);
-    Ok(Json(V2Reply {
-        data: vec![link],
-        errors: vec![],
-    }))
+
+    V2Reply::ok(link)
 }
 
 #[allow(clippy::option_if_let_else)]
 async fn get_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
-) -> impl IntoResponse {
+) -> ApiResult {
     if let Some(res) = state.get_resource(rtype, id).await {
-        Json(V2Reply {
-            data: vec![res],
-            errors: vec![],
-        })
+        V2Reply::ok(res)
     } else {
-        Json(V2Reply {
-            data: vec![],
-            errors: vec!["glump".to_owned()],
-        })
+        Err(ApiError::Fail("foo"))
     }
 }
 
 async fn put_resource_id(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
     Json(req): Json<Value>,
-) -> impl IntoResponse {
+) -> ApiResult {
     log::info!("PUT {rtype:?}/{id}: {req:?}");
+
+    V2Reply::ok(
+        state
+            .get_resource(rtype, id)
+            .await
+            .ok_or(ApiError::Fail("nope"))?,
+    )
 }
 
 async fn delete_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
-) -> impl IntoResponse {
+) -> ApiResult {
     log::info!("DELETE {rtype:?}/{id}");
     let link = rtype.link_to(id);
     state.res.lock().await.delete(&link);
-    Json(V2Reply {
-        data: vec![link],
-        errors: vec![],
-    })
+
+    V2Reply::ok(link)
 }
 
 pub fn router() -> Router<AppState> {
