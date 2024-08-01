@@ -28,17 +28,20 @@ impl Client {
         Self { client, connection }
     }
 
-    pub async fn subscribe(&mut self, topic: &str) {
+    pub async fn subscribe(&self, topic: &str) {
         let mut f = Filter::new(topic, QoS::AtLeastOnce);
         f.retain_forward_rule = RetainForwardRule::OnEverySubscribe;
         self.client.subscribe_many([f]).await.unwrap();
     }
 
+    #[allow(unreachable_code, unused_variables)]
     pub fn into_stream(mut self) -> impl Stream<Item = Result<Event, Infallible>> {
         try_stream! {
             yield Event::default().comment("hi");
 
             while let Ok(message) = self.connection.poll().await {
+                continue;
+
                 let rumqttc::v5::Event::Incoming(msg) = message else {
                     continue
                 };
