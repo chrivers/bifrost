@@ -97,7 +97,7 @@ impl Resources {
         let link_room = ResourceType::Room.link();
 
         let room = Room {
-            id_v1: "/room/1".to_string(),
+            id_v1: Some("/room/1".to_string()),
             children: children.to_owned(),
             metadata: Metadata::room(RoomArchetypes::Computer, "Room 1"),
             services: vec![],

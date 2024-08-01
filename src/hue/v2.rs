@@ -63,7 +63,7 @@ pub struct Bridge {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BridgeHome {
     children: Vec<ResourceLink>,
-    id_v1: String,
+    id_v1: Option<String>,
     services: Vec<ResourceLink>,
 }
 
@@ -88,7 +88,7 @@ pub struct DeviceProductData {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Entertainment {
     equalizer: bool,
-    id_v1: String,
+    id_v1: Option<String>,
     owner: ResourceLink,
     proxy: bool,
     renderer: bool,
@@ -128,7 +128,7 @@ pub struct GroupedLight {
     dimming: Value,
     dimming_delta: Value,
     dynamics: Value,
-    id_v1: String,
+    id_v1: Option<String>,
     on: On,
     owner: ResourceLink,
     signaling: Value,
@@ -243,7 +243,7 @@ pub struct On {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
-    id_v1: String,
+    id_v1: Option<String>,
     alert: Value,
     color: LightColor,
     color_temperature: ColorTemperature,
@@ -295,7 +295,7 @@ impl Light {
     #[must_use]
     pub fn new(id: u32, owner: ResourceLink) -> Self {
         Self {
-            id_v1: format!("/lights/{id}"),
+            id_v1: Some(format!("/lights/{id}")),
             alert: json!({"action_values": ["breathe"]}),
             color: LightColor {
                 gamut: Some(ColorGamut {
@@ -446,8 +446,9 @@ pub enum RoomArchetypes {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Room {
     pub children: Vec<ResourceLink>,
-    pub id_v1: String,
+    pub id_v1: Option<String>,
     pub metadata: Metadata,
+    #[serde(default)]
     pub services: Vec<ResourceLink>,
 }
 
@@ -529,7 +530,7 @@ pub enum ZigbeeConnectivityStatus {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
-    id_v1: String,
+    id_v1: Option<String>,
     mac_address: String,
     owner: ResourceLink,
     status: ZigbeeConnectivityStatus,
