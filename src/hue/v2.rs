@@ -408,6 +408,9 @@ pub struct Matter {
     max_fabrics: u32,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PublicImage {}
+
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum RoomArchetypes {
@@ -567,6 +570,7 @@ pub enum Resource {
     Homekit(Homekit),
     Light(Light),
     Matter(Matter),
+    PublicImage(PublicImage),
     Room(Room),
     Scene(Scene),
     SmartScene(SmartScene),
@@ -590,6 +594,7 @@ impl Resource {
             Self::Homekit(_) => ResourceType::Homekit,
             Self::Light(_) => ResourceType::Light,
             Self::Matter(_) => ResourceType::Matter,
+            Self::PublicImage(_) => ResourceType::PublicImage,
             Self::Room(_) => ResourceType::Room,
             Self::Scene(_) => ResourceType::Scene,
             Self::SmartScene(_) => ResourceType::SmartScene,
