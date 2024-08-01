@@ -53,6 +53,8 @@ mod state;
 
 use state::AppState;
 
+use crate::error::ApiResult;
+
 fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &Span) {
     span.record(
         "latency",
@@ -85,38 +87,43 @@ fn router(appstate: AppState) -> Router<()> {
         .with_state(appstate)
 }
 
-async fn http_server(listen_addr: Ipv4Addr, svc: impl MakeService<SocketAddr, Request<Incoming>>) {
+async fn http_server(
+    listen_addr: Ipv4Addr,
+    svc: impl MakeService<SocketAddr, Request<Incoming>>,
+) -> ApiResult<()> {
     let addr = SocketAddr::from((listen_addr, 80));
     log::info!("http listening on {}", addr);
 
-    axum_server::bind(addr).serve(svc).await.unwrap();
+    axum_server::bind(addr).serve(svc).await?;
+
+    Ok(())
 }
 
-async fn https_server(listen_addr: Ipv4Addr, svc: impl MakeService<SocketAddr, Request<Incoming>>) {
-    let config = RustlsConfig::from_pem_file("cert.pem", "cert.pem")
-        .await
-        .unwrap();
+async fn https_server(
+    listen_addr: Ipv4Addr,
+    svc: impl MakeService<SocketAddr, Request<Incoming>>,
+) -> ApiResult<()> {
+    let config = RustlsConfig::from_pem_file("cert.pem", "cert.pem").await?;
 
     let addr = SocketAddr::from((listen_addr, 443));
     log::info!("https listening on {}", addr);
 
-    axum_server::bind_rustls(addr, config)
-        .serve(svc)
-        .await
-        .unwrap();
+    axum_server::bind_rustls(addr, config).serve(svc).await?;
+
+    Ok(())
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> ApiResult<()> {
     colog::init();
 
     let config = config::parse("config.yaml").unwrap();
 
     let appstate = AppState::new(config);
     if let Ok(fd) = File::open("state.yaml") {
-        appstate.res.lock().await.load(fd).unwrap();
+        appstate.res.lock().await.load(fd)?;
     } else {
-        appstate.res.lock().await.init(&appstate.bridge_id());
+        appstate.res.lock().await.init(&appstate.bridge_id())?;
     }
 
     log::info!("Serving mac [{}]", appstate.mac());
@@ -132,4 +139,6 @@ async fn main() {
     let https = tokio::spawn(https_server(ip, svc));
 
     let _ = tokio::join!(http, https);
+
+    Ok(())
 }
