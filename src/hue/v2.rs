@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::hue::best_guess_timezone;
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ResourceType {
     BehaviorScript,
     Bridge,
