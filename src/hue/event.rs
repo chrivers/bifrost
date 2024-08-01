@@ -35,7 +35,6 @@ impl EventBlock {
         }
     }
 
-    #[must_use]
     pub fn delete<T: Serialize>(data: T) -> Result<Self, ApiError> {
         Ok(Self {
             creationtime: Utc::now(),
