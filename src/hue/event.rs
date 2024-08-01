@@ -32,6 +32,15 @@ impl EventBlock {
             event: Event::Add(Add { data: vec![data] }),
         }
     }
+
+    #[must_use]
+    pub fn delete(data: Value) -> Self {
+        Self {
+            creationtime: Utc::now(),
+            id: Uuid::new_v4(),
+            event: Event::Delete(Delete { data: vec![data] }),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -45,7 +54,9 @@ pub struct Update {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Delete {}
+pub struct Delete {
+    pub data: Vec<Value>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Error {}

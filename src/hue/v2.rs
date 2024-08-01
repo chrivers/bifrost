@@ -34,6 +34,14 @@ impl ResourceType {
             rtype: self,
         }
     }
+
+    #[must_use]
+    pub fn link_to(self, rid: Uuid) -> ResourceLink {
+        ResourceLink {
+            rid,
+            rtype: self,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

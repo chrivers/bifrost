@@ -106,11 +106,29 @@ async fn put_resource_id(
     log::info!("PUT {rtype:?}/{id}: {req:?}");
 }
 
+async fn delete_resource_id(
+    State(state): State<AppState>,
+    Path((rtype, id)): Path<(ResourceType, Uuid)>,
+) -> impl IntoResponse {
+    log::info!("DELETE {rtype:?}/{id}");
+    let link = rtype.link_to(id);
+    state.res.lock().await.delete(&link);
+    Json(V2Reply {
+        data: vec![link],
+        errors: vec![],
+    })
+}
+
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(get_root))
         .route("/scene", get(get_scene).post(post_scene))
         .route("/room", get(get_room).post(post_room))
         .route("/:resource", get(get_resource).post(post_resource))
-        .route("/:resource/:id", get(get_resource_id).put(put_resource_id))
+        .route(
+            "/:resource/:id",
+            get(get_resource_id)
+                .put(put_resource_id)
+                .delete(delete_resource_id),
+        )
 }

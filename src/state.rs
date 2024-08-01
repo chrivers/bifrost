@@ -67,7 +67,7 @@ impl Resources {
             obj.rtype()
         );
 
-        self.add_named(link.rid, obj);
+        self.res.insert(link.rid, obj);
 
         if let Ok(fd) = File::create("state.yaml") {
             self.save(fd).unwrap();
@@ -82,8 +82,17 @@ impl Resources {
         let _ = self.chan.send(evt);
     }
 
-    fn add_named(&mut self, uuid: Uuid, obj: Resource) {
-        self.res.insert(uuid, obj);
+    pub fn delete(&mut self, link: &ResourceLink) {
+        let evt = EventBlock::delete(
+            serde_json::to_value(self.get_resource_by_id(link.rid).unwrap()).unwrap(),
+        );
+
+        self.res.remove(&link.rid);
+
+        log::info!("evt: {evt:?}");
+
+        let _ = self.chan.send(evt);
+
     }
 
     pub fn add_bridge(&mut self, bridge_id: String) {
