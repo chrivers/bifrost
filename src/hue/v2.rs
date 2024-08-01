@@ -8,6 +8,7 @@ use crate::hue::best_guess_timezone;
 #[serde(rename_all = "snake_case")]
 pub enum ResourceType {
     BehaviorScript,
+    BehaviorInstance,
     Bridge,
     BridgeHome,
     Device,
@@ -60,6 +61,10 @@ pub struct BehaviorScript {
     supported_features: Vec<String>,
     trigger_schema: DollarRef,
     version: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BehaviorInstance {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -555,6 +560,7 @@ pub struct ZigbeeDeviceDiscovery {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Resource {
     BehaviorScript(BehaviorScript),
+    BehaviorInstance(BehaviorInstance),
     Bridge(Bridge),
     BridgeHome(BridgeHome),
     Device(Device),
@@ -577,6 +583,7 @@ impl Resource {
     pub const fn rtype(&self) -> ResourceType {
         match self {
             Self::BehaviorScript(_) => ResourceType::BehaviorScript,
+            Self::BehaviorInstance(_) => ResourceType::BehaviorInstance,
             Self::Bridge(_) => ResourceType::Bridge,
             Self::BridgeHome(_) => ResourceType::BridgeHome,
             Self::Device(_) => ResourceType::Device,
