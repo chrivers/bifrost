@@ -27,6 +27,7 @@ pub enum ResourceType {
 }
 
 impl ResourceType {
+    #[must_use]
     pub fn link(self) -> ResourceLink {
         ResourceLink {
             rid: Uuid::new_v4(),

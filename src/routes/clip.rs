@@ -49,6 +49,7 @@ async fn post_scene(
     }))
 }
 
+#[allow(clippy::option_if_let_else)]
 async fn get_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
