@@ -8,15 +8,15 @@ use serde::Serialize;
 use serde_json::Value;
 use uuid::Uuid;
 
-use crate::hue::v2::{ResourceType, Room, Scene, V2Reply};
-use crate::routes::ApiError;
+use crate::hue::v2::{Resource, ResourceType, Room, Scene, V2Reply};
+use crate::error::{ApiError, ApiResult};
 use crate::state::AppState;
 
-type ApiResult = Result<Json<V2Reply<Value>>, ApiError>;
+type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
 impl<T: Serialize> V2Reply<T> {
     #[allow(clippy::unnecessary_wraps)]
-    fn ok(obj: T) -> ApiResult {
+    fn ok(obj: T) -> ApiV2Result {
         Ok(Json(V2Reply {
             data: vec![serde_json::to_value(obj).unwrap()],
             errors: vec![],
@@ -24,7 +24,7 @@ impl<T: Serialize> V2Reply<T> {
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn list(data: Vec<T>) -> ApiResult {
+    fn list(data: Vec<T>) -> ApiV2Result {
         Ok(Json(V2Reply {
             data: data
                 .into_iter()
@@ -52,7 +52,7 @@ async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
     })
 }
 
-async fn get_resource(State(state): State<AppState>, Path(rtype): Path<ResourceType>) -> ApiResult {
+async fn get_resource(State(state): State<AppState>, Path(rtype): Path<ResourceType>) -> ApiV2Result {
     V2Reply::list(state.get_resources_by_type(rtype).await)
 }
 
@@ -64,15 +64,15 @@ async fn post_resource(
     log::info!("POST {rtype:?}: {req:?}");
 }
 
-async fn get_scene(State(state): State<AppState>) -> ApiResult {
+async fn get_scene(State(state): State<AppState>) -> ApiV2Result {
     V2Reply::list(state.get_resources_by_type(ResourceType::Scene).await)
 }
 
-async fn get_room(State(state): State<AppState>) -> ApiResult {
+async fn get_room(State(state): State<AppState>) -> ApiV2Result {
     V2Reply::list(state.get_resources_by_type(ResourceType::Room).await)
 }
 
-async fn post_scene(State(state): State<AppState>, Json(req): Json<Value>) -> ApiResult {
+async fn post_scene(State(state): State<AppState>, Json(req): Json<Value>) -> ApiV2Result {
     log::info!("POST scene: {}", serde_json::to_string(&req).unwrap());
     let scn = serde_json::from_value::<Scene>(req);
     println!("{:?}", &scn);
@@ -84,7 +84,7 @@ async fn post_scene(State(state): State<AppState>, Json(req): Json<Value>) -> Ap
     V2Reply::ok(link)
 }
 
-async fn post_room(State(state): State<AppState>, Json(req): Json<Value>) -> ApiResult {
+async fn post_room(State(state): State<AppState>, Json(req): Json<Value>) -> ApiV2Result {
     log::info!("POST room: {}", serde_json::to_string(&req).unwrap());
     let scn = serde_json::from_value::<Room>(req);
     println!("{:?}", &scn);
@@ -101,7 +101,7 @@ async fn post_room(State(state): State<AppState>, Json(req): Json<Value>) -> Api
 async fn get_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
-) -> ApiResult {
+) -> ApiV2Result {
     if let Some(res) = state.get_resource(rtype, id).await {
         V2Reply::ok(res)
     } else {
@@ -113,7 +113,7 @@ async fn put_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
     Json(req): Json<Value>,
-) -> ApiResult {
+) -> ApiV2Result {
     log::info!("PUT {rtype:?}/{id}: {req:?}");
 
     V2Reply::ok(
@@ -127,7 +127,7 @@ async fn put_resource_id(
 async fn delete_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
-) -> ApiResult {
+) -> ApiV2Result {
     log::info!("DELETE {rtype:?}/{id}");
     let link = rtype.link_to(id);
     state.res.lock().await.delete(&link);

@@ -45,6 +45,7 @@ use tracing::{info_span, Span};
 pub mod hue;
 
 mod config;
+mod error;
 mod mdns;
 mod mqtt;
 mod routes;
