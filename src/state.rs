@@ -3,15 +3,14 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 
 use mac_address::MacAddress;
-use serde_json::{json, Value};
+use serde_json::json;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig};
-use crate::hue::v1::{ApiConfig, ApiShortConfig, Capabilities, Whitelist};
+use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::hue::v2::{
-    Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
-    ResourceType, Room, RoomArchetypes, TimeZone,
+    Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord, ResourceType, Room, RoomArchetypes, Scene, TimeZone
 };
 
 #[derive(Clone)]
@@ -107,8 +106,10 @@ impl Resources {
         self.add(&link_room, Resource::Room(room));
     }
 
-    pub fn to_json(&self) -> Value {
-        json!({})
+    pub fn add_scene(&mut self, scene: Scene) -> ResourceLink {
+        let link = ResourceType::Scene.link();
+        self.add(&link, Resource::Scene(scene));
+        link
     }
 }
 
@@ -204,9 +205,5 @@ impl AppState {
             .get(&id)
             .filter(|id| id.rtype() == ty)
             .map(|r| ResourceRecord::from_ref((&id, r)))
-    }
-
-    pub fn capabilities(&self) -> Capabilities {
-        Capabilities::new()
     }
 }
