@@ -639,6 +639,55 @@ impl Resource {
         };
         Ok(res)
     }
+
+    pub fn assign_id_v1(&mut self, index: u32) -> bool {
+        match self {
+            Self::BridgeHome(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::Entertainment(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::GroupedLight(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::Light(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::Room(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::Scene(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::ZigbeeConnectivity(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+            Self::Zone(obj) => {
+                obj.id_v1 = Some(format!("/foo/{index}"));
+                true
+            }
+
+            Self::BehaviorScript(_)
+            | Self::BehaviorInstance(_)
+            | Self::Bridge(_)
+            | Self::Device(_)
+            | Self::GeofenceClient(_)
+            | Self::Geolocation(_)
+            | Self::Homekit(_)
+            | Self::Matter(_)
+            | Self::PublicImage(_)
+            | Self::SmartScene(_)
+            | Self::ZigbeeDeviceDiscovery(_) => false,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
