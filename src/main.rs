@@ -48,6 +48,7 @@ mod config;
 mod error;
 mod mdns;
 mod mqtt;
+mod resource;
 mod routes;
 mod state;
 
