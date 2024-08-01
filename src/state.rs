@@ -11,13 +11,13 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig};
+use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::hue::v2::{
     Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
     ResourceType, Room, RoomArchetypes, Scene, TimeZone,
 };
-use crate::error::{ApiError, ApiResult};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -40,19 +40,19 @@ impl Resources {
         }
     }
 
-    pub fn load(&mut self, rdr: impl Read) -> Result<(), serde_yaml::Error> {
+    pub fn load(&mut self, rdr: impl Read) -> ApiResult<()> {
         self.res = serde_yaml::from_reader(rdr)?;
         Ok(())
     }
 
-    pub fn save(&self, wr: impl Write) -> Result<(), serde_yaml::Error> {
-        serde_yaml::to_writer(wr, &self.res)
+    pub fn save(&self, wr: impl Write) -> ApiResult<()> {
+        Ok(serde_yaml::to_writer(wr, &self.res)?)
     }
 
-    pub fn init(&mut self, bridge_id: &str) {
-        self.add_bridge(bridge_id.to_owned());
-        let link = self.add_light();
-        self.add_room_init(&[link]);
+    pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
+        self.add_bridge(bridge_id.to_owned())?;
+        let link = self.add_light()?;
+        self.add_room_init(&[link])
     }
 
     fn next_idv1(&mut self) -> u32 {
@@ -60,7 +60,17 @@ impl Resources {
         self.id_v1
     }
 
-    fn add(&mut self, link: &ResourceLink, obj: Resource) {
+    pub fn add_resource(&mut self, mut obj: Resource) -> ApiResult<ResourceLink> {
+        let link = obj.rtype().link();
+        if obj.assign_id_v1(self.id_v1) {
+            self.id_v1 += 1;
+        }
+
+        self.add(&link, obj)?;
+        Ok(link)
+    }
+
+    fn add(&mut self, link: &ResourceLink, obj: Resource) -> ApiResult<()> {
         assert!(
             link.rtype == obj.rtype(),
             "Link type failed: {:?} expected but {:?} given",
@@ -71,31 +81,33 @@ impl Resources {
         self.res.insert(link.rid, obj);
 
         if let Ok(fd) = File::create("state.yaml") {
-            self.save(fd).unwrap();
+            self.save(fd)?;
         }
 
-        let evt = EventBlock::add(
-            serde_json::to_value(self.get_resource_by_id(link.rid).unwrap()).unwrap(),
-        );
+        let evt = EventBlock::add(serde_json::to_value(self.get_resource_by_id(link.rid)?)?);
 
-        log::info!("evt: {evt:?}");
-
-        let _ = self.chan.send(evt);
-    }
-
-    pub fn delete(&mut self, link: &ResourceLink) -> ApiResult<()> {
-        let evt = EventBlock::delete(&link)?;
-
-        self.res.remove(&link.rid).ok_or(ApiError::NotFound(link.rid))?;
-
-        log::info!("evt: {evt:?}");
+        log::info!("## EVENT ##: {evt:?}");
 
         let _ = self.chan.send(evt);
 
         Ok(())
     }
 
-    pub fn add_bridge(&mut self, bridge_id: String) {
+    pub fn delete(&mut self, link: &ResourceLink) -> ApiResult<()> {
+        let evt = EventBlock::delete(link)?;
+
+        self.res
+            .remove(&link.rid)
+            .ok_or(ApiError::NotFound(link.rid))?;
+
+        log::info!("## EVENT ##: {evt:?}");
+
+        let _ = self.chan.send(evt);
+
+        Ok(())
+    }
+
+    pub fn add_bridge(&mut self, bridge_id: String) -> ApiResult<()> {
         let link_device = ResourceType::Device.link();
         let link_bridge = ResourceType::Bridge.link();
 
@@ -112,11 +124,11 @@ impl Resources {
             time_zone: TimeZone::best_guess(),
         };
 
-        self.add(&link_device, Resource::Device(dev));
-        self.add(&link_bridge, Resource::Bridge(br));
+        self.add(&link_device, Resource::Device(dev))?;
+        self.add(&link_bridge, Resource::Bridge(br))
     }
 
-    pub fn add_light(&mut self) -> ResourceLink {
+    pub fn add_light(&mut self) -> ApiResult<ResourceLink> {
         let link_device = ResourceType::Device.link();
         let link_light = ResourceType::Light.link();
 
@@ -131,13 +143,13 @@ impl Resources {
 
         let res = link_device.clone();
 
-        self.add(&link_device, Resource::Device(dev));
-        self.add(&link_light, Resource::Light(light));
+        self.add(&link_device, Resource::Device(dev))?;
+        self.add(&link_light, Resource::Light(light))?;
 
-        res
+        Ok(res)
     }
 
-    pub fn add_room_init(&mut self, children: &[ResourceLink]) {
+    pub fn add_room_init(&mut self, children: &[ResourceLink]) -> ApiResult<()> {
         let link_room = ResourceType::Room.link();
 
         let room = Room {
@@ -147,29 +159,32 @@ impl Resources {
             services: vec![],
         };
 
-        self.add(&link_room, Resource::Room(room));
+        self.add(&link_room, Resource::Room(room))
     }
 
-    pub fn add_scene(&mut self, scene: Scene) -> ResourceLink {
+    pub fn add_scene(&mut self, scene: Scene) -> ApiResult<ResourceLink> {
         let link = ResourceType::Scene.link();
-        self.add(&link, Resource::Scene(scene));
-        link
+        self.add(&link, Resource::Scene(scene))?;
+
+        Ok(link)
     }
 
-    pub fn add_room(&mut self, room: Room) -> ResourceLink {
+    pub fn add_room(&mut self, room: Room) -> ApiResult<ResourceLink> {
         let link = ResourceType::Room.link();
-        self.add(&link, Resource::Room(room));
-        link
+        self.add(&link, Resource::Room(room))?;
+
+        Ok(link)
     }
 
-    pub fn get_resource(&self, ty: ResourceType, id: Uuid) -> Option<ResourceRecord> {
+    pub fn get_resource(&self, ty: ResourceType, id: Uuid) -> ApiResult<ResourceRecord> {
         self.res
             .get(&id)
             .filter(|id| id.rtype() == ty)
             .map(|r| ResourceRecord::from_ref((&id, r)))
+            .ok_or(ApiError::NotFound(id))
     }
 
-    pub fn get_resource_by_id(&self, id: Uuid) -> Result<ResourceRecord, ApiError> {
+    pub fn get_resource_by_id(&self, id: Uuid) -> ApiResult<ResourceRecord> {
         self.res
             .get(&id)
             .map(|r| ResourceRecord::from_ref((&id, r)))
@@ -256,7 +271,7 @@ impl AppState {
         self.res.lock().await.get_resources_by_type(ty)
     }
 
-    pub async fn get_resource(&self, ty: ResourceType, id: Uuid) -> Option<ResourceRecord> {
+    pub async fn get_resource(&self, ty: ResourceType, id: Uuid) -> ApiResult<ResourceRecord> {
         self.res.lock().await.get_resource(ty, id)
     }
 }
