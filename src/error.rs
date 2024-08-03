@@ -22,6 +22,9 @@ pub enum ApiError {
     #[error(transparent)]
     AxumError(#[from] axum::Error),
 
+    #[error(transparent)]
+    TungsteniteError(#[from] tokio_tungstenite::tungstenite::Error),
+
     #[error("Request failed: {0}")]
     Fail(&'static str),
 
