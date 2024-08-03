@@ -59,6 +59,10 @@ impl Resources {
         Ok(link)
     }
 
+    pub fn has(&self, id: &Uuid) -> bool {
+        self.res.contains_key(id)
+    }
+
     fn add(&mut self, link: &ResourceLink, obj: Resource) -> ApiResult<()> {
         assert!(
             link.rtype == obj.rtype(),
