@@ -146,6 +146,11 @@ pub struct GroupedLight {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GroupedLightUpdate {
+    pub on: Option<On>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Homekit {
     status: String,
     status_values: Vec<String>,
