@@ -40,7 +40,7 @@ impl Resources {
 
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
         self.add_bridge(bridge_id.to_owned())?;
-        let link = self.add_light()?;
+        let link = self.add_light(Uuid::new_v4(), "Hue color spot 1")?;
         self.add_room_init(&[link])
     }
 
@@ -117,13 +117,13 @@ impl Resources {
         self.add(&link_bridge, Resource::Bridge(br))
     }
 
-    pub fn add_light(&mut self) -> ApiResult<ResourceLink> {
-        let link_device = ResourceType::Device.link();
+    pub fn add_light(&mut self, uuid: Uuid, name: &str) -> ApiResult<ResourceLink> {
+        let link_device = ResourceType::Device.link_to(uuid);
         let link_light = ResourceType::Light.link();
 
         let dev = Device {
             product_data: DeviceProductData::hue_color_spot(),
-            metadata: Metadata::spot_bulb("Hue color spot 1"),
+            metadata: Metadata::spot_bulb(name),
             identify: json!({}),
             services: vec![link_light.clone()],
         };
