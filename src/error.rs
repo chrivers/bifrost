@@ -15,6 +15,7 @@ pub enum ApiError {
     #[error(transparent)]
     ConfigError(#[from] config::ConfigError),
 
+    #[cfg(feature = "mqtt")]
     #[error(transparent)]
     MqttError(#[from] rumqttc::v5::ClientError),
 
