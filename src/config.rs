@@ -1,4 +1,4 @@
-use std::net::Ipv4Addr;
+use std::{collections::HashMap, net::Ipv4Addr};
 
 use config::{Config, ConfigError};
 use mac_address::MacAddress;
@@ -15,6 +15,17 @@ pub struct BridgeConfig {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Z2mConfig {
+    #[serde(flatten)]
+    pub servers: HashMap<String, Z2mServer>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Z2mServer {
+    pub url: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MqttConfig {
     pub host: String,
     pub username: String,
@@ -26,6 +37,7 @@ pub struct MqttConfig {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AppConfig {
     pub bridge: BridgeConfig,
+    pub z2m: Z2mConfig,
     pub mqtt: MqttConfig,
 }
 
