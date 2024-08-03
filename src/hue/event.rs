@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-use crate::error::ApiError;
+use crate::error::ApiResult;
 
 use super::date_format;
 
@@ -35,7 +35,7 @@ impl EventBlock {
         }
     }
 
-    pub fn delete<T: Serialize>(data: T) -> Result<Self, ApiError> {
+    pub fn delete<T: Serialize>(data: T) -> ApiResult<Self> {
         Ok(Self {
             creationtime: Utc::now(),
             id: Uuid::new_v4(),
