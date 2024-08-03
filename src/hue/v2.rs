@@ -73,9 +73,9 @@ pub struct Bridge {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BridgeHome {
-    children: Vec<ResourceLink>,
-    id_v1: Option<String>,
-    services: Vec<ResourceLink>,
+    pub children: Vec<ResourceLink>,
+    pub id_v1: Option<String>,
+    pub services: Vec<ResourceLink>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -132,17 +132,17 @@ pub struct Geolocation {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupedLight {
-    alert: Value,
-    color: Value,
-    color_temperature: Value,
-    color_temperature_delta: Value,
-    dimming: Value,
-    dimming_delta: Value,
-    dynamics: Value,
-    id_v1: Option<String>,
-    on: On,
-    owner: ResourceLink,
-    signaling: Value,
+    pub alert: Value,
+    pub color: Value,
+    pub color_temperature: Value,
+    pub color_temperature_delta: Value,
+    pub dimming: Value,
+    pub dimming_delta: Value,
+    pub dynamics: Value,
+    pub id_v1: Option<String>,
+    pub on: On,
+    pub owner: ResourceLink,
+    pub signaling: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -249,27 +249,27 @@ impl Metadata {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct On {
-    on: bool,
+    pub on: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
-    id_v1: Option<String>,
-    alert: Value,
-    color: LightColor,
-    color_temperature: ColorTemperature,
-    color_temperature_delta: Delta,
-    dimming: Dimming,
-    dimming_delta: Delta,
-    dynamics: Value,
-    effects: Value,
-    identify: Value,
-    metadata: Metadata,
-    mode: String,
-    on: On,
-    owner: ResourceLink,
-    powerup: Value,
-    signaling: Value,
+    pub id_v1: Option<String>,
+    pub alert: Value,
+    pub color: LightColor,
+    pub color_temperature: ColorTemperature,
+    pub color_temperature_delta: Delta,
+    pub dimming: Dimming,
+    pub dimming_delta: Delta,
+    pub dynamics: Value,
+    pub effects: Value,
+    pub identify: Value,
+    pub metadata: Metadata,
+    pub mode: String,
+    pub on: On,
+    pub owner: ResourceLink,
+    pub powerup: Value,
+    pub signaling: Value,
     /* powerup: { */
     /*     color: { */
     /*         color_temperature: { */
