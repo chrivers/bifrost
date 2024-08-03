@@ -3,4 +3,6 @@
 /notes
 /config.yaml
 /state.yaml
+/samples
+/*.log
 *~
