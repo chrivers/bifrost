@@ -22,6 +22,7 @@ pub struct AppState {
 }
 
 impl AppState {
+    #[must_use]
     pub fn new(conf: AppConfig) -> Self {
         Self {
             conf,
@@ -29,26 +30,32 @@ impl AppState {
         }
     }
 
+    #[must_use]
     pub const fn mac(&self) -> MacAddress {
         self.conf.bridge.mac
     }
 
+    #[must_use]
     pub const fn ip(&self) -> Ipv4Addr {
         self.conf.bridge.ipaddress
     }
 
+    #[must_use]
     pub const fn mqtt_config(&self) -> &MqttConfig {
         &self.conf.mqtt
     }
 
+    #[must_use]
     pub const fn z2m_config(&self) -> &Z2mConfig {
         &self.conf.z2m
     }
 
+    #[must_use]
     pub async fn channel(&self) -> Receiver<EventBlock> {
         self.res.lock().await.chan.subscribe()
     }
 
+    #[must_use]
     pub fn bridge_id(&self) -> String {
         let mac = self.mac().bytes();
         format!(
@@ -57,6 +64,7 @@ impl AppState {
         )
     }
 
+    #[must_use]
     pub fn api_short_config(&self) -> ApiShortConfig {
         ApiShortConfig {
             bridgeid: self.bridge_id(),
@@ -65,6 +73,7 @@ impl AppState {
         }
     }
 
+    #[must_use]
     pub fn api_config(&self, username: Uuid) -> ApiConfig {
         ApiConfig {
             short_config: self.api_short_config(),

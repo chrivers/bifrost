@@ -21,6 +21,7 @@ pub struct Resources {
 
 impl Resources {
     #[allow(clippy::new_without_default)]
+    #[must_use]
     pub fn new() -> Self {
         Self {
             id_v1: 1,
@@ -59,6 +60,7 @@ impl Resources {
         Ok(link)
     }
 
+    #[must_use]
     pub fn has(&self, id: &Uuid) -> bool {
         self.res.contains_key(id)
     }

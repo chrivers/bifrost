@@ -2,6 +2,7 @@ use mdns_sd::{ServiceDaemon, ServiceInfo};
 
 use crate::{hue, state::AppState};
 
+#[must_use]
 pub fn register_mdns(appstate: &AppState) -> ServiceDaemon {
     /* Create a new mDNS daemon. */
     let mdns = ServiceDaemon::new().expect("Could not create service daemon");

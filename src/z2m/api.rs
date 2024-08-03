@@ -1,3 +1,5 @@
+#![allow(clippy::struct_excessive_bools)]
+
 use std::{collections::HashMap, fmt::Debug};
 
 use serde::{Deserialize, Deserializer, Serialize};
@@ -44,6 +46,7 @@ impl Debug for IeeeAddress {
 }
 
 impl IeeeAddress {
+    #[must_use]
     pub fn uuid(&self) -> Uuid {
         Uuid::new_v5(&Uuid::NAMESPACE_OID, &self.0.to_be_bytes())
     }
