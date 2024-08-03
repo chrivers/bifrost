@@ -42,11 +42,11 @@ use tower_http::normalize_path::NormalizePathLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
 
+use bifrost::config;
 use bifrost::error::ApiResult;
 use bifrost::mdns;
 use bifrost::routes;
 use bifrost::state::AppState;
-use bifrost::config;
 
 fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &Span) {
     span.record(

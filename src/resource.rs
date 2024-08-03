@@ -20,6 +20,7 @@ pub struct Resources {
 }
 
 impl Resources {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             id_v1: 1,
