@@ -63,7 +63,7 @@ impl Resources {
         self.res.contains_key(id)
     }
 
-    fn add(&mut self, link: &ResourceLink, obj: Resource) -> ApiResult<()> {
+    pub fn add(&mut self, link: &ResourceLink, obj: Resource) -> ApiResult<()> {
         assert!(
             link.rtype == obj.rtype(),
             "Link type failed: {:?} expected but {:?} given",
@@ -149,6 +149,25 @@ impl Resources {
             id_v1: Some("/room/1".to_string()),
             children: children.to_owned(),
             metadata: Metadata::room(RoomArchetypes::Computer, "Room 1"),
+            services: vec![],
+        };
+
+        self.add(&link_room, Resource::Room(room))
+    }
+
+    pub fn add_room_z2m(
+        &mut self,
+        name: &str,
+        uuid: Uuid,
+        id_v1: u32,
+        children: &[ResourceLink],
+    ) -> ApiResult<()> {
+        let link_room = ResourceType::Room.link_to(uuid);
+
+        let room = Room {
+            id_v1: Some(format!("/room/{id_v1}")),
+            children: children.to_owned(),
+            metadata: Metadata::room(RoomArchetypes::Computer, name),
             services: vec![],
         };
 
