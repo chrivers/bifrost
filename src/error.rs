@@ -1,4 +1,5 @@
 use thiserror::Error;
+use tokio::task::JoinError;
 use uuid::Uuid;
 
 #[derive(Error, Debug)]
@@ -11,6 +12,9 @@ pub enum ApiError {
 
     #[error(transparent)]
     IOError(#[from] std::io::Error),
+
+    #[error(transparent)]
+    JoinError(#[from] JoinError),
 
     #[error(transparent)]
     ConfigError(#[from] config::ConfigError),

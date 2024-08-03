@@ -8,7 +8,7 @@ use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::config::{AppConfig, MqttConfig};
+use crate::config::{AppConfig, MqttConfig, Z2mConfig};
 use crate::error::ApiResult;
 use crate::hue::event::EventBlock;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
@@ -39,6 +39,10 @@ impl AppState {
 
     pub const fn mqtt_config(&self) -> &MqttConfig {
         &self.conf.mqtt
+    }
+
+    pub const fn z2m_config(&self) -> &Z2mConfig {
+        &self.conf.z2m
     }
 
     pub async fn channel(&self) -> Receiver<EventBlock> {

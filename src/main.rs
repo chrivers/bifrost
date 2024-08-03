@@ -37,6 +37,7 @@ use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
 
 use hyper::body::Incoming;
+use tokio::task::JoinSet;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
 use tower_http::trace::TraceLayer;
@@ -47,6 +48,7 @@ use bifrost::error::ApiResult;
 use bifrost::mdns;
 use bifrost::routes;
 use bifrost::state::AppState;
+use bifrost::z2m;
 
 fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &Span) {
     span.record(
@@ -125,13 +127,24 @@ async fn main() -> ApiResult<()> {
 
     let ip = appstate.ip();
 
-    let normalized = NormalizePathLayer::trim_trailing_slash().layer(router(appstate));
+    let normalized = NormalizePathLayer::trim_trailing_slash().layer(router(appstate.clone()));
     let svc = ServiceExt::<Request>::into_make_service(normalized);
 
-    let http = tokio::spawn(http_server(ip, svc.clone()));
-    let https = tokio::spawn(https_server(ip, svc));
+    let mut tasks = JoinSet::new();
 
-    let _ = tokio::join!(http, https);
+    tasks.spawn(http_server(ip, svc.clone()));
+    tasks.spawn(https_server(ip, svc));
+
+    for (name, server) in &appstate.z2m_config().servers {
+        log::info!("Connecting to [{name}]: {}", server.url);
+        let client = z2m::Client::new(&server.url, appstate.clone()).await?;
+
+        tasks.spawn(client.event_loop());
+    }
+
+    while let Some(res) = tasks.join_next().await {
+        let _ = res?;
+    }
 
     Ok(())
 }
