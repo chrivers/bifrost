@@ -2,6 +2,8 @@ use thiserror::Error;
 use tokio::task::JoinError;
 use uuid::Uuid;
 
+use crate::hue::event::EventBlock;
+
 #[derive(Error, Debug)]
 pub enum ApiError {
     #[error(transparent)]
@@ -18,6 +20,9 @@ pub enum ApiError {
 
     #[error(transparent)]
     ConfigError(#[from] config::ConfigError),
+
+    #[error(transparent)]
+    SendError(#[from] tokio::sync::broadcast::error::SendError<EventBlock>),
 
     #[cfg(feature = "mqtt")]
     #[error(transparent)]
