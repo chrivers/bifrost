@@ -16,12 +16,70 @@ use crate::{
     },
     resource::Resources,
     state::AppState,
-    z2m::api::Message,
+    z2m::api::{DeviceUpdate, Message, Other},
 };
 
 pub struct Client {
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
     state: AppState,
+}
+
+fn handle_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiResult<()> {
+    let upd: DeviceUpdate = serde_json::from_value(obj.payload.clone())?;
+
+    res.update_light(uuid, move |light| {
+        if let Some(state) = &upd.state {
+            light.on.on = (*state).into();
+        }
+
+        if let Some(b) = upd.brightness {
+            light.dimming.brightness = b / 254.0 * 100.0;
+        }
+
+        light.color_mode = upd.color_mode;
+
+        if let Some(ct) = upd.color_temp {
+            light.color_temperature.mirek = ct;
+            /* light.color_temperature.mirek_valid = true; */
+        }
+
+        if let Some(col) = upd.color {
+            light.color.xy.x = col.x;
+            light.color.xy.y = col.y;
+            /* light.color_temperature.mirek_valid = false; */
+        }
+    })?;
+
+    Ok(())
+}
+
+fn handle_grouped_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiResult<()> {
+    let upd: DeviceUpdate = serde_json::from_value(obj.payload.clone())?;
+
+    res.update_grouped_light(uuid, move |glight| {
+        if let Some(state) = &upd.state {
+            glight.on.on = (*state).into();
+        }
+
+        if let Some(b) = upd.brightness {
+            glight.dimming.brightness = b / 254.0 * 100.0;
+        }
+
+        /* glight.color_mode = upd.color_mode; */
+
+        if let Some(ct) = upd.color_temp {
+            glight.color_temperature.mirek = ct;
+            /* glight.color_temperature.mirek_valid = true; */
+        }
+
+        if let Some(col) = upd.color {
+            glight.color.xy.x = col.x;
+            glight.color.xy.y = col.y;
+            /* glight.color_temperature.mirek_valid = false; */
+        }
+    })?;
+
+    Ok(())
 }
 
 impl Client {
@@ -165,8 +223,28 @@ impl Client {
                 /*     /\* println!("{obj:#?}"); *\/ */
                 /* } */
                 Message::Other(ref obj) => {
+                    println!("{:#?}", obj.topic);
                     if obj.topic.contains('/') {
-                        println!("{:#?}", obj.topic);
+                        continue;
+                    }
+
+                    let Some(val) = map.get(&obj.topic) else {
+                        log::warn!("Notification on unknown topic {}", &obj.topic);
+                        continue;
+                    };
+
+                    match res.get_resource_by_id(val)?.obj {
+                        Resource::Light(light) => {
+                            if let Err(e) = handle_light(val, &mut res, obj) {
+                                log::error!("FAIL: {e:?}");
+                            }
+                        }
+                        Resource::GroupedLight(light) => {
+                            if let Err(e) = handle_grouped_light(val, &mut res, obj) {
+                                log::error!("FAIL: {e:?}");
+                            }
+                        }
+                        _ => {}
                     }
                 }
                 _ => {}
