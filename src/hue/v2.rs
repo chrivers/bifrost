@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
-use crate::hue::best_guess_timezone;
+use crate::{hue::best_guess_timezone, z2m::api::DeviceColorMode};
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -309,6 +309,11 @@ pub struct On {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
+    /* This field does not exist in the hue api, but we need it to keep track of
+     * last-used color mode for a light. */
+    #[serde(skip, default)]
+    pub color_mode: Option<DeviceColorMode>,
+
     pub id_v1: Option<String>,
     pub alert: Value,
     pub color: LightColor,
@@ -363,6 +368,7 @@ impl Light {
         Self {
             id_v1: Some(format!("/lights/{id}")),
             alert: json!({"action_values": ["breathe"]}),
+            color_mode: None,
             color: LightColor::dummy(),
             color_temperature: ColorTemperature::dummy(),
             color_temperature_delta: Delta {},
