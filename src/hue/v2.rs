@@ -156,6 +156,15 @@ pub struct GroupedLight {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupedLightUpdate {
     pub on: Option<On>,
+    pub dimming: Option<Dimming>,
+    pub color: Option<ColorUpdate>,
+    pub color_temp: Option<f64>,
+    pub color_temperature: Option<ColorTemperatureUpdate>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ColorUpdate {
+    pub xy: XY,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
