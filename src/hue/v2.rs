@@ -202,6 +202,7 @@ pub struct LightColor {
 }
 
 impl LightColor {
+    #[must_use]
     pub fn dummy() -> Self {
         Self {
             gamut: Some(ColorGamut {
@@ -243,7 +244,8 @@ pub struct ColorTemperature {
 }
 
 impl ColorTemperature {
-    pub fn dummy() -> Self {
+    #[must_use]
+    pub const fn dummy() -> Self {
         Self {
             mirek_schema: MirekSchema {
                 mirek_maximum: 454,

@@ -36,7 +36,9 @@ pub struct AppState {
 impl AppState {
     pub async fn new(conf: AppConfig) -> ApiResult<Self> {
         /* FIXME: just for proof of concept */
-        let ws = connect_async(&conf.z2m.servers.values().next().unwrap().url).await?.0;
+        let ws = connect_async(&conf.z2m.servers.values().next().unwrap().url)
+            .await?
+            .0;
         let (ws_sink, mut ws_stream) = ws.split();
         tokio::spawn(async move {
             loop {
