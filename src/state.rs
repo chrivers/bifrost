@@ -3,9 +3,13 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 
 use chrono::Utc;
+use futures::stream::SplitSink;
+use futures::StreamExt;
 use mac_address::MacAddress;
+use tokio::net::TcpStream;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
+use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig, Z2mConfig};
@@ -19,15 +23,32 @@ use crate::resource::Resources;
 pub struct AppState {
     conf: AppConfig,
     pub res: Arc<Mutex<Resources>>,
+    pub ws: Arc<
+        Mutex<
+            SplitSink<
+                WebSocketStream<MaybeTlsStream<TcpStream>>,
+                tokio_tungstenite::tungstenite::Message,
+            >,
+        >,
+    >,
 }
 
 impl AppState {
-    #[must_use]
-    pub fn new(conf: AppConfig) -> Self {
-        Self {
+    pub async fn new(conf: AppConfig) -> ApiResult<Self> {
+        /* FIXME: just for proof of concept */
+        let ws = connect_async(&conf.z2m.servers.values().next().unwrap().url).await?.0;
+        let (ws_sink, mut ws_stream) = ws.split();
+        tokio::spawn(async move {
+            loop {
+                let _ = ws_stream.next().await;
+            }
+        });
+
+        Ok(Self {
             conf,
             res: Arc::new(Mutex::new(Resources::new())),
-        }
+            ws: Arc::new(Mutex::new(ws_sink)),
+        })
     }
 
     #[must_use]
@@ -53,6 +74,10 @@ impl AppState {
     #[must_use]
     pub async fn channel(&self) -> Receiver<EventBlock> {
         self.res.lock().await.chan.subscribe()
+    }
+
+    pub async fn send(&self, msg: EventBlock) -> ApiResult<usize> {
+        Ok(self.res.lock().await.chan.send(msg)?)
     }
 
     #[must_use]

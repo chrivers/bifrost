@@ -88,7 +88,7 @@ async fn main() -> ApiResult<()> {
 
     let config = config::parse("config.yaml")?;
 
-    let appstate = AppState::new(config);
+    let appstate = AppState::new(config).await?;
     if let Ok(fd) = File::open("state.yaml") {
         appstate.res.lock().await.load(fd)?;
     } else {
