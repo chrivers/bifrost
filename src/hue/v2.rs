@@ -396,6 +396,9 @@ impl Light {
             owner,
             powerup: json!({
                 "color": {
+                    "color": {
+                        "xy": XY { x: 0.4573, y: 0.41 },
+                    },
                     "color_temperature": {
                         "mirek": 366
                     },
