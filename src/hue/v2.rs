@@ -141,8 +141,8 @@ pub struct Geolocation {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupedLight {
     pub alert: Value,
-    pub color: Value,
-    pub color_temperature: Value,
+    pub color: LightColor,
+    pub color_temperature: ColorTemperature,
     pub color_temperature_delta: Value,
     pub dimming: Dimming,
     pub dimming_delta: Value,
@@ -206,6 +206,29 @@ pub struct LightColor {
     pub xy: XY,
 }
 
+impl LightColor {
+    pub fn dummy() -> Self {
+        Self {
+            gamut: Some(ColorGamut {
+                red: XY {
+                    x: 0.681_235,
+                    y: 0.318_186,
+                },
+                green: XY {
+                    x: 0.391_898,
+                    y: 0.525_033,
+                },
+                blue: XY {
+                    x: 0.150_241,
+                    y: 0.027_116,
+                },
+            }),
+            gamut_type: Some("Other".to_string()),
+            xy: XY { x: 0.4573, y: 0.41 },
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MirekSchema {
     mirek_minimum: u32,
@@ -222,6 +245,19 @@ pub struct ColorTemperature {
     pub mirek: u32,
     pub mirek_schema: MirekSchema,
     pub mirek_valid: bool,
+}
+
+impl ColorTemperature {
+    pub fn dummy() -> Self {
+        Self {
+            mirek_schema: MirekSchema {
+                mirek_maximum: 454,
+                mirek_minimum: 250,
+            },
+            mirek_valid: true,
+            mirek: 366,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -330,32 +366,8 @@ impl Light {
         Self {
             id_v1: Some(format!("/lights/{id}")),
             alert: json!({"action_values": ["breathe"]}),
-            color: LightColor {
-                gamut: Some(ColorGamut {
-                    red: XY {
-                        x: 0.681_235,
-                        y: 0.318_186,
-                    },
-                    green: XY {
-                        x: 0.391_898,
-                        y: 0.525_033,
-                    },
-                    blue: XY {
-                        x: 0.150_241,
-                        y: 0.027_116,
-                    },
-                }),
-                gamut_type: Some("Other".to_string()),
-                xy: XY { x: 0.4573, y: 0.41 },
-            },
-            color_temperature: ColorTemperature {
-                mirek_schema: MirekSchema {
-                    mirek_maximum: 454,
-                    mirek_minimum: 250,
-                },
-                mirek_valid: true,
-                mirek: 366,
-            },
+            color: LightColor::dummy(),
+            color_temperature: ColorTemperature::dummy(),
             color_temperature_delta: Delta {},
             dimming: Dimming {
                 brightness: 100.0,
