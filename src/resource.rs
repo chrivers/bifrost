@@ -190,7 +190,7 @@ impl Resources {
 
     pub fn get_resource(&self, ty: ResourceType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res
-            .get(&id)
+            .get(id)
             .filter(|id| id.rtype() == ty)
             .map(|r| ResourceRecord::from_ref((id, r)))
             .ok_or_else(|| ApiError::NotFound(*id))
@@ -198,7 +198,7 @@ impl Resources {
 
     pub fn get_resource_by_id(&self, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res
-            .get(&id)
+            .get(id)
             .map(|r| ResourceRecord::from_ref((id, r)))
             .ok_or_else(|| ApiError::NotFound(*id))
     }
