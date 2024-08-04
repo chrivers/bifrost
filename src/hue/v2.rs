@@ -144,7 +144,7 @@ pub struct GroupedLight {
     pub color: Value,
     pub color_temperature: Value,
     pub color_temperature_delta: Value,
-    pub dimming: Value,
+    pub dimming: Dimming,
     pub dimming_delta: Value,
     pub dynamics: Value,
     pub id_v1: Option<String>,
@@ -218,7 +218,7 @@ pub struct ColorTemperature {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dimming {
     pub brightness: f64,
-    pub min_dim_level: f64,
+    pub min_dim_level: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -347,7 +347,7 @@ impl Light {
             color_temperature_delta: Delta {},
             dimming: Dimming {
                 brightness: 100.0,
-                min_dim_level: 0.2,
+                min_dim_level: Some(0.2),
             },
             dimming_delta: Delta {},
             dynamics: json!({
