@@ -22,7 +22,7 @@ pub async fn get_clip_v2(
         let json = [e.unwrap()];
         log::info!(
             "## EVENT ##: {}",
-            serde_json::to_string(&json).unwrap_or("ERROR".to_string())
+            serde_json::to_string(&json).unwrap_or_else(|_| "ERROR".to_string())
         );
         let ts = Utc::now().timestamp();
         if ts == prev_ts {
@@ -31,7 +31,7 @@ pub async fn get_clip_v2(
             idx = 0;
             prev_ts = ts;
         }
-        Event::default().id(format!("{}:{idx}", ts)).json_data(json)
+        Event::default().id(format!("{ts}:{idx}")).json_data(json)
     });
 
     Sse::new(hello.chain(stream)).keep_alive(
