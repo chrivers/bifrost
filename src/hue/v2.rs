@@ -1,10 +1,12 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
 use crate::hue::best_guess_timezone;
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum ResourceType {
     BehaviorScript,
@@ -26,6 +28,12 @@ pub enum ResourceType {
     ZigbeeConnectivity,
     ZigbeeDeviceDiscovery,
     Zone,
+}
+
+fn hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
 }
 
 impl ResourceType {
