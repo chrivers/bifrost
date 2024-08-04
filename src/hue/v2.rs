@@ -179,8 +179,8 @@ impl Default for Homekit {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct XY {
-    pub x: f32,
-    pub y: f32,
+    pub x: f64,
+    pub y: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
