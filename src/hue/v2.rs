@@ -179,8 +179,8 @@ impl Default for Homekit {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct XY {
-    x: f32,
-    y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -192,9 +192,9 @@ pub struct ColorGamut {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightColor {
-    gamut: Option<ColorGamut>,
-    gamut_type: Option<String>,
-    xy: XY,
+    pub gamut: Option<ColorGamut>,
+    pub gamut_type: Option<String>,
+    pub xy: XY,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -205,20 +205,20 @@ pub struct MirekSchema {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperatureUpdate {
-    mirek: u32,
+    pub mirek: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperature {
-    mirek: u32,
-    mirek_schema: MirekSchema,
-    mirek_valid: bool,
+    pub mirek: u32,
+    pub mirek_schema: MirekSchema,
+    pub mirek_valid: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dimming {
-    brightness: f64,
-    min_dim_level: f64,
+    pub brightness: f64,
+    pub min_dim_level: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
