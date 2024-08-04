@@ -324,16 +324,19 @@ impl Light {
             color: LightColor {
                 gamut: Some(ColorGamut {
                     red: XY {
-                        x: 0.6915,
-                        y: 0.3083,
+                        x: 0.6812357,
+                        y: 0.318186,
                     },
-                    green: XY { x: 0.17, y: 0.7 },
+                    green: XY {
+                        x: 0.3918985,
+                        y: 0.5250334,
+                    },
                     blue: XY {
-                        x: 0.1532,
-                        y: 0.0475,
+                        x: 0.1502415,
+                        y: 0.027116,
                     },
                 }),
-                gamut_type: Some("C".to_string()),
+                gamut_type: Some("Other".to_string()),
                 xy: XY { x: 0.4573, y: 0.41 },
             },
             color_temperature: ColorTemperature {
