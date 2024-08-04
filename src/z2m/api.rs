@@ -98,11 +98,11 @@ pub enum DeviceState {
     Off,
 }
 
-impl Into<bool> for DeviceState {
-    fn into(self) -> bool {
-        match self {
-            Self::On => true,
-            Self::Off => false,
+impl From<DeviceState> for bool {
+    fn from(value: DeviceState) -> Self {
+        match value {
+            DeviceState::On => true,
+            DeviceState::Off => false,
         }
     }
 }
