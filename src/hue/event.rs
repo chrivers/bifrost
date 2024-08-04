@@ -37,7 +37,7 @@ impl EventBlock {
             id_v1: None,
         }
     }
-    #[must_use]
+
     pub fn update<T: Serialize>(data: T, id_v1: Option<String>) -> ApiResult<Self> {
         Ok(Self {
             creationtime: Utc::now(),

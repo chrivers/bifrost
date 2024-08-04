@@ -333,16 +333,16 @@ impl Light {
             color: LightColor {
                 gamut: Some(ColorGamut {
                     red: XY {
-                        x: 0.6812357,
-                        y: 0.318186,
+                        x: 0.681_235,
+                        y: 0.318_186,
                     },
                     green: XY {
-                        x: 0.3918985,
-                        y: 0.5250334,
+                        x: 0.391_898,
+                        y: 0.525_033,
                     },
                     blue: XY {
-                        x: 0.1502415,
-                        y: 0.027116,
+                        x: 0.150_241,
+                        y: 0.027_116,
                     },
                 }),
                 gamut_type: Some("Other".to_string()),
@@ -778,6 +778,7 @@ impl ResourceLink {
         Self { rid, rtype }
     }
 
+    #[must_use]
     pub fn random(rtype: ResourceType) -> Self {
         Self {
             rid: Uuid::new_v4(),
@@ -793,6 +794,7 @@ impl ResourceLink {
         }
     }
 
+    #[must_use]
     pub fn for_type(&self, rtype: ResourceType) -> Self {
         let rid = Uuid::from_u128_le(
             self.rid.to_u128_le() ^ (hash(&self.rtype) as u128) ^ (hash(&rtype) as u128),
