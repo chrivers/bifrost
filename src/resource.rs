@@ -95,8 +95,6 @@ impl Resources {
             .remove(&link.rid)
             .ok_or(ApiError::NotFound(link.rid))?;
 
-        log::info!("## EVENT ##: {evt:?}");
-
         let _ = self.chan.send(evt);
 
         Ok(())
