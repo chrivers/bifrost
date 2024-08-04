@@ -9,8 +9,8 @@ use uuid::Uuid;
 use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
 use crate::hue::v2::{
-    Bridge, Device, DeviceProductData, Light, Metadata, Resource, ResourceLink, ResourceRecord,
-    ResourceType, Room, RoomArchetypes, Scene, TimeZone,
+    Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, Resource,
+    ResourceLink, ResourceRecord, ResourceType, TimeZone,
 };
 
 pub struct Resources {
@@ -40,18 +40,16 @@ impl Resources {
     }
 
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
-        self.add_bridge(bridge_id.to_owned())?;
-        let link = self.add_light(Uuid::new_v4(), "Hue color spot 1")?;
-        self.add_room_init(&[link])
+        self.add_bridge(bridge_id.to_owned())
     }
 
-    fn next_idv1(&mut self) -> u32 {
+    pub fn next_idv1(&mut self) -> u32 {
         self.id_v1 += 1;
         self.id_v1
     }
 
     pub fn add_resource(&mut self, mut obj: Resource) -> ApiResult<ResourceLink> {
-        let link = obj.rtype().link();
+        let link = ResourceLink::random(obj.rtype());
         if obj.assign_id_v1(self.id_v1) {
             self.id_v1 += 1;
         }
@@ -101,91 +99,43 @@ impl Resources {
     }
 
     pub fn add_bridge(&mut self, bridge_id: String) -> ApiResult<()> {
-        let link_device = ResourceType::Device.link();
-        let link_bridge = ResourceType::Bridge.link();
+        let link_bridge_dev = ResourceLink::random(ResourceType::Device);
+        let link_bridge_home_dev = ResourceLink::random(ResourceType::Device);
+        let link_bridge = link_bridge_dev.for_type(ResourceType::Bridge);
+        let link_bridge_home = link_bridge_home_dev.for_type(ResourceType::BridgeHome);
 
-        let dev = Device {
+        let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::hue_bridge("bifrost"),
             identify: json!({}),
             services: vec![link_bridge.clone()],
         };
 
-        let br = Bridge {
+        let bridge = Bridge {
             bridge_id,
-            owner: link_device.clone(),
+            owner: link_bridge_dev.clone(),
             time_zone: TimeZone::best_guess(),
         };
 
-        self.add(&link_device, Resource::Device(dev))?;
-        self.add(&link_bridge, Resource::Bridge(br))
-    }
-
-    pub fn add_light(&mut self, uuid: Uuid, name: &str) -> ApiResult<ResourceLink> {
-        let link_device = ResourceType::Device.link_to(uuid);
-        let link_light = ResourceType::Light.link();
-
-        let dev = Device {
-            product_data: DeviceProductData::hue_color_spot(),
-            metadata: Metadata::spot_bulb(name),
+        let bridge_home_dev = Device {
+            product_data: DeviceProductData::hue_bridge_v2(),
+            metadata: Metadata::hue_bridge("bifrost bridge home"),
             identify: json!({}),
-            services: vec![link_light.clone()],
+            services: vec![link_bridge.clone()],
         };
 
-        let light = Light::new(self.next_idv1(), link_device.clone());
-
-        let res = link_device.clone();
-
-        self.add(&link_device, Resource::Device(dev))?;
-        self.add(&link_light, Resource::Light(light))?;
-
-        Ok(res)
-    }
-
-    pub fn add_room_init(&mut self, children: &[ResourceLink]) -> ApiResult<()> {
-        let link_room = ResourceType::Room.link();
-
-        let room = Room {
-            id_v1: Some("/room/1".to_string()),
-            children: children.to_owned(),
-            metadata: Metadata::room(RoomArchetypes::Computer, "Room 1"),
-            services: vec![],
+        let bridge_home = BridgeHome {
+            children: vec![link_bridge_dev.clone()],
+            id_v1: Some("/groups/0".to_string()),
+            services: vec![ResourceLink::random(ResourceType::GroupedLight)],
         };
 
-        self.add(&link_room, Resource::Room(room))
-    }
+        self.add(&link_bridge_dev, Resource::Device(bridge_dev))?;
+        self.add(&link_bridge, Resource::Bridge(bridge))?;
+        self.add(&link_bridge_home_dev, Resource::Device(bridge_home_dev))?;
+        self.add(&link_bridge_home, Resource::BridgeHome(bridge_home))?;
 
-    pub fn add_room_z2m(
-        &mut self,
-        name: &str,
-        uuid: Uuid,
-        id_v1: u32,
-        children: &[ResourceLink],
-    ) -> ApiResult<()> {
-        let link_room = ResourceType::Room.link_to(uuid);
-
-        let room = Room {
-            id_v1: Some(format!("/room/{id_v1}")),
-            children: children.to_owned(),
-            metadata: Metadata::room(RoomArchetypes::Computer, name),
-            services: vec![],
-        };
-
-        self.add(&link_room, Resource::Room(room))
-    }
-
-    pub fn add_scene(&mut self, scene: Scene) -> ApiResult<ResourceLink> {
-        let link = ResourceType::Scene.link();
-        self.add(&link, Resource::Scene(scene))?;
-
-        Ok(link)
-    }
-
-    pub fn add_room(&mut self, room: Room) -> ApiResult<ResourceLink> {
-        let link = ResourceType::Room.link();
-        self.add(&link, Resource::Room(room))?;
-
-        Ok(link)
+        Ok(())
     }
 
     pub fn get_resource(&self, ty: ResourceType, id: &Uuid) -> ApiResult<ResourceRecord> {
