@@ -26,7 +26,7 @@ impl Resources {
         Self {
             id_v1: 1,
             res: HashMap::new(),
-            chan: Sender::new(10),
+            chan: Sender::new(100),
         }
     }
 
