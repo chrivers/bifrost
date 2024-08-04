@@ -12,6 +12,7 @@ use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, Resource,
     ResourceLink, ResourceRecord, ResourceType, TimeZone,
 };
+use crate::z2m::api::DeviceColorMode;
 
 pub struct Resources {
     id_v1: u32,
@@ -61,6 +62,85 @@ impl Resources {
     #[must_use]
     pub fn has(&self, id: &Uuid) -> bool {
         self.res.contains_key(id)
+    }
+
+    fn update(&mut self, id: &Uuid, mut func: impl FnMut(&mut Resource)) -> ApiResult<()> {
+        let obj = self.res.get_mut(id).ok_or(ApiError::NotFound(*id))?;
+        func(obj);
+        let id_v1 = obj.get_id_v1().clone();
+        match obj {
+            Resource::Light(light) => {
+                let mut json = json!({
+                    "id": id,
+                    "id_v1": light.id_v1,
+                    "on": light.on,
+                    "dimming": light.dimming,
+                    "owner": light.owner,
+                    "type": "light",
+                });
+
+                match light.color_mode {
+                    Some(DeviceColorMode::ColorTemp) => {
+                        json.as_object_mut().map(|map| {
+                            map.insert(
+                                "color_temperature".to_string(),
+                                serde_json::to_value(&light.color_temperature).unwrap(),
+                            )
+                        });
+                    }
+                    Some(DeviceColorMode::Xy) => {
+                        json.as_object_mut().map(|map| {
+                            map.insert(
+                                "color".to_string(),
+                                json!({
+                                    "xy": light.color.xy
+                                }),
+                            )
+                        });
+                    }
+                    None => {}
+                }
+
+                self.chan.send(EventBlock::update(json, id_v1)?)?;
+            }
+            Resource::GroupedLight(glight) => {
+                let json = json!({
+                    "id": id,
+                    "id_v1": glight.id_v1,
+                    "on": glight.on,
+                    "dimming": glight.dimming,
+                    "owner": glight.owner,
+                    "color_temperature": glight.color_temperature,
+                    "type": "grouped_light",
+                    /* "color": { */
+                    /*     "xy": glight.color.xy */
+                    /* } */
+                });
+                self.chan.send(EventBlock::update(json, id_v1)?)?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    pub fn update_light(&mut self, id: &Uuid, mut func: impl FnMut(&mut Light)) -> ApiResult<()> {
+        self.update(id, |res| {
+            if let Resource::Light(ref mut obj) = res {
+                func(obj);
+            }
+        })
+    }
+
+    pub fn update_grouped_light(
+        &mut self,
+        id: &Uuid,
+        mut func: impl FnMut(&mut GroupedLight),
+    ) -> ApiResult<()> {
+        self.update(id, |res| {
+            if let Resource::GroupedLight(ref mut obj) = res {
+                func(obj);
+            }
+        })
     }
 
     pub fn add(&mut self, link: &ResourceLink, obj: Resource) -> ApiResult<()> {
