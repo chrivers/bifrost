@@ -341,8 +341,8 @@ impl Light {
             },
             color_temperature: ColorTemperature {
                 mirek_schema: MirekSchema {
-                    mirek_maximum: 500,
-                    mirek_minimum: 153,
+                    mirek_maximum: 454,
+                    mirek_minimum: 250,
                 },
                 mirek_valid: true,
                 mirek: 366,
