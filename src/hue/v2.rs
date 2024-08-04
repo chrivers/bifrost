@@ -526,24 +526,24 @@ pub struct SceneActionElement {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
-    appdata: Option<String>,
-    image: Option<ResourceLink>,
-    name: String,
+    pub appdata: Option<String>,
+    pub image: Option<ResourceLink>,
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneStatus {
-    active: String,
+    pub active: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scene {
-    actions: Vec<SceneActionElement>,
+    pub actions: Vec<SceneActionElement>,
     #[serde(default)]
-    auto_dynamic: bool,
-    group: ResourceLink,
-    id_v1: Option<String>,
-    metadata: SceneMetadata,
+    pub auto_dynamic: bool,
+    pub group: ResourceLink,
+    pub id_v1: Option<String>,
+    pub metadata: SceneMetadata,
     /* palette: { */
     /*     color: [], */
     /*     color_temperature: [ */
@@ -559,10 +559,10 @@ pub struct Scene {
     /*     dimming: [], */
     /*     effects: [] */
     /* }, */
-    palette: Value,
-    recall: Option<Value>,
-    speed: f64,
-    status: Option<SceneStatus>,
+    pub palette: Value,
+    pub recall: Option<Value>,
+    pub speed: f64,
+    pub status: Option<SceneStatus>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
