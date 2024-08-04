@@ -1,16 +1,24 @@
+use std::collections::HashMap;
+
 use axum::{
     extract::{Path, State},
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
+use futures::SinkExt;
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{json, Value};
+use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
 
-use crate::error::{ApiError, ApiResult};
-use crate::hue::v2::{Resource, ResourceType, V2Reply};
+use crate::hue::v2::{On, Resource, ResourceType, V2Reply};
 use crate::state::AppState;
+use crate::{
+    error::{ApiError, ApiResult},
+    hue::v2::GroupedLightUpdate,
+    z2m,
+};
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
@@ -86,11 +94,113 @@ async fn get_resource_id(
 async fn put_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
-    Json(req): Json<Value>,
+    Json(put): Json<Value>,
 ) -> ApiV2Result {
-    log::info!("PUT {rtype:?}/{id}: {req:?}");
+    log::info!("PUT {rtype:?}/{id}: {put:?}");
 
-    log::warn!("PUT {rtype:?}/{id}: state update not supported");
+    let res = state.get_resource(rtype, &id).await?;
+    match res.obj {
+        Resource::Light(obj) => {
+            let upd: GroupedLightUpdate = serde_json::from_value(put)?;
+
+            let mut payload = HashMap::new();
+
+            match upd.on {
+                Some(On { on: true }) => {
+                    payload.insert("state".to_string(), json!("ON"));
+                }
+                Some(On { on: false }) => {
+                    payload.insert("state".to_string(), json!("OFF"));
+                }
+                None => {}
+            }
+
+            if let Some(dim) = upd.dimming {
+                payload.insert(
+                    "brightness".to_string(),
+                    json!(dim.brightness / 100.0 * 255.0),
+                );
+            }
+
+            if let Some(col) = upd.color {
+                payload.insert("color".to_string(), json!(col.xy));
+            }
+
+            if let Some(ct) = upd.color_temperature {
+                payload.insert("color_temp".to_string(), json!(ct.mirek));
+            }
+
+            let api_req = z2m::api::Other {
+                topic: format!("{}/set", obj.metadata.name),
+                payload: serde_json::to_value(payload)?,
+            };
+
+            state
+                .ws
+                .lock()
+                .await
+                .send(Message::Text(serde_json::to_string(&api_req)?))
+                .await?;
+            log::info!("{api_req:#?}");
+        }
+
+        Resource::GroupedLight(obj) => {
+            log::info!("PUT {rtype:?}/{id}: updating");
+
+            let Resource::Room(rr) = state
+                .get_resource(obj.owner.rtype, &obj.owner.rid)
+                .await?
+                .obj
+            else {
+                return Err(ApiError::NotFound(obj.owner.rid));
+            };
+
+            let upd: GroupedLightUpdate = serde_json::from_value(put)?;
+
+            let mut payload = HashMap::new();
+
+            match upd.on {
+                Some(On { on: true }) => {
+                    payload.insert("state".to_string(), json!("ON"));
+                }
+                Some(On { on: false }) => {
+                    payload.insert("state".to_string(), json!("OFF"));
+                }
+                None => {}
+            }
+
+            if let Some(dim) = upd.dimming {
+                payload.insert(
+                    "brightness".to_string(),
+                    json!(dim.brightness / 100.0 * 255.0),
+                );
+            }
+
+            if let Some(col) = upd.color {
+                payload.insert("color".to_string(), json!(col.xy));
+            }
+
+            if let Some(ct) = upd.color_temperature {
+                payload.insert("color_temp".to_string(), json!(ct.mirek));
+            }
+
+            let api_req = z2m::api::Other {
+                topic: format!("{}/set", rr.metadata.name),
+                payload: serde_json::to_value(payload)?,
+            };
+
+            state
+                .ws
+                .lock()
+                .await
+                .send(Message::Text(serde_json::to_string(&api_req)?))
+                .await?;
+            log::info!("{api_req:#?}");
+        }
+        _ => {
+            log::warn!("PUT {rtype:?}/{id}: state update not supported");
+        }
+    }
 
     V2Reply::ok(state.get_resource(rtype, &id).await?)
 }
