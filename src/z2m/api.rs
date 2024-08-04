@@ -70,6 +70,44 @@ pub struct Other {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceUpdate {
+    pub state: Option<DeviceState>,
+    pub brightness: Option<f64>,
+    pub color_temp: Option<u32>,
+    pub color_mode: Option<DeviceColorMode>,
+    pub color: Option<DeviceColor>,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceColor {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum DeviceColorMode {
+    ColorTemp,
+    Xy,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum DeviceState {
+    On,
+    Off,
+}
+
+impl Into<bool> for DeviceState {
+    fn into(self) -> bool {
+        match self {
+            Self::On => true,
+            Self::Off => false,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum BridgeOnlineState {
     Online,
