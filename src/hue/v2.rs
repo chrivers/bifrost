@@ -701,6 +701,31 @@ impl Resource {
             | Self::ZigbeeDeviceDiscovery(_) => false,
         }
     }
+
+    pub fn get_id_v1(&mut self) -> &Option<String> {
+        match self {
+            Self::BridgeHome(obj) => &obj.id_v1,
+            Self::Entertainment(obj) => &obj.id_v1,
+            Self::GroupedLight(obj) => &obj.id_v1,
+            Self::Light(obj) => &obj.id_v1,
+            Self::Room(obj) => &obj.id_v1,
+            Self::Scene(obj) => &obj.id_v1,
+            Self::ZigbeeConnectivity(obj) => &obj.id_v1,
+            Self::Zone(obj) => &obj.id_v1,
+
+            Self::BehaviorScript(_)
+            | Self::BehaviorInstance(_)
+            | Self::Bridge(_)
+            | Self::Device(_)
+            | Self::GeofenceClient(_)
+            | Self::Geolocation(_)
+            | Self::Homekit(_)
+            | Self::Matter(_)
+            | Self::PublicImage(_)
+            | Self::SmartScene(_)
+            | Self::ZigbeeDeviceDiscovery(_) => &None,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
