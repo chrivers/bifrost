@@ -738,12 +738,26 @@ impl ResourceLink {
         Self { rid, rtype }
     }
 
+    pub fn random(rtype: ResourceType) -> Self {
+        Self {
+            rid: Uuid::new_v4(),
+            rtype,
+        }
+    }
+
     #[must_use]
     pub const fn to(rid: Uuid, res: &Resource) -> Self {
         Self {
             rid,
             rtype: res.rtype(),
         }
+    }
+
+    pub fn for_type(&self, rtype: ResourceType) -> Self {
+        let rid = Uuid::from_u128_le(
+            self.rid.to_u128_le() ^ (hash(&self.rtype) as u128) ^ (hash(&rtype) as u128),
+        );
+        Self { rid, rtype }
     }
 }
 
