@@ -80,7 +80,7 @@ async fn get_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(ResourceType, Uuid)>,
 ) -> ApiV2Result {
-    V2Reply::ok(state.get_resource(rtype, id).await?)
+    V2Reply::ok(state.get_resource(rtype, &id).await?)
 }
 
 async fn put_resource_id(
@@ -92,7 +92,7 @@ async fn put_resource_id(
 
     log::warn!("PUT {rtype:?}/{id}: state update not supported");
 
-    V2Reply::ok(state.get_resource(rtype, id).await?)
+    V2Reply::ok(state.get_resource(rtype, &id).await?)
 }
 
 async fn delete_resource_id(

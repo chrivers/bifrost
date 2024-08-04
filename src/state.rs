@@ -101,7 +101,7 @@ impl AppState {
         self.res.lock().await.get_resources_by_type(ty)
     }
 
-    pub async fn get_resource(&self, ty: ResourceType, id: Uuid) -> ApiResult<ResourceRecord> {
+    pub async fn get_resource(&self, ty: ResourceType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res.lock().await.get_resource(ty, id)
     }
 }

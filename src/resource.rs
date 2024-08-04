@@ -79,7 +79,7 @@ impl Resources {
             self.save(fd)?;
         }
 
-        let evt = EventBlock::add(serde_json::to_value(self.get_resource_by_id(link.rid)?)?);
+        let evt = EventBlock::add(serde_json::to_value(self.get_resource_by_id(&link.rid)?)?);
 
         log::info!("## EVENT ##: {evt:?}");
 
@@ -190,19 +190,19 @@ impl Resources {
         Ok(link)
     }
 
-    pub fn get_resource(&self, ty: ResourceType, id: Uuid) -> ApiResult<ResourceRecord> {
+    pub fn get_resource(&self, ty: ResourceType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res
             .get(&id)
             .filter(|id| id.rtype() == ty)
-            .map(|r| ResourceRecord::from_ref((&id, r)))
-            .ok_or(ApiError::NotFound(id))
+            .map(|r| ResourceRecord::from_ref((id, r)))
+            .ok_or_else(|| ApiError::NotFound(*id))
     }
 
-    pub fn get_resource_by_id(&self, id: Uuid) -> ApiResult<ResourceRecord> {
+    pub fn get_resource_by_id(&self, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res
             .get(&id)
-            .map(|r| ResourceRecord::from_ref((&id, r)))
-            .ok_or(ApiError::NotFound(id))
+            .map(|r| ResourceRecord::from_ref((id, r)))
+            .ok_or_else(|| ApiError::NotFound(*id))
     }
 
     pub fn get_resources(&self) -> Vec<ResourceRecord> {
