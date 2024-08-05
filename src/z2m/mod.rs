@@ -138,14 +138,15 @@ impl Client {
                                     || (id == "LCG002")
                                     || (id == "TRADFRI bulb E27 CWS 806lm") =>
                             {
-                                println!("{:?}", dev.ieee_address.uuid());
+                                println!("{:?}", dev.ieee_address);
                                 println!("{:?}", dev.friendly_name);
 
                                 let name = &dev.friendly_name;
-                                let uuid = dev.ieee_address.uuid();
 
-                                let link_device = ResourceType::Device.link_to(uuid);
-                                let link_light = link_device.for_type(ResourceType::Light);
+                                let link_device =
+                                    ResourceType::Device.deterministic(&dev.ieee_address);
+                                let link_light =
+                                    ResourceType::Light.deterministic(&dev.ieee_address);
 
                                 let dev = Device {
                                     product_data: DeviceProductData::hue_color_spot(),
@@ -170,17 +171,15 @@ impl Client {
                 Message::BridgeGroups(ref obj) => {
                     /* println!("{obj:#?}"); */
                     for grp in obj {
-                        let uuid = Uuid::new_v5(&Uuid::NAMESPACE_OID, &grp.id.to_le_bytes());
-                        let uuid_glight = Uuid::new_v5(&Uuid::NAMESPACE_OID, &grp.id.to_be_bytes());
-                        if !res.has(&uuid) {
+                        let link_room = ResourceType::Room.deterministic(grp.id);
+                        let link_glight = ResourceType::GroupedLight.deterministic(grp.id);
+
+                        if !res.has(&link_room.rid) {
                             let children = grp
                                 .members
                                 .iter()
-                                .map(|f| ResourceType::Device.link_to(f.ieee_address.uuid()))
+                                .map(|f| ResourceType::Device.deterministic(&f.ieee_address))
                                 .collect();
-
-                            let link_room = ResourceType::Room.link_to(uuid);
-                            let link_glight = ResourceType::GroupedLight.link_to(uuid_glight);
 
                             let mut services = vec![link_glight.clone()];
 
@@ -208,7 +207,8 @@ impl Client {
                                     }),
                                 };
 
-                                let link_scene = ResourceLink::random(ResourceType::Scene);
+                                let link_scene =
+                                    ResourceType::Scene.deterministic((grp.id, scn.id));
 
                                 services.push(link_scene.clone());
                                 res.add(&link_scene, Resource::Scene(scene))?;

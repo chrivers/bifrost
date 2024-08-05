@@ -30,7 +30,7 @@ pub enum ResourceType {
     Zone,
 }
 
-fn hash<T: Hash>(t: &T) -> u64 {
+fn hash<T: Hash + ?Sized>(t: &T) -> u64 {
     let mut s = DefaultHasher::new();
     t.hash(&mut s);
     s.finish()
@@ -38,11 +38,24 @@ fn hash<T: Hash>(t: &T) -> u64 {
 
 impl ResourceType {
     #[must_use]
-    pub fn link_to(self, rid: Uuid) -> ResourceLink {
-        ResourceLink {
-            rid: Uuid::from_u128_le(rid.to_u128_le() ^ (hash(&self) as u128)),
-            rtype: self,
-        }
+    pub const fn link_to(self, rid: Uuid) -> ResourceLink {
+        ResourceLink { rid, rtype: self }
+    }
+
+    #[must_use]
+    pub fn deterministic(self, data: impl Hash) -> ResourceLink {
+        /* hash resource type (i.e., self) */
+        let h1 = hash(&self);
+
+        /* hash data */
+        let h2 = hash(&data);
+
+        /* use resulting bytes for uuid seed */
+        let seed: &[u8] = &[h1.to_le_bytes(), h2.to_le_bytes()].concat();
+
+        let rid = Uuid::new_v5(&Uuid::NAMESPACE_OID, seed);
+
+        self.link_to(rid)
     }
 }
 
@@ -790,22 +803,6 @@ pub struct ResourceLink {
 impl ResourceLink {
     #[must_use]
     pub const fn new(rid: Uuid, rtype: ResourceType) -> Self {
-        Self { rid, rtype }
-    }
-
-    #[must_use]
-    pub fn random(rtype: ResourceType) -> Self {
-        Self {
-            rid: Uuid::new_v4(),
-            rtype,
-        }
-    }
-
-    #[must_use]
-    pub fn for_type(&self, rtype: ResourceType) -> Self {
-        let rid = Uuid::from_u128_le(
-            self.rid.to_u128_le() ^ (hash(&self.rtype) as u128) ^ (hash(&rtype) as u128),
-        );
         Self { rid, rtype }
     }
 }

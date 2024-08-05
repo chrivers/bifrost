@@ -50,7 +50,7 @@ impl Resources {
     }
 
     pub fn add_resource(&mut self, mut obj: Resource) -> ApiResult<ResourceLink> {
-        let link = ResourceLink::random(obj.rtype());
+        let link = obj.rtype().deterministic(self.id_v1);
         if obj.assign_id_v1(self.id_v1) {
             self.id_v1 += 1;
         }
@@ -179,10 +179,10 @@ impl Resources {
     }
 
     pub fn add_bridge(&mut self, bridge_id: String) -> ApiResult<()> {
-        let link_bridge_dev = ResourceLink::random(ResourceType::Device);
-        let link_bridge_home_dev = ResourceLink::random(ResourceType::Device);
-        let link_bridge = link_bridge_dev.for_type(ResourceType::Bridge);
-        let link_bridge_home = link_bridge_home_dev.for_type(ResourceType::BridgeHome);
+        let link_bridge = ResourceType::Bridge.deterministic(&bridge_id);
+        let link_bridge_home = ResourceType::BridgeHome.deterministic(&format!("{bridge_id}HOME"));
+        let link_bridge_dev = ResourceType::Device.deterministic(link_bridge.rid);
+        let link_bridge_home_dev = ResourceType::Device.deterministic(link_bridge_home.rid);
 
         let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
@@ -207,7 +207,7 @@ impl Resources {
         let bridge_home = BridgeHome {
             children: vec![link_bridge_dev.clone()],
             id_v1: Some("/groups/0".to_string()),
-            services: vec![ResourceLink::random(ResourceType::GroupedLight)],
+            services: vec![ResourceType::GroupedLight.deterministic(link_bridge_home.rid)],
         };
 
         self.add(&link_bridge_dev, Resource::Device(bridge_dev))?;

@@ -4,7 +4,6 @@ use std::{collections::HashMap, fmt::Debug};
 
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -38,20 +37,13 @@ pub enum Message {
     Other(Other),
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Hash)]
 #[serde(transparent)]
 pub struct IeeeAddress(#[serde(deserialize_with = "ieee_address")] u64);
 
 impl Debug for IeeeAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "IeeeAddress({:016x})", self.0)
-    }
-}
-
-impl IeeeAddress {
-    #[must_use]
-    pub fn uuid(&self) -> Uuid {
-        Uuid::new_v5(&Uuid::NAMESPACE_OID, &self.0.to_be_bytes())
     }
 }
 
