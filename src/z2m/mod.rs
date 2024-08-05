@@ -209,8 +209,7 @@ impl Client {
                                 }),
                             };
 
-                            let link_scene =
-                                ResourceType::Scene.deterministic((grp.id, scn.id));
+                            let link_scene = ResourceType::Scene.deterministic((grp.id, scn.id));
 
                             res.aux.insert(
                                 link_scene.rid,
@@ -226,10 +225,7 @@ impl Client {
                         let room = Room {
                             id_v1: Some(format!("/room/{}", grp.id)),
                             children,
-                            metadata: Metadata::room(
-                                RoomArchetypes::Computer,
-                                &grp.friendly_name,
-                            ),
+                            metadata: Metadata::room(RoomArchetypes::Computer, &grp.friendly_name),
                             services,
                         };
 
