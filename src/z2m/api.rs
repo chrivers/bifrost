@@ -72,13 +72,79 @@ pub struct DeviceUpdate {
     pub color_temp: Option<u32>,
     pub color_mode: Option<DeviceColorMode>,
     pub color: Option<DeviceColor>,
+    pub linkquality: Option<u8>,
+    pub color_options: Option<ColorOptions>,
+    pub color_temp_startup: Option<f64>,
+    pub level_config: Option<LevelConfig>,
+    #[serde(default)]
+    pub power_on_behavior: Option<PowerOnBehavior>,
+    #[serde(default)]
+    pub update: HashMap<String, Value>,
+    pub update_available: Option<bool>,
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct DeviceColor {
+    #[allow(dead_code)]
+    #[serde(skip_serializing)]
+    h: Option<f64>,
+    #[allow(dead_code)]
+    #[serde(skip_serializing)]
+    s: Option<f64>,
+
+    pub hue: Option<f64>,
+    pub saturation: Option<f64>,
+
     pub x: f64,
     pub y: f64,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(deny_unknown_fields)]
+pub enum PowerOnBehavior {
+    #[default]
+    Unknown,
+
+    #[serde(rename = "on")]
+    On,
+
+    #[serde(rename = "off")]
+    Off,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct ColorOptions {
+    pub execute_if_off: bool,
+    pub color_temp: Option<f64>,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct LevelConfig {
+    pub on_off_transition_time: Option<u16>,
+    pub on_transition_time: Option<u16>,
+    pub off_transition_time: Option<u16>,
+    pub current_level_startup: Option<CurrentLevelStartup>,
+    pub on_level: Option<OnLevel>,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum CurrentLevelStartup {
+    Previous,
+    Minimum,
+    #[serde(untagged)]
+    Value(u8),
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum OnLevel {
+    Previous,
+    #[serde(untagged)]
+    Value(u8),
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
