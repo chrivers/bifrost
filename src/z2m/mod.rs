@@ -285,12 +285,12 @@ impl Client {
                     match res.get_resource_by_id(val)?.obj {
                         Resource::Light(light) => {
                             if let Err(e) = handle_light(val, &mut res, obj) {
-                                log::error!("FAIL: {e:?}");
+                                log::error!("FAIL: {e:?} in {obj:?}");
                             }
                         }
                         Resource::GroupedLight(light) => {
                             if let Err(e) = handle_grouped_light(val, &mut res, obj) {
-                                log::error!("FAIL: {e:?}");
+                                log::error!("FAIL: {e:?} in {obj:?}");
                             }
                         }
                         _ => {}
