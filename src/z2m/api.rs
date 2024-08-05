@@ -16,6 +16,9 @@ pub enum Message {
     #[serde(rename = "bridge/state")]
     BridgeState(BridgeState),
 
+    #[serde(rename = "bridge/event")]
+    BridgeEvent(BridgeEvent),
+
     #[serde(rename = "bridge/devices")]
     BridgeDevices(BridgeDevices),
 
@@ -117,6 +120,15 @@ pub enum BridgeOnlineState {
 #[serde(deny_unknown_fields)]
 pub struct BridgeState {
     pub state: BridgeOnlineState,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct BridgeEvent {
+    /* FIXME: needs proper mapping */
+    /* See: <zigbee2mqtt>/lib/extension/bridge.ts */
+    #[serde(flatten)]
+    pub value: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

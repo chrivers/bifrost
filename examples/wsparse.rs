@@ -39,6 +39,9 @@ async fn main() -> ApiResult<()> {
             Message::BridgeState(ref obj) => {
                 /* println!("{obj:#?}"); */
             },
+            Message::BridgeEvent(ref obj) => {
+                /* println!("{obj:#?}"); */
+            },
             Message::Other(ref obj) => {
                 if obj.topic.contains('/') {
                     println!("{:#?}", obj.topic);
