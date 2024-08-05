@@ -25,6 +25,7 @@ use crate::{
 pub struct Client {
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
     state: AppState,
+    map: HashMap<String, Uuid>,
 }
 
 fn handle_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiResult<()> {
@@ -88,13 +89,11 @@ fn handle_grouped_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiRes
 impl Client {
     pub async fn new(conn: &str, state: AppState) -> ApiResult<Self> {
         let (socket, _) = connect_async(conn).await?;
-
-        Ok(Self { socket, state })
+        let map = HashMap::new();
+        Ok(Self { socket, state, map })
     }
 
     pub async fn event_loop(mut self) -> ApiResult<()> {
-        let mut map: HashMap<String, Uuid> = HashMap::new();
-
         loop {
             let Some(pkt) = self.socket.next().await else {
                 log::error!("Websocket broke :(");
@@ -155,7 +154,7 @@ impl Client {
                                     services: vec![link_light.clone()],
                                 };
 
-                                map.insert(name.to_string(), link_light.rid);
+                                self.map.insert(name.to_string(), link_light.rid);
 
                                 let mut light = Light::new(res.next_idv1(), link_device.clone());
                                 light.metadata.name = name.to_string();
@@ -224,7 +223,7 @@ impl Client {
                                 services,
                             };
 
-                            map.insert(grp.friendly_name.to_string(), link_glight.rid);
+                            self.map.insert(grp.friendly_name.to_string(), link_glight.rid);
                             res.add(&link_room, Resource::Room(room))?;
 
                             let glight = GroupedLight {
@@ -266,7 +265,7 @@ impl Client {
                         continue;
                     }
 
-                    let Some(val) = map.get(&obj.topic) else {
+                    let Some(val) = self.map.get(&obj.topic) else {
                         log::warn!("Notification on unknown topic {}", &obj.topic);
                         continue;
                     };
