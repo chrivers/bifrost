@@ -7,6 +7,7 @@ use axum::{
     Json, Router,
 };
 use futures::SinkExt;
+use hyper::StatusCode;
 use serde::Serialize;
 use serde_json::{json, Value};
 use tokio_tungstenite::tungstenite::Message;
@@ -45,11 +46,16 @@ impl<T: Serialize> V2Reply<T> {
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        Json(V2Reply::<Value> {
-            data: vec![],
-            errors: vec![format!("{}", self)],
-        })
-        .into_response()
+        let error_msg = format!("{self}");
+        log::error!("Request failed: {error_msg}");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(V2Reply::<Value> {
+                data: vec![],
+                errors: vec![error_msg],
+            }),
+        )
+            .into_response()
     }
 }
 
