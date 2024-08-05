@@ -19,28 +19,30 @@ async fn main() -> ApiResult<()> {
 
         match msg {
             Message::BridgeInfo(ref obj) => {
-                /* println!("{:#?}", obj.config_schema); */
+                println!("{:#?}", obj.config_schema);
             },
             Message::BridgeLogging(ref obj) => {
-                /* println!("{obj:#?}"); */
+                println!("{obj:#?}");
             },
             Message::BridgeExtensions(ref obj) => {
-                /* println!("{obj:#?}"); */
+                println!("{obj:#?}");
             },
-            Message::BridgeDevices(ref obj) => {
-                /* println!("{obj:#?}"); */
+            Message::BridgeDevices(ref devices) => {
+                for dev in devices {
+                    println!("{dev:#?}");
+                }
             },
             Message::BridgeGroups(ref obj) => {
-                /* println!("{obj:#?}"); */
+                println!("{obj:#?}");
             },
             Message::BridgeDefinitions(ref obj) => {
-                /* println!("{obj:#?}"); */
+                println!("{obj:#?}");
             },
             Message::BridgeState(ref obj) => {
-                /* println!("{obj:#?}"); */
+                println!("{obj:#?}");
             },
             Message::BridgeEvent(ref obj) => {
-                /* println!("{obj:#?}"); */
+                println!("{obj:#?}");
             },
             Message::Other(ref obj) => {
                 if obj.topic.contains('/') {
