@@ -36,9 +36,9 @@ pub struct AppState {
 impl AppState {
     pub async fn new(conf: AppConfig) -> ApiResult<Self> {
         /* FIXME: just for proof of concept */
-        let ws = connect_async(&conf.z2m.servers.values().next().unwrap().url)
-            .await?
-            .0;
+        let first_z2m_server = &conf.z2m.servers.values().next().unwrap().url.clone();
+
+        let ws = connect_async(first_z2m_server).await?.0;
         let (ws_sink, mut ws_stream) = ws.split();
         tokio::spawn(async move {
             loop {
@@ -46,11 +46,10 @@ impl AppState {
             }
         });
 
-        Ok(Self {
-            conf,
-            res: Arc::new(Mutex::new(Resources::new())),
-            ws: Arc::new(Mutex::new(ws_sink)),
-        })
+        let res = Arc::new(Mutex::new(Resources::new()));
+        let ws = Arc::new(Mutex::new(ws_sink));
+
+        Ok(Self { conf, res, ws })
     }
 
     #[must_use]
