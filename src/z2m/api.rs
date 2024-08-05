@@ -121,8 +121,9 @@ pub struct BridgeState {
 pub struct BridgeEvent {
     /* FIXME: needs proper mapping */
     /* See: <zigbee2mqtt>/lib/extension/bridge.ts */
-    #[serde(flatten)]
-    pub value: Value,
+    pub data: Value,
+    #[serde(rename = "type")]
+    pub event_type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
