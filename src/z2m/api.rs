@@ -184,6 +184,15 @@ pub enum DeviceState {
     Off,
 }
 
+impl From<bool> for DeviceState {
+    fn from(value: bool) -> Self {
+        match value {
+            true => DeviceState::On,
+            false => DeviceState::Off,
+        }
+    }
+}
+
 impl From<DeviceState> for bool {
     fn from(value: DeviceState) -> Self {
         match value {
