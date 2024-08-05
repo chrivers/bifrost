@@ -192,10 +192,7 @@ impl Client {
                                     id_v1: Some("/scene/blob".to_string()),
                                     metadata: SceneMetadata {
                                         appdata: None,
-                                        image: Some(ResourceLink {
-                                            rid: guess_scene_icon(&scn.name),
-                                            rtype: ResourceType::PublicImage,
-                                        }),
+                                        image: guess_scene_icon(&scn.name),
                                         name: scn.name.to_string(),
                                     },
                                     palette: json!({
@@ -297,12 +294,16 @@ impl Client {
     }
 }
 
-fn guess_scene_icon(name: &str) -> Uuid {
-    match name {
+fn guess_scene_icon(name: &str) -> Option<ResourceLink> {
+    let icon = match name {
         "Bright" => scene_icons::BRIGHT,
         "Relax" => scene_icons::RELAX,
-        "Nightt" => scene_icons::NIGHT_LIGHT,
+        "Night" => scene_icons::NIGHT_LIGHT,
+        _ => return None,
+    };
 
-        _ => scene_icons::REST,
-    }
+    Some(ResourceLink {
+        rid: icon,
+        rtype: ResourceType::PublicImage,
+    })
 }
