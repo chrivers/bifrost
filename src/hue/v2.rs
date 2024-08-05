@@ -802,14 +802,6 @@ impl ResourceLink {
     }
 
     #[must_use]
-    pub const fn to(rid: Uuid, res: &Resource) -> Self {
-        Self {
-            rid,
-            rtype: res.rtype(),
-        }
-    }
-
-    #[must_use]
     pub fn for_type(&self, rtype: ResourceType) -> Self {
         let rid = Uuid::from_u128_le(
             self.rid.to_u128_le() ^ (hash(&self.rtype) as u128) ^ (hash(&rtype) as u128),
