@@ -64,7 +64,7 @@ pub struct Other {
     pub payload: Value,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DeviceUpdate {
     pub state: Option<DeviceState>,
@@ -98,6 +98,30 @@ pub struct DeviceColor {
 
     pub x: f64,
     pub y: f64,
+}
+
+impl DeviceColor {
+    pub fn xy(x: f64, y: f64) -> Self {
+        Self {
+            h: None,
+            s: None,
+            hue: None,
+            saturation: None,
+            x,
+            y,
+        }
+    }
+
+    pub fn hs(h: f64, s: f64) -> Self {
+        Self {
+            h: None,
+            s: None,
+            hue: Some(h),
+            saturation: Some(s),
+            x: 0.0,
+            y: 0.0,
+        }
+    }
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, Default)]
