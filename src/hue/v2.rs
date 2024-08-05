@@ -550,6 +550,11 @@ pub struct SceneStatus {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SceneUpdate {
+    pub recall: Option<SceneRecall>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scene {
     pub actions: Vec<SceneActionElement>,
     #[serde(default)]
@@ -573,9 +578,24 @@ pub struct Scene {
     /*     effects: [] */
     /* }, */
     pub palette: Value,
-    pub recall: Option<Value>,
+    pub recall: Option<SceneRecall>,
     pub speed: f64,
     pub status: Option<SceneStatus>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SceneRecall {
+    pub action: Option<SceneRecallAction>,
+    pub duration: Option<u32>,
+    pub dimming: Option<DimmingUpdate>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum SceneRecallAction {
+    Active,
+    DynamicPalette,
+    Static,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
