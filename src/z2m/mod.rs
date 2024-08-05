@@ -1,4 +1,5 @@
 pub mod api;
+pub mod update;
 
 use std::collections::HashMap;
 use std::sync::Arc;
