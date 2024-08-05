@@ -101,7 +101,7 @@ impl Resources {
                     None => {}
                 }
 
-                self.chan.send(EventBlock::update(json, id_v1)?)?;
+                let _ = self.chan.send(EventBlock::update(json, id_v1)?);
             }
             Resource::GroupedLight(glight) => {
                 let json = json!({
@@ -116,7 +116,7 @@ impl Resources {
                     /*     "xy": glight.color.xy */
                     /* } */
                 });
-                self.chan.send(EventBlock::update(json, id_v1)?)?;
+                let _ = self.chan.send(EventBlock::update(json, id_v1)?);
             }
             _ => {}
         }
