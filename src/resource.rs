@@ -65,12 +65,15 @@ impl Resources {
     }
 
     pub fn load(&mut self, rdr: impl Read) -> ApiResult<()> {
-        self.res = serde_yaml::from_reader(rdr)?;
+        (self.id_v1, self.res, self.aux) = serde_yaml::from_reader(rdr)?;
         Ok(())
     }
 
     pub fn save(&self, wr: impl Write) -> ApiResult<()> {
-        Ok(serde_yaml::to_writer(wr, &self.res)?)
+        Ok(serde_yaml::to_writer(
+            wr,
+            &(&self.id_v1, &self.res, &self.aux),
+        )?)
     }
 
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
