@@ -50,8 +50,7 @@ fn handle_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiResult<()> 
         }
 
         if let Some(col) = upd.color {
-            light.color.xy.x = col.x;
-            light.color.xy.y = col.y;
+            light.color.xy = col.xy;
             /* light.color_temperature.mirek_valid = false; */
         }
     })?;
@@ -79,8 +78,7 @@ fn handle_grouped_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiRes
         }
 
         if let Some(col) = upd.color {
-            glight.color.xy.x = col.x;
-            glight.color.xy.y = col.y;
+            glight.color.xy = col.xy;
             /* glight.color_temperature.mirek_valid = false; */
         }
     })?;

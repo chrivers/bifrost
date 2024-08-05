@@ -5,6 +5,8 @@ use std::{collections::HashMap, fmt::Debug};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
+use crate::types::XY;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 #[serde(tag = "topic", content = "payload")]
@@ -96,30 +98,30 @@ pub struct DeviceColor {
     pub hue: Option<f64>,
     pub saturation: Option<f64>,
 
-    pub x: f64,
-    pub y: f64,
+    #[serde(flatten)]
+    pub xy: XY,
 }
 
 impl DeviceColor {
-    pub fn xy(x: f64, y: f64) -> Self {
+    #[must_use]
+    pub const fn xy(xy: XY) -> Self {
         Self {
             h: None,
             s: None,
             hue: None,
             saturation: None,
-            x,
-            y,
+            xy,
         }
     }
 
-    pub fn hs(h: f64, s: f64) -> Self {
+    #[must_use]
+    pub const fn hs(h: f64, s: f64) -> Self {
         Self {
             h: None,
             s: None,
             hue: Some(h),
             saturation: Some(s),
-            x: 0.0,
-            y: 0.0,
+            xy: XY::new(0.0, 0.0),
         }
     }
 }
