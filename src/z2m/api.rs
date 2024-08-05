@@ -141,7 +141,6 @@ pub enum PowerOnBehavior {
 #[serde(deny_unknown_fields)]
 pub struct ColorOptions {
     pub execute_if_off: bool,
-    pub color_temp: Option<f64>,
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
