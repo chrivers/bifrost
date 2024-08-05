@@ -111,7 +111,7 @@ async fn main() -> ApiResult<()> {
 
     for (name, server) in &appstate.z2m_config().servers {
         log::info!("Connecting to [{name}]: {}", server.url);
-        let client = z2m::Client::new(&server.url, appstate.clone()).await?;
+        let client = z2m::Client::new(&server.url, appstate.res.clone()).await?;
 
         tasks.spawn(client.event_loop());
     }

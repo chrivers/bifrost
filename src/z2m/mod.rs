@@ -1,10 +1,12 @@
 pub mod api;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use futures::StreamExt;
 use serde_json::json;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
@@ -14,17 +16,17 @@ use crate::hue::v2::{
     SceneStatus,
 };
 
+use crate::resource::AuxData;
 use crate::{
     error::ApiResult,
     hue::scene_icons,
     resource::Resources,
-    state::AppState,
     z2m::api::{DeviceUpdate, Message, Other},
 };
 
 pub struct Client {
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
-    state: AppState,
+    state: Arc<Mutex<Resources>>,
     map: HashMap<String, Uuid>,
 }
 
@@ -87,7 +89,7 @@ fn handle_grouped_light(uuid: &Uuid, res: &mut Resources, obj: &Other) -> ApiRes
 }
 
 impl Client {
-    pub async fn new(conn: &str, state: AppState) -> ApiResult<Self> {
+    pub async fn new(conn: &str, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
         let (socket, _) = connect_async(conn).await?;
         let map = HashMap::new();
         Ok(Self { socket, state, map })
@@ -115,7 +117,7 @@ impl Client {
                 continue;
             };
 
-            let mut res = self.state.res.lock().await;
+            let mut res = self.state.lock().await;
 
             #[allow(unused_variables)]
             match msg {
