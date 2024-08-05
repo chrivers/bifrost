@@ -177,90 +177,88 @@ impl Client {
                         let link_room = ResourceType::Room.deterministic(grp.id);
                         let link_glight = ResourceType::GroupedLight.deterministic(grp.id);
 
-                        if !res.has(&link_room.rid) {
-                            let children = grp
-                                .members
-                                .iter()
-                                .map(|f| ResourceType::Device.deterministic(&f.ieee_address))
-                                .collect();
+                        let children = grp
+                            .members
+                            .iter()
+                            .map(|f| ResourceType::Device.deterministic(&f.ieee_address))
+                            .collect();
 
-                            let mut services = vec![link_glight.clone()];
+                        let mut services = vec![link_glight.clone()];
 
-                            for scn in &grp.scenes {
-                                let scene = Scene {
-                                    actions: vec![],
-                                    auto_dynamic: false,
-                                    group: link_room.clone(),
-                                    id_v1: Some("/scene/blob".to_string()),
-                                    metadata: SceneMetadata {
-                                        appdata: None,
-                                        image: guess_scene_icon(&scn.name),
-                                        name: scn.name.to_string(),
-                                    },
-                                    palette: json!({
-                                        "color": [],
-                                        "dimming": [],
-                                        "color_temperature": [],
-                                        "effects": [],
-                                    }),
-                                    recall: None,
-                                    speed: 0.5,
-                                    status: Some(SceneStatus {
-                                        active: "inactive".to_string(),
-                                    }),
-                                };
-
-                                let link_scene =
-                                    ResourceType::Scene.deterministic((grp.id, scn.id));
-
-                                res.aux.insert(
-                                    link_scene.rid,
-                                    AuxData::new()
-                                        .with_topic(&grp.friendly_name)
-                                        .with_index(scn.id),
-                                );
-
-                                services.push(link_scene.clone());
-                                res.add(&link_scene, Resource::Scene(scene))?;
-                            }
-
-                            let room = Room {
-                                id_v1: Some(format!("/room/{}", grp.id)),
-                                children,
-                                metadata: Metadata::room(
-                                    RoomArchetypes::Computer,
-                                    &grp.friendly_name,
-                                ),
-                                services,
-                            };
-
-                            self.map
-                                .insert(grp.friendly_name.to_string(), link_glight.rid);
-                            res.add(&link_room, Resource::Room(room))?;
-
-                            let glight = GroupedLight {
-                                alert: json!({
-                                    "action_values": [],
-                                }),
-                                color: LightColor::dummy(),
-                                color_temperature: ColorTemperature::dummy(),
-                                color_temperature_delta: json!({}),
-                                dimming: Dimming {
-                                    brightness: 100.0,
-                                    min_dim_level: None,
+                        for scn in &grp.scenes {
+                            let scene = Scene {
+                                actions: vec![],
+                                auto_dynamic: false,
+                                group: link_room.clone(),
+                                id_v1: Some("/scene/blob".to_string()),
+                                metadata: SceneMetadata {
+                                    appdata: None,
+                                    image: guess_scene_icon(&scn.name),
+                                    name: scn.name.to_string(),
                                 },
-                                dimming_delta: json!({}),
-                                dynamics: json!({}),
-                                id_v1: Some(format!("/groups/{}", grp.id)),
-                                on: On { on: true },
-                                owner: link_room,
-                                signaling: json!({
-                                    "signal_values": [],
+                                palette: json!({
+                                    "color": [],
+                                    "dimming": [],
+                                    "color_temperature": [],
+                                    "effects": [],
+                                }),
+                                recall: None,
+                                speed: 0.5,
+                                status: Some(SceneStatus {
+                                    active: "inactive".to_string(),
                                 }),
                             };
 
-                            res.add(&link_glight, Resource::GroupedLight(glight))?;
+                            let link_scene =
+                                ResourceType::Scene.deterministic((grp.id, scn.id));
+
+                            res.aux.insert(
+                                link_scene.rid,
+                                AuxData::new()
+                                    .with_topic(&grp.friendly_name)
+                                    .with_index(scn.id),
+                            );
+
+                            services.push(link_scene.clone());
+                            res.add(&link_scene, Resource::Scene(scene))?;
                         }
+
+                        let room = Room {
+                            id_v1: Some(format!("/room/{}", grp.id)),
+                            children,
+                            metadata: Metadata::room(
+                                RoomArchetypes::Computer,
+                                &grp.friendly_name,
+                            ),
+                            services,
+                        };
+
+                        self.map
+                            .insert(grp.friendly_name.to_string(), link_glight.rid);
+                        res.add(&link_room, Resource::Room(room))?;
+
+                        let glight = GroupedLight {
+                            alert: json!({
+                                "action_values": [],
+                            }),
+                            color: LightColor::dummy(),
+                            color_temperature: ColorTemperature::dummy(),
+                            color_temperature_delta: json!({}),
+                            dimming: Dimming {
+                                brightness: 100.0,
+                                min_dim_level: None,
+                            },
+                            dimming_delta: json!({}),
+                            dynamics: json!({}),
+                            id_v1: Some(format!("/groups/{}", grp.id)),
+                            on: On { on: true },
+                            owner: link_room,
+                            signaling: json!({
+                                "signal_values": [],
+                            }),
+                        };
+
+                        res.add(&link_glight, Resource::GroupedLight(glight))?;
                     }
                 }
 
