@@ -305,9 +305,10 @@ pub struct GroupValue {
     friendly_name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum PowerSource {
     #[serde(rename = "Unknown")]
+    #[default]
     Unknown = 0,
     #[serde(rename = "Mains (single phase)")]
     MainsSinglePhase = 1,
@@ -339,7 +340,8 @@ pub struct Device {
     pub manufacturer: Option<String>,
     pub model_id: Option<String>,
     pub network_address: i64,
-    pub power_source: Option<PowerSource>,
+    #[serde(default)]
+    pub power_source: PowerSource,
     pub software_build_id: Option<String>,
     pub supported: bool,
     #[serde(rename = "type")]
