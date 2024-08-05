@@ -1,4 +1,7 @@
-use uuid::{Uuid, uuid};
+/* rustfmt wants to make the formatting worse.. */
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
+use uuid::{uuid, Uuid};
 
 pub const RELAX:       Uuid = uuid!("a1f7da49-d181-4328-abea-68c9dc4b5416");
 pub const NIGHT_LIGHT: Uuid = uuid!("28bbfeff-1a0c-444e-bb4b-0b74b88e0c95");
