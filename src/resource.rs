@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
 
+use serde::{self, Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::broadcast::Sender;
 use uuid::Uuid;
@@ -14,9 +15,40 @@ use crate::hue::v2::{
 };
 use crate::z2m::api::DeviceColorMode;
 
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct AuxData {
+    pub topic: Option<String>,
+    pub index: Option<u32>,
+}
+
+impl AuxData {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub fn with_topic(self, topic: &str) -> Self {
+        Self {
+            topic: Some(topic.to_string()),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn with_index(self, index: u32) -> Self {
+        Self {
+            index: Some(index),
+            ..self
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Resources {
     id_v1: u32,
     pub res: HashMap<Uuid, Resource>,
+    pub aux: HashMap<Uuid, AuxData>,
     pub chan: Sender<EventBlock>,
 }
 
@@ -27,6 +59,7 @@ impl Resources {
         Self {
             id_v1: 1,
             res: HashMap::new(),
+            aux: HashMap::new(),
             chan: Sender::new(100),
         }
     }
