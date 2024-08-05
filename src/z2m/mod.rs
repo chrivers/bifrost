@@ -157,6 +157,8 @@ impl Client {
                                 };
 
                                 self.map.insert(name.to_string(), link_light.rid);
+                                res.aux
+                                    .insert(link_light.rid, AuxData::new().with_topic(name));
 
                                 let mut light = Light::new(res.next_idv1(), link_device.clone());
                                 light.metadata.name = name.to_string();
@@ -210,6 +212,13 @@ impl Client {
 
                                 let link_scene =
                                     ResourceType::Scene.deterministic((grp.id, scn.id));
+
+                                res.aux.insert(
+                                    link_scene.rid,
+                                    AuxData::new()
+                                        .with_topic(&grp.friendly_name)
+                                        .with_index(scn.id),
+                                );
 
                                 services.push(link_scene.clone());
                                 res.add(&link_scene, Resource::Scene(scene))?;
