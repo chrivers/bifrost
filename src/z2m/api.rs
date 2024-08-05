@@ -65,6 +65,7 @@ pub struct Other {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct DeviceUpdate {
     pub state: Option<DeviceState>,
     pub brightness: Option<f64>,
@@ -74,6 +75,7 @@ pub struct DeviceUpdate {
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct DeviceColor {
     pub x: f64,
     pub y: f64,
@@ -156,6 +158,7 @@ pub struct Scene {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BridgeInfo {
     pub commit: String,
     pub config: Config,
@@ -171,6 +174,7 @@ pub struct BridgeInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BridgeConfigSchema {
     definitions: Value,
     required: Vec<String>,
@@ -182,6 +186,7 @@ pub struct BridgeConfigSchema {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     advanced: ConfigAdvanced,
     blocklist: Vec<Option<Value>>,
@@ -200,11 +205,13 @@ pub struct Config {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Version {
     version: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Network {
     channel: i64,
     extended_pan_id: f64,
@@ -212,6 +219,7 @@ pub struct Network {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Coordinator {
     ieee_address: IeeeAddress,
     meta: CoordinatorMeta,
@@ -275,6 +283,7 @@ pub struct ConfigSerial {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ConfigHomeassistant {
     discovery_topic: String,
     legacy_entity_attributes: bool,
@@ -283,11 +292,13 @@ pub struct ConfigHomeassistant {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ConfigDeviceOptions {
     legacy: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GroupValue {
     devices: Vec<String>,
     friendly_name: String,
@@ -314,6 +325,7 @@ pub enum PowerSource {
 type BridgeDevices = Vec<Device>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Device {
     pub date_code: Option<String>,
     pub definition: Option<Definition>,
@@ -334,6 +346,7 @@ pub struct Device {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Definition {
     description: String,
     exposes: Vec<Expose>,
@@ -428,6 +441,7 @@ pub struct ExposeSwitch {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Endpoint {
     bindings: Vec<Binding>,
     clusters: Clusters,
@@ -436,6 +450,7 @@ pub struct Endpoint {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ConfiguredReporting {
     attribute: String,
     cluster: String,
@@ -445,6 +460,7 @@ pub struct ConfiguredReporting {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Preset {
     description: String,
     name: String,
@@ -452,6 +468,7 @@ pub struct Preset {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Binding {
     cluster: String,
     target: BindingTarget,
@@ -464,6 +481,7 @@ pub enum BindingTarget {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Clusters {
     input: Vec<String>,
     output: Vec<String>,
