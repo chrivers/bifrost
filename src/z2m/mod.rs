@@ -223,7 +223,8 @@ impl Client {
                                 services,
                             };
 
-                            self.map.insert(grp.friendly_name.to_string(), link_glight.rid);
+                            self.map
+                                .insert(grp.friendly_name.to_string(), link_glight.rid);
                             res.add(&link_room, Resource::Room(room))?;
 
                             let glight = GroupedLight {
