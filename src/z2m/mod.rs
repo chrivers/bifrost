@@ -8,12 +8,15 @@ use tokio::net::TcpStream;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
+use crate::hue::v2::{
+    ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
+    Metadata, On, Resource, ResourceLink, ResourceType, Room, RoomArchetypes, Scene, SceneMetadata,
+    SceneStatus,
+};
+
 use crate::{
     error::ApiResult,
-    hue::v2::{
-        ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
-        Metadata, On, Resource, ResourceType, Room, RoomArchetypes,
-    },
+    hue::scene_icons,
     resource::Resources,
     state::AppState,
     z2m::api::{DeviceUpdate, Message, Other},
@@ -163,6 +166,7 @@ impl Client {
                         }
                     }
                 }
+
                 Message::BridgeGroups(ref obj) => {
                     /* println!("{obj:#?}"); */
                     for grp in obj {
@@ -178,6 +182,41 @@ impl Client {
                             let link_room = ResourceType::Room.link_to(uuid);
                             let link_glight = ResourceType::GroupedLight.link_to(uuid_glight);
 
+                            let mut services = vec![link_glight.clone()];
+
+                            for scn in &grp.scenes {
+                                let scene = Scene {
+                                    actions: vec![],
+                                    auto_dynamic: false,
+                                    group: link_room.clone(),
+                                    id_v1: Some("/scene/blob".to_string()),
+                                    metadata: SceneMetadata {
+                                        appdata: None,
+                                        image: Some(ResourceLink {
+                                            rid: guess_scene_icon(&scn.name),
+                                            rtype: ResourceType::PublicImage,
+                                        }),
+                                        name: scn.name.to_string(),
+                                    },
+                                    palette: json!({
+                                        "color": [],
+                                        "dimming": [],
+                                        "color_temperature": [],
+                                        "effects": [],
+                                    }),
+                                    recall: None,
+                                    speed: 0.5,
+                                    status: Some(SceneStatus {
+                                        active: "inactive".to_string(),
+                                    }),
+                                };
+
+                                let link_scene = ResourceLink::random(ResourceType::Scene);
+
+                                services.push(link_scene.clone());
+                                res.add(&link_scene, Resource::Scene(scene))?;
+                            }
+
                             let room = Room {
                                 id_v1: Some(format!("/room/{}", grp.id)),
                                 children,
@@ -185,7 +224,7 @@ impl Client {
                                     RoomArchetypes::Computer,
                                     &grp.friendly_name,
                                 ),
-                                services: vec![link_glight.clone()],
+                                services,
                             };
 
                             map.insert(grp.friendly_name.to_string(), link_glight.rid);
@@ -216,9 +255,11 @@ impl Client {
                         }
                     }
                 }
+
                 /* Message::BridgeDefinitions(ref obj) => { */
                 /*     /\* println!("{obj:#?}"); *\/ */
                 /* } */
+
                 /* Message::BridgeState(ref obj) => { */
                 /*     /\* println!("{obj:#?}"); *\/ */
                 /* } */
@@ -253,5 +294,15 @@ impl Client {
             drop(res);
         }
         Ok(())
+    }
+}
+
+fn guess_scene_icon(name: &str) -> Uuid {
+    match name {
+        "Bright" => scene_icons::BRIGHT,
+        "Relax" => scene_icons::RELAX,
+        "Nightt" => scene_icons::NIGHT_LIGHT,
+
+        _ => scene_icons::REST,
     }
 }
