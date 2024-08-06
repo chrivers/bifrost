@@ -125,6 +125,7 @@ pub struct ColorOptions {
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct LevelConfig {
+    pub execute_if_off: Option<bool>,
     pub on_off_transition_time: Option<u16>,
     pub on_transition_time: Option<u16>,
     pub off_transition_time: Option<u16>,
