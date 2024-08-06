@@ -153,6 +153,14 @@ impl Resources {
                 });
                 let _ = self.chan.send(EventBlock::update(json)?);
             }
+            Resource::Scene(scene) => {
+                let json = json!({
+                    "id": id,
+                    "id_v1": scene.id_v1,
+                    "status": scene.status,
+                });
+                let _ = self.chan.send(EventBlock::update(json)?);
+            }
             _ => {}
         }
         Ok(())
