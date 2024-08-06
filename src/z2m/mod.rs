@@ -226,6 +226,70 @@ impl Client {
         })
     }
 
+    async fn handle_message(&mut self, msg: Message) -> ApiResult<()> {
+        match msg {
+            /* Message::BridgeInfo(ref obj) => { */
+            /*     println!("{obj:#?}"); */
+            /* } */
+            /* Message::BridgeLogging(ref obj) => { */
+            /*     println!("{obj:#?}"); */
+            /* } */
+            /* Message::BridgeExtensions(ref obj) => { */
+            /*     println!("{obj:#?}"); */
+            /* } */
+            Message::BridgeDevices(ref obj) => {
+                //println!("{obj:#?}");
+                for dev in obj {
+                    match dev.model_id {
+                        Some(ref id)
+                            if (id == "TRADFRI bulb GU10 CWS 345lm")
+                                || (id == "LCG002")
+                                || (id == "TRADFRI bulb E27 CWS 806lm") =>
+                        {
+                            log::info!(
+                                "Adding light {:?}: [{}] ({id})",
+                                dev.ieee_address,
+                                dev.friendly_name
+                            );
+                            self.add_light(dev).await?;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
+            Message::BridgeGroups(ref obj) => {
+                /* println!("{obj:#?}"); */
+                for grp in obj {
+                    self.add_group(grp).await?;
+                }
+            }
+
+            /* Message::BridgeDefinitions(ref obj) => { */
+            /*     /\* println!("{obj:#?}"); *\/ */
+            /* } */
+
+            /* Message::BridgeState(ref obj) => { */
+            /*     /\* println!("{obj:#?}"); *\/ */
+            /* } */
+            Message::Other(obj) => {
+                println!("{:#?}", obj.topic);
+                if obj.topic.contains('/') {
+                    return Ok(());
+                }
+
+                let Some(val) = self.map.get(&obj.topic) else {
+                    log::warn!("Notification on unknown topic {}", &obj.topic);
+                    return Ok(());
+                };
+
+                self.handle_update(&val.clone(), obj.payload).await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
     pub async fn event_loop(mut self) -> ApiResult<()> {
         loop {
             let Some(pkt) = self.socket.next().await else {
@@ -234,6 +298,7 @@ impl Client {
             };
 
             let tungstenite::Message::Text(txt) = pkt? else {
+                log::error!("Received non-text message on websocket :(");
                 break;
             };
 
@@ -248,67 +313,7 @@ impl Client {
                 continue;
             };
 
-            #[allow(unused_variables)]
-            match msg {
-                /* Message::BridgeInfo(ref obj) => { */
-                /*     println!("{obj:#?}"); */
-                /* } */
-                /* Message::BridgeLogging(ref obj) => { */
-                /*     println!("{obj:#?}"); */
-                /* } */
-                /* Message::BridgeExtensions(ref obj) => { */
-                /*     println!("{obj:#?}"); */
-                /* } */
-                Message::BridgeDevices(ref obj) => {
-                    //println!("{obj:#?}");
-                    for dev in obj {
-                        match dev.model_id {
-                            Some(ref id)
-                                if (id == "TRADFRI bulb GU10 CWS 345lm")
-                                    || (id == "LCG002")
-                                    || (id == "TRADFRI bulb E27 CWS 806lm") =>
-                            {
-                                log::info!(
-                                    "Adding light {:?}: [{}] ({id})",
-                                    dev.ieee_address,
-                                    dev.friendly_name
-                                );
-                                self.add_light(dev).await?;
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-
-                Message::BridgeGroups(ref obj) => {
-                    /* println!("{obj:#?}"); */
-                    for grp in obj {
-                        self.add_group(grp).await?;
-                    }
-                }
-
-                /* Message::BridgeDefinitions(ref obj) => { */
-                /*     /\* println!("{obj:#?}"); *\/ */
-                /* } */
-
-                /* Message::BridgeState(ref obj) => { */
-                /*     /\* println!("{obj:#?}"); *\/ */
-                /* } */
-                Message::Other(obj) => {
-                    println!("{:#?}", obj.topic);
-                    if obj.topic.contains('/') {
-                        continue;
-                    }
-
-                    let Some(val) = self.map.get(&obj.topic) else {
-                        log::warn!("Notification on unknown topic {}", &obj.topic);
-                        continue;
-                    };
-
-                    self.handle_update(&val.clone(), obj.payload).await?;
-                }
-                _ => {}
-            }
+            self.handle_message(msg).await?;
         }
         Ok(())
     }
