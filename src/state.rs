@@ -77,10 +77,6 @@ impl AppState {
         self.res.lock().await.chan.subscribe()
     }
 
-    pub async fn send(&self, msg: EventBlock) -> ApiResult<usize> {
-        Ok(self.res.lock().await.chan.send(msg)?)
-    }
-
     #[must_use]
     pub fn bridge_id(&self) -> String {
         let mac = self.mac().bytes();
