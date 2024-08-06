@@ -108,32 +108,11 @@ async fn put_resource_id(
         Resource::Light(obj) => {
             let upd: GroupedLightUpdate = serde_json::from_value(put)?;
 
-            let mut payload = HashMap::new();
-
-            match upd.on {
-                Some(On { on: true }) => {
-                    payload.insert("state".to_string(), json!("ON"));
-                }
-                Some(On { on: false }) => {
-                    payload.insert("state".to_string(), json!("OFF"));
-                }
-                None => {}
-            }
-
-            if let Some(dim) = upd.dimming {
-                payload.insert(
-                    "brightness".to_string(),
-                    json!(dim.brightness / 100.0 * 255.0),
-                );
-            }
-
-            if let Some(col) = upd.color {
-                payload.insert("color".to_string(), json!(col.xy));
-            }
-
-            if let Some(ct) = upd.color_temperature {
-                payload.insert("color_temp".to_string(), json!(ct.mirek));
-            }
+            let payload = DeviceUpdate::default()
+                .with_state(upd.on.map(|on| on.on))
+                .with_brightness(upd.dimming.map(|dim| dim.brightness / 100.0 * 255.0))
+                .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
+                .with_color_xy(upd.color.map(|col| col.xy));
 
             let api_req = z2m::api::Other {
                 topic: format!("{}/set", obj.metadata.name),
@@ -153,7 +132,7 @@ async fn put_resource_id(
             log::info!("PUT {rtype:?}/{id}: updating");
 
             let Resource::Room(rr) = state
-                .get_resource(obj.owner.rtype, &obj.owner.rid)
+                .get_link(&obj.owner)
                 .await?
                 .obj
             else {
