@@ -9,13 +9,16 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::error::{ApiError, ApiResult};
 use crate::hue::v2::{
     GroupedLightUpdate, Resource, ResourceType, SceneRecall, SceneRecallAction, SceneUpdate,
     V2Reply,
 };
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
+use crate::{
+    error::{ApiError, ApiResult},
+    hue::v2::ResourceLink,
+};
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
@@ -163,7 +166,7 @@ async fn put_resource_id(
         }
     }
 
-    V2Reply::ok(state.get_resource(rtype, &id).await?)
+    V2Reply::ok(ResourceLink::new(id, rtype))
 }
 
 async fn delete_resource_id(
