@@ -60,12 +60,39 @@ impl UpdateRecord {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct LightUpdate {
     pub on: Option<On>,
     pub dimming: Option<DimmingUpdate>,
     pub color: Option<ColorUpdate>,
     pub color_temperature: Option<ColorTemperatureUpdate>,
+}
+
+impl LightUpdate {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub const fn with_dimming(self, dimming: Option<DimmingUpdate>) -> Self {
+        Self { dimming, ..self }
+    }
+
+    #[must_use]
+    pub const fn with_on(self, on: Option<On>) -> Self {
+        Self { on, ..self }
+    }
+
+    #[must_use]
+    pub fn with_color_temperature(self, temp: Option<u32>) -> Self {
+        Self { color_temperature: temp.map(|mirek| ColorTemperatureUpdate { mirek }), ..self }
+    }
+
+    #[must_use]
+    pub fn with_color_xy(self, xy: Option<XY>) -> Self {
+        Self { color: xy.map(|xy| ColorUpdate { xy }), ..self }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
