@@ -11,7 +11,7 @@ use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
 use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, Resource,
-    ResourceLink, ResourceRecord, ResourceType, TimeZone,
+    ResourceLink, ResourceRecord, ResourceType, Scene, TimeZone,
 };
 use crate::z2m::update::DeviceColorMode;
 
@@ -174,6 +174,14 @@ impl Resources {
     ) -> ApiResult<()> {
         self.update(id, |res| {
             if let Resource::GroupedLight(ref mut obj) = res {
+                func(obj);
+            }
+        })
+    }
+
+    pub fn update_scene(&mut self, id: &Uuid, mut func: impl FnMut(&mut Scene)) -> ApiResult<()> {
+        self.update(id, |res| {
+            if let Resource::Scene(ref mut obj) = res {
                 func(obj);
             }
         })
