@@ -4,7 +4,14 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
-use crate::{hue::best_guess_timezone, types::XY, z2m::update::DeviceColorMode};
+use crate::{
+    hue::{
+        best_guess_timezone,
+        update::{ColorTemperatureUpdate, DimmingUpdate},
+    },
+    types::XY,
+    z2m::update::DeviceColorMode,
+};
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -159,20 +166,6 @@ pub struct GroupedLight {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GroupedLightUpdate {
-    pub on: Option<On>,
-    pub dimming: Option<Dimming>,
-    pub color: Option<ColorUpdate>,
-    pub color_temp: Option<f64>,
-    pub color_temperature: Option<ColorTemperatureUpdate>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ColorUpdate {
-    pub xy: XY,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Homekit {
     status: String,
     status_values: Vec<String>,
@@ -236,11 +229,6 @@ pub struct MirekSchema {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ColorTemperatureUpdate {
-    pub mirek: u32,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperature {
     pub mirek: u32,
     pub mirek_schema: MirekSchema,
@@ -265,11 +253,6 @@ impl ColorTemperature {
 pub struct Dimming {
     pub brightness: f64,
     pub min_dim_level: Option<f64>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DimmingUpdate {
-    brightness: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -538,11 +521,6 @@ pub struct SceneStatus {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SceneUpdate {
-    pub recall: Option<SceneRecall>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scene {
     pub actions: Vec<SceneActionElement>,
     #[serde(default)]
@@ -567,21 +545,6 @@ pub struct Scene {
     pub palette: Value,
     pub speed: f64,
     pub status: Option<SceneStatus>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SceneRecall {
-    pub action: Option<SceneRecallAction>,
-    pub duration: Option<u32>,
-    pub dimming: Option<DimmingUpdate>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "snake_case")]
-pub enum SceneRecallAction {
-    Active,
-    DynamicPalette,
-    Static,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

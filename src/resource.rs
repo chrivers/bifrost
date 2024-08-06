@@ -68,10 +68,7 @@ impl Resources {
     }
 
     pub fn save(&self, wr: impl Write) -> ApiResult<()> {
-        Ok(serde_yaml::to_writer(
-            wr,
-            &(&self.res, &self.aux),
-        )?)
+        Ok(serde_yaml::to_writer(wr, &(&self.res, &self.aux))?)
     }
 
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
