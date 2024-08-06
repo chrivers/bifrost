@@ -86,7 +86,7 @@ impl Client {
                 actions: vec![],
                 auto_dynamic: false,
                 group: link_room.clone(),
-                id_v1: Some("/scene/blob".to_string()),
+                id_v1: Some(format!("/scenes/{}-{}", grp.id, scn.id)),
                 metadata: SceneMetadata {
                     appdata: None,
                     image: guess_scene_icon(&scn.name),
