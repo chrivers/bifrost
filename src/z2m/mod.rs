@@ -286,7 +286,7 @@ impl Client {
         Ok(())
     }
 
-    pub async fn event_loop(mut self) -> ApiResult<()> {
+    async fn _event_loop(mut self) -> ApiResult<()> {
         loop {
             let Some(pkt) = self.socket.next().await else {
                 log::error!("Websocket broke :(");
@@ -312,6 +312,14 @@ impl Client {
             self.handle_message(msg).await?;
         }
         Ok(())
+    }
+
+    pub async fn event_loop(self) -> ApiResult<()> {
+        let res = self._event_loop().await;
+        if let Err(ref err) = res {
+            log::error!("Event loop failed!: {err:?}");
+        }
+        res
     }
 }
 
