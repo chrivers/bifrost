@@ -149,4 +149,8 @@ impl AppState {
 
         Ok(())
     }
+
+    pub async fn send_set<T: Serialize + Send>(&self, topic: &str, payload: T) -> ApiResult<()> {
+        self.send(format!("{topic}/set"), payload).await
+    }
 }
