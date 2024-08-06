@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
-use crate::hue::update::{LightUpdate, Update, UpdateRecord};
+use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, RType, Resource,
     ResourceLink, ResourceRecord, Scene, TimeZone,
@@ -91,7 +91,7 @@ impl Resources {
     fn update(&mut self, id: &Uuid, mut func: impl FnMut(&mut Resource)) -> ApiResult<()> {
         let obj = self.res.get_mut(id).ok_or(ApiError::NotFound(*id))?;
         func(obj);
-        match obj {
+        let delta = match obj {
             Resource::Light(light) => {
                 let mut upd = LightUpdate::new()
                     .with_brightness(light.dimming.brightness)
@@ -107,34 +107,24 @@ impl Resources {
                     None => {}
                 }
 
-                let json = UpdateRecord::new(id, Update::Light(upd));
-                let _ = self.chan.send(EventBlock::update(json)?);
+                Update::Light(upd)
             }
             Resource::GroupedLight(glight) => {
-                let json = json!({
-                    "id": id,
-                    "id_v1": format!("/groups/{id}"),
-                    "on": glight.on,
-                    "dimming": glight.dimming,
-                    "owner": glight.owner,
-                    "color_temperature": glight.color_temperature,
-                    "type": "grouped_light",
-                    /* "color": { */
-                    /*     "xy": glight.color.xy */
-                    /* } */
-                });
-                let _ = self.chan.send(EventBlock::update(json)?);
+                let upd = GroupedLightUpdate::new()
+                    .with_brightness(glight.dimming.brightness)
+                    .with_on(glight.on.on);
+
+                Update::GroupedLight(upd)
             }
             Resource::Scene(scene) => {
-                let json = json!({
-                    "id": id,
-                    "id_v1": format!("/scenes/{id}"),
-                    "status": scene.status,
-                });
-                let _ = self.chan.send(EventBlock::update(json)?);
+                let upd = SceneUpdate::new().with_recall_action(scene.status.map(|s| s.active));
+
+                Update::Scene(upd)
             }
-            _ => {}
-        }
+            _ => return Err(ApiError::Fail("foo")),
+        };
+
+        let _ = self.chan.send(EventBlock::update(id, delta)?);
         Ok(())
     }
 

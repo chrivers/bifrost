@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-use crate::error::ApiResult;
+use crate::{
+    error::ApiResult,
+    hue::update::{self, UpdateRecord},
+};
 
 use super::date_format;
 
@@ -35,12 +38,12 @@ impl EventBlock {
         }
     }
 
-    pub fn update<T: Serialize>(data: T) -> ApiResult<Self> {
+    pub fn update(id: &Uuid, data: update::Update) -> ApiResult<Self> {
         Ok(Self {
             creationtime: Utc::now(),
             id: Uuid::new_v4(),
             event: Event::Update(Update {
-                data: vec![serde_json::to_value(data)?],
+                data: vec![serde_json::to_value(UpdateRecord::new(id, data))?],
             }),
         })
     }
