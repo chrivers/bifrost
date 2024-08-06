@@ -8,21 +8,34 @@ use crate::types::XY;
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DeviceUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<DeviceState>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub brightness: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temp: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_mode: Option<DeviceColorMode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<DeviceColor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub linkquality: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_options: Option<ColorOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temp_startup: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub level_config: Option<LevelConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub elapsed: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub power_on_behavior: Option<PowerOnBehavior>,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
     #[serde(default)]
     pub update: HashMap<String, Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub update_available: Option<bool>,
 }
 
