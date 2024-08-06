@@ -21,8 +21,6 @@ pub struct EventBlock {
     #[serde(with = "date_format::utc")]
     pub creationtime: DateTime<Utc>,
     pub id: Uuid,
-    #[serde(default)]
-    pub id_v1: Option<String>,
     #[serde(flatten)]
     pub event: Event,
 }
@@ -34,18 +32,16 @@ impl EventBlock {
             creationtime: Utc::now(),
             id: Uuid::new_v4(),
             event: Event::Add(Add { data: vec![data] }),
-            id_v1: None,
         }
     }
 
-    pub fn update<T: Serialize>(data: T, id_v1: Option<String>) -> ApiResult<Self> {
+    pub fn update<T: Serialize>(data: T) -> ApiResult<Self> {
         Ok(Self {
             creationtime: Utc::now(),
             id: Uuid::new_v4(),
             event: Event::Update(Update {
                 data: vec![serde_json::to_value(data)?],
             }),
-            id_v1,
         })
     }
 
@@ -56,7 +52,6 @@ impl EventBlock {
             event: Event::Delete(Delete {
                 data: vec![serde_json::to_value(data)?],
             }),
-            id_v1: None,
         })
     }
 }

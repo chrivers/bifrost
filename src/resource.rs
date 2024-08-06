@@ -103,7 +103,6 @@ impl Resources {
     fn update(&mut self, id: &Uuid, mut func: impl FnMut(&mut Resource)) -> ApiResult<()> {
         let obj = self.res.get_mut(id).ok_or(ApiError::NotFound(*id))?;
         func(obj);
-        let id_v1 = obj.get_id_v1().clone();
         match obj {
             Resource::Light(light) => {
                 let mut json = json!({
@@ -137,7 +136,7 @@ impl Resources {
                     None => {}
                 }
 
-                let _ = self.chan.send(EventBlock::update(json, id_v1)?);
+                let _ = self.chan.send(EventBlock::update(json)?);
             }
             Resource::GroupedLight(glight) => {
                 let json = json!({
@@ -152,7 +151,7 @@ impl Resources {
                     /*     "xy": glight.color.xy */
                     /* } */
                 });
-                let _ = self.chan.send(EventBlock::update(json, id_v1)?);
+                let _ = self.chan.send(EventBlock::update(json)?);
             }
             _ => {}
         }
