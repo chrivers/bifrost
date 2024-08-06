@@ -8,7 +8,7 @@ use crate::{hue::best_guess_timezone, types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
-pub enum ResourceType {
+pub enum RType {
     BehaviorScript,
     BehaviorInstance,
     Bridge,
@@ -36,7 +36,7 @@ fn hash<T: Hash + ?Sized>(t: &T) -> u64 {
     s.finish()
 }
 
-impl ResourceType {
+impl RType {
     #[must_use]
     pub const fn link_to(self, rid: Uuid) -> ResourceLink {
         ResourceLink { rid, rtype: self }
@@ -660,51 +660,51 @@ pub enum Resource {
 
 impl Resource {
     #[must_use]
-    pub const fn rtype(&self) -> ResourceType {
+    pub const fn rtype(&self) -> RType {
         match self {
-            Self::BehaviorScript(_) => ResourceType::BehaviorScript,
-            Self::BehaviorInstance(_) => ResourceType::BehaviorInstance,
-            Self::Bridge(_) => ResourceType::Bridge,
-            Self::BridgeHome(_) => ResourceType::BridgeHome,
-            Self::Device(_) => ResourceType::Device,
-            Self::Entertainment(_) => ResourceType::Entertainment,
-            Self::GeofenceClient(_) => ResourceType::GeofenceClient,
-            Self::Geolocation(_) => ResourceType::Geolocation,
-            Self::GroupedLight(_) => ResourceType::GroupedLight,
-            Self::Homekit(_) => ResourceType::Homekit,
-            Self::Light(_) => ResourceType::Light,
-            Self::Matter(_) => ResourceType::Matter,
-            Self::PublicImage(_) => ResourceType::PublicImage,
-            Self::Room(_) => ResourceType::Room,
-            Self::Scene(_) => ResourceType::Scene,
-            Self::SmartScene(_) => ResourceType::SmartScene,
-            Self::ZigbeeConnectivity(_) => ResourceType::ZigbeeConnectivity,
-            Self::ZigbeeDeviceDiscovery(_) => ResourceType::ZigbeeDeviceDiscovery,
-            Self::Zone(_) => ResourceType::Zone,
+            Self::BehaviorScript(_) => RType::BehaviorScript,
+            Self::BehaviorInstance(_) => RType::BehaviorInstance,
+            Self::Bridge(_) => RType::Bridge,
+            Self::BridgeHome(_) => RType::BridgeHome,
+            Self::Device(_) => RType::Device,
+            Self::Entertainment(_) => RType::Entertainment,
+            Self::GeofenceClient(_) => RType::GeofenceClient,
+            Self::Geolocation(_) => RType::Geolocation,
+            Self::GroupedLight(_) => RType::GroupedLight,
+            Self::Homekit(_) => RType::Homekit,
+            Self::Light(_) => RType::Light,
+            Self::Matter(_) => RType::Matter,
+            Self::PublicImage(_) => RType::PublicImage,
+            Self::Room(_) => RType::Room,
+            Self::Scene(_) => RType::Scene,
+            Self::SmartScene(_) => RType::SmartScene,
+            Self::ZigbeeConnectivity(_) => RType::ZigbeeConnectivity,
+            Self::ZigbeeDeviceDiscovery(_) => RType::ZigbeeDeviceDiscovery,
+            Self::Zone(_) => RType::Zone,
         }
     }
 
-    pub fn from_value(rtype: ResourceType, obj: Value) -> Result<Self, serde_json::Error> {
+    pub fn from_value(rtype: RType, obj: Value) -> Result<Self, serde_json::Error> {
         let res = match rtype {
-            ResourceType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
-            ResourceType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
-            ResourceType::Bridge => Self::Bridge(from_value(obj)?),
-            ResourceType::BridgeHome => Self::BridgeHome(from_value(obj)?),
-            ResourceType::Device => Self::Device(from_value(obj)?),
-            ResourceType::Entertainment => Self::Entertainment(from_value(obj)?),
-            ResourceType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
-            ResourceType::Geolocation => Self::Geolocation(from_value(obj)?),
-            ResourceType::GroupedLight => Self::GroupedLight(from_value(obj)?),
-            ResourceType::Homekit => Self::Homekit(from_value(obj)?),
-            ResourceType::Light => Self::Light(from_value(obj)?),
-            ResourceType::Matter => Self::Matter(from_value(obj)?),
-            ResourceType::PublicImage => Self::PublicImage(from_value(obj)?),
-            ResourceType::Room => Self::Room(from_value(obj)?),
-            ResourceType::Scene => Self::Scene(from_value(obj)?),
-            ResourceType::SmartScene => Self::SmartScene(from_value(obj)?),
-            ResourceType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
-            ResourceType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
-            ResourceType::Zone => Self::Zone(from_value(obj)?),
+            RType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
+            RType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
+            RType::Bridge => Self::Bridge(from_value(obj)?),
+            RType::BridgeHome => Self::BridgeHome(from_value(obj)?),
+            RType::Device => Self::Device(from_value(obj)?),
+            RType::Entertainment => Self::Entertainment(from_value(obj)?),
+            RType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
+            RType::Geolocation => Self::Geolocation(from_value(obj)?),
+            RType::GroupedLight => Self::GroupedLight(from_value(obj)?),
+            RType::Homekit => Self::Homekit(from_value(obj)?),
+            RType::Light => Self::Light(from_value(obj)?),
+            RType::Matter => Self::Matter(from_value(obj)?),
+            RType::PublicImage => Self::PublicImage(from_value(obj)?),
+            RType::Room => Self::Room(from_value(obj)?),
+            RType::Scene => Self::Scene(from_value(obj)?),
+            RType::SmartScene => Self::SmartScene(from_value(obj)?),
+            RType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
+            RType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
+            RType::Zone => Self::Zone(from_value(obj)?),
         };
         Ok(res)
     }
@@ -810,12 +810,12 @@ pub struct V2Reply<T> {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ResourceLink {
     pub rid: Uuid,
-    pub rtype: ResourceType,
+    pub rtype: RType,
 }
 
 impl ResourceLink {
     #[must_use]
-    pub const fn new(rid: Uuid, rtype: ResourceType) -> Self {
+    pub const fn new(rid: Uuid, rtype: RType) -> Self {
         Self { rid, rtype }
     }
 }

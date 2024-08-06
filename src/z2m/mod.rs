@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::hue::v2::{
     ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
-    Metadata, On, Resource, ResourceLink, ResourceType, Room, RoomArchetypes, Scene, SceneMetadata,
+    Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneMetadata,
     SceneStatus,
 };
 
@@ -40,8 +40,8 @@ impl Client {
     pub async fn add_light(&mut self, dev: &crate::z2m::api::Device) -> ApiResult<()> {
         let name = &dev.friendly_name;
 
-        let link_device = ResourceType::Device.deterministic(&dev.ieee_address);
-        let link_light = ResourceType::Light.deterministic(&dev.ieee_address);
+        let link_device = RType::Device.deterministic(&dev.ieee_address);
+        let link_light = RType::Light.deterministic(&dev.ieee_address);
 
         let dev = Device {
             product_data: DeviceProductData::hue_color_spot(),
@@ -66,13 +66,13 @@ impl Client {
     }
 
     pub async fn add_group(&mut self, grp: &crate::z2m::api::Group) -> ApiResult<()> {
-        let link_room = ResourceType::Room.deterministic(grp.id);
-        let link_glight = ResourceType::GroupedLight.deterministic(grp.id);
+        let link_room = RType::Room.deterministic(grp.id);
+        let link_glight = RType::GroupedLight.deterministic(grp.id);
 
         let children = grp
             .members
             .iter()
-            .map(|f| ResourceType::Device.deterministic(&f.ieee_address))
+            .map(|f| RType::Device.deterministic(&f.ieee_address))
             .collect();
 
         let mut services = vec![link_glight.clone()];
@@ -104,7 +104,7 @@ impl Client {
                 }),
             };
 
-            let link_scene = ResourceType::Scene.deterministic((grp.id, scn.id));
+            let link_scene = RType::Scene.deterministic((grp.id, scn.id));
 
             res.aux.insert(
                 link_scene.rid,
@@ -329,6 +329,6 @@ fn guess_scene_icon(name: &str) -> Option<ResourceLink> {
 
     Some(ResourceLink {
         rid: icon,
-        rtype: ResourceType::PublicImage,
+        rtype: RType::PublicImage,
     })
 }

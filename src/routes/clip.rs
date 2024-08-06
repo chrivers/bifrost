@@ -10,8 +10,7 @@ use serde_json::{json, Value};
 use uuid::Uuid;
 
 use crate::hue::v2::{
-    GroupedLightUpdate, Resource, ResourceType, SceneRecall, SceneRecallAction, SceneUpdate,
-    V2Reply,
+    GroupedLightUpdate, RType, Resource, SceneRecall, SceneRecallAction, SceneUpdate, V2Reply,
 };
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
@@ -65,16 +64,13 @@ async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
     })
 }
 
-async fn get_resource(
-    State(state): State<AppState>,
-    Path(rtype): Path<ResourceType>,
-) -> ApiV2Result {
+async fn get_resource(State(state): State<AppState>, Path(rtype): Path<RType>) -> ApiV2Result {
     V2Reply::list(state.get_resources_by_type(rtype).await)
 }
 
 async fn post_resource(
     State(state): State<AppState>,
-    Path(rtype): Path<ResourceType>,
+    Path(rtype): Path<RType>,
     Json(req): Json<Value>,
 ) -> impl IntoResponse {
     log::info!("POST: {rtype:?} {}", serde_json::to_string(&req)?);
@@ -91,14 +87,14 @@ async fn post_resource(
 #[allow(clippy::option_if_let_else)]
 async fn get_resource_id(
     State(state): State<AppState>,
-    Path((rtype, id)): Path<(ResourceType, Uuid)>,
+    Path((rtype, id)): Path<(RType, Uuid)>,
 ) -> ApiV2Result {
     V2Reply::ok(state.get_resource(rtype, &id).await?)
 }
 
 async fn put_resource_id(
     State(state): State<AppState>,
-    Path((rtype, id)): Path<(ResourceType, Uuid)>,
+    Path((rtype, id)): Path<(RType, Uuid)>,
     Json(put): Json<Value>,
 ) -> ApiV2Result {
     log::info!("PUT {rtype:?}/{id}: {put:?}");
@@ -171,7 +167,7 @@ async fn put_resource_id(
 
 async fn delete_resource_id(
     State(state): State<AppState>,
-    Path((rtype, id)): Path<(ResourceType, Uuid)>,
+    Path((rtype, id)): Path<(RType, Uuid)>,
 ) -> ApiV2Result {
     log::info!("DELETE {rtype:?}/{id}");
     let link = rtype.link_to(id);

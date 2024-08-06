@@ -10,8 +10,8 @@ use uuid::Uuid;
 use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
 use crate::hue::v2::{
-    Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, Resource,
-    ResourceLink, ResourceRecord, ResourceType, Scene, TimeZone,
+    Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, RType, Resource,
+    ResourceLink, ResourceRecord, Scene, TimeZone,
 };
 use crate::z2m::update::DeviceColorMode;
 
@@ -223,10 +223,10 @@ impl Resources {
     }
 
     pub fn add_bridge(&mut self, bridge_id: String) -> ApiResult<()> {
-        let link_bridge = ResourceType::Bridge.deterministic(&bridge_id);
-        let link_bridge_home = ResourceType::BridgeHome.deterministic(&format!("{bridge_id}HOME"));
-        let link_bridge_dev = ResourceType::Device.deterministic(link_bridge.rid);
-        let link_bridge_home_dev = ResourceType::Device.deterministic(link_bridge_home.rid);
+        let link_bridge = RType::Bridge.deterministic(&bridge_id);
+        let link_bridge_home = RType::BridgeHome.deterministic(&format!("{bridge_id}HOME"));
+        let link_bridge_dev = RType::Device.deterministic(link_bridge.rid);
+        let link_bridge_home_dev = RType::Device.deterministic(link_bridge_home.rid);
 
         let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
@@ -251,7 +251,7 @@ impl Resources {
         let bridge_home = BridgeHome {
             children: vec![link_bridge_dev.clone()],
             id_v1: Some("/groups/0".to_string()),
-            services: vec![ResourceType::GroupedLight.deterministic(link_bridge_home.rid)],
+            services: vec![RType::GroupedLight.deterministic(link_bridge_home.rid)],
         };
 
         self.add(&link_bridge_dev, Resource::Device(bridge_dev))?;
@@ -262,7 +262,7 @@ impl Resources {
         Ok(())
     }
 
-    pub fn get_resource(&self, ty: ResourceType, id: &Uuid) -> ApiResult<ResourceRecord> {
+    pub fn get_resource(&self, ty: RType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res
             .get(id)
             .filter(|id| id.rtype() == ty)
@@ -281,7 +281,7 @@ impl Resources {
         self.res.iter().map(ResourceRecord::from_ref).collect()
     }
 
-    pub fn get_resources_by_type(&self, ty: ResourceType) -> Vec<ResourceRecord> {
+    pub fn get_resources_by_type(&self, ty: RType) -> Vec<ResourceRecord> {
         self.res
             .iter()
             .filter(|(_, r)| r.rtype() == ty)
