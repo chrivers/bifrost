@@ -289,7 +289,7 @@ impl Metadata {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 pub struct On {
     pub on: bool,
 }
