@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
+use crate::hue::update::{LightUpdate, Update, UpdateRecord};
 use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, RType, Resource,
     ResourceLink, ResourceRecord, Scene, TimeZone,
@@ -92,37 +93,21 @@ impl Resources {
         func(obj);
         match obj {
             Resource::Light(light) => {
-                let mut json = json!({
-                    "id": id,
-                    "id_v1": format!("/lights/{id}"),
-                    "on": light.on,
-                    "dimming": light.dimming,
-                    "owner": light.owner,
-                    "type": "light",
-                });
+                let mut upd = LightUpdate::new()
+                    .with_brightness(light.dimming.brightness)
+                    .with_on(light.on.on);
 
                 match light.color_mode {
                     Some(DeviceColorMode::ColorTemp) => {
-                        json.as_object_mut().map(|map| {
-                            map.insert(
-                                "color_temperature".to_string(),
-                                serde_json::to_value(&light.color_temperature).unwrap(),
-                            )
-                        });
+                        upd = upd.with_color_temperature(light.color_temperature.mirek);
                     }
                     Some(DeviceColorMode::Xy) => {
-                        json.as_object_mut().map(|map| {
-                            map.insert(
-                                "color".to_string(),
-                                json!({
-                                    "xy": light.color.xy
-                                }),
-                            )
-                        });
+                        upd = upd.with_color_xy(light.color.xy);
                     }
                     None => {}
                 }
 
+                let json = UpdateRecord::new(id, Update::Light(upd));
                 let _ = self.chan.send(EventBlock::update(json)?);
             }
             Resource::GroupedLight(glight) => {
