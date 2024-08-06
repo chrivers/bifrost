@@ -15,7 +15,8 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::v2::{
-    GroupedLightUpdate, On, Resource, ResourceType, V2Reply,
+    GroupedLightUpdate, On, Resource, ResourceType, SceneRecall, SceneRecallAction, SceneUpdate,
+    V2Reply,
 };
 use crate::state::AppState;
 use crate::z2m::{self, api::DeviceUpdate};
@@ -159,6 +160,41 @@ async fn put_resource_id(
                 .send(Message::Text(serde_json::to_string(&api_req)?))
                 .await?;
             log::info!("{api_req:#?}");
+        }
+        Resource::Scene(_obj) => {
+            log::info!("PUT {rtype:?}/{id}: updating");
+
+            let upd: SceneUpdate = serde_json::from_value(put)?;
+            log::info!("{upd:#?}");
+
+            match upd.recall {
+                Some(SceneRecall {
+                    action: Some(SceneRecallAction::Active),
+                    ..
+                }) => {
+                    let lock = state.res.lock().await;
+                    let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
+
+                    let api_req = z2m::api::Other {
+                        topic: format!("{}/set", aux.topic.as_ref().unwrap()),
+                        payload: serde_json::to_value(json!({"scene_recall": aux.index}))?,
+                    };
+                    drop(lock);
+
+                    state
+                        .ws
+                        .lock()
+                        .await
+                        .send(Message::Text(serde_json::to_string(&api_req)?))
+                        .await?;
+
+                    log::info!("{api_req:#?}");
+                }
+                Some(recall) => {
+                    log::error!("Scene recall type not supported: {recall:?}");
+                }
+                _ => {}
+            }
         }
         _ => {
             log::warn!("PUT {rtype:?}/{id}: state update not supported");
