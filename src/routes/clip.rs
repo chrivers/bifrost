@@ -4,11 +4,9 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use futures::SinkExt;
 use hyper::StatusCode;
 use serde::Serialize;
 use serde_json::{json, Value};
-use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
@@ -17,7 +15,7 @@ use crate::hue::v2::{
     V2Reply,
 };
 use crate::state::AppState;
-use crate::z2m::{self, api::DeviceUpdate};
+use crate::z2m::api::DeviceUpdate;
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
@@ -113,18 +111,9 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            let api_req = z2m::api::Other {
-                topic: format!("{}/set", obj.metadata.name),
-                payload: serde_json::to_value(payload)?,
-            };
-
             state
-                .ws
-                .lock()
-                .await
-                .send(Message::Text(serde_json::to_string(&api_req)?))
+                .send_set(&obj.metadata.name, payload)
                 .await?;
-            log::info!("{api_req:#?}");
         }
 
         Resource::GroupedLight(obj) => {
@@ -142,19 +131,11 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            let api_req = z2m::api::Other {
-                topic: format!("{}/set", rr.metadata.name),
-                payload: serde_json::to_value(payload)?,
-            };
-
             state
-                .ws
-                .lock()
-                .await
-                .send(Message::Text(serde_json::to_string(&api_req)?))
+                .send_set(&rr.metadata.name, payload)
                 .await?;
-            log::info!("{api_req:#?}");
         }
+
         Resource::Scene(_obj) => {
             log::info!("PUT {rtype:?}/{id}: updating");
 
@@ -169,20 +150,11 @@ async fn put_resource_id(
                     let lock = state.res.lock().await;
                     let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
 
-                    let api_req = z2m::api::Other {
-                        topic: format!("{}/set", aux.topic.as_ref().unwrap()),
-                        payload: serde_json::to_value(json!({"scene_recall": aux.index}))?,
-                    };
+                    let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
+                    let payload = json!({"scene_recall": aux.index});
+
+                    state.send_set(topic, payload).await?;
                     drop(lock);
-
-                    state
-                        .ws
-                        .lock()
-                        .await
-                        .send(Message::Text(serde_json::to_string(&api_req)?))
-                        .await?;
-
-                    log::info!("{api_req:#?}");
                 }
                 Some(recall) => {
                     log::error!("Scene recall type not supported: {recall:?}");
