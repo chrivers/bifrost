@@ -79,6 +79,8 @@ pub struct DeviceUpdate {
     pub color_temp_startup: Option<f64>,
     pub level_config: Option<LevelConfig>,
     #[serde(default)]
+    pub elapsed: Option<u64>,
+    #[serde(default)]
     pub power_on_behavior: Option<PowerOnBehavior>,
     #[serde(default)]
     pub update: HashMap<String, Value>,
