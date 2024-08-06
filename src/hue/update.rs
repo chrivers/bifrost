@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    hue::v2::{On, RType},
+    hue::v2::{On, RType, SceneRecallAction},
     types::XY,
 };
 
@@ -197,12 +197,4 @@ pub struct SceneRecall {
     pub action: Option<SceneRecallAction>,
     pub duration: Option<u32>,
     pub dimming: Option<DimmingUpdate>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "snake_case")]
-pub enum SceneRecallAction {
-    Active,
-    DynamicPalette,
-    Static,
 }

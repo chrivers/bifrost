@@ -14,7 +14,7 @@ use uuid::Uuid;
 use crate::hue::v2::{
     ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
     Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneMetadata,
-    SceneStatus,
+    SceneRecallAction, SceneStatus,
 };
 
 use crate::error::ApiResult;
@@ -99,7 +99,7 @@ impl Client {
                 }),
                 speed: 0.5,
                 status: Some(SceneStatus {
-                    active: "inactive".to_string(),
+                    active: SceneRecallAction::Inactive,
                 }),
             };
 

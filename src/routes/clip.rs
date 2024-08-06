@@ -9,8 +9,8 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::hue::update::{GroupedLightUpdate, SceneRecall, SceneRecallAction, SceneUpdate};
-use crate::hue::v2::{RType, Resource, SceneStatus, V2Reply};
+use crate::hue::update::{GroupedLightUpdate, SceneRecall, SceneUpdate};
+use crate::hue::v2::{RType, Resource, SceneRecallAction, SceneStatus, V2Reply};
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
 use crate::{
@@ -145,7 +145,7 @@ async fn put_resource_id(
 
                     lock.update_scene(&id, |scn| {
                         scn.status = Some(SceneStatus {
-                            active: "static".to_string(),
+                            active: SceneRecallAction::Static,
                         });
                     })?;
 
