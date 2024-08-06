@@ -65,7 +65,6 @@ pub struct LightUpdate {
     pub on: Option<On>,
     pub dimming: Option<DimmingUpdate>,
     pub color: Option<ColorUpdate>,
-    pub color_temp: Option<f64>,
     pub color_temperature: Option<ColorTemperatureUpdate>,
 }
 
@@ -74,7 +73,6 @@ pub struct GroupedLightUpdate {
     pub on: Option<On>,
     pub dimming: Option<DimmingUpdate>,
     pub color: Option<ColorUpdate>,
-    pub color_temp: Option<f64>,
     pub color_temperature: Option<ColorTemperatureUpdate>,
 }
 
