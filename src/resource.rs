@@ -107,7 +107,7 @@ impl Resources {
             Resource::Light(light) => {
                 let mut json = json!({
                     "id": id,
-                    "id_v1": light.id_v1,
+                    "id_v1": format!("/lights/{id}"),
                     "on": light.on,
                     "dimming": light.dimming,
                     "owner": light.owner,
@@ -141,7 +141,7 @@ impl Resources {
             Resource::GroupedLight(glight) => {
                 let json = json!({
                     "id": id,
-                    "id_v1": glight.id_v1,
+                    "id_v1": format!("/groups/{id}"),
                     "on": glight.on,
                     "dimming": glight.dimming,
                     "owner": glight.owner,
@@ -156,7 +156,7 @@ impl Resources {
             Resource::Scene(scene) => {
                 let json = json!({
                     "id": id,
-                    "id_v1": scene.id_v1,
+                    "id_v1": format!("/scenes/{id}"),
                     "status": scene.status,
                 });
                 let _ = self.chan.send(EventBlock::update(json)?);
