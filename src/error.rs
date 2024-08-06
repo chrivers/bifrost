@@ -24,6 +24,9 @@ pub enum ApiError {
     #[error(transparent)]
     SendError(#[from] tokio::sync::broadcast::error::SendError<EventBlock>),
 
+    #[error(transparent)]
+    BroadcastStreamRecvError(#[from] tokio_stream::wrappers::errors::BroadcastStreamRecvError),
+
     #[cfg(feature = "mqtt")]
     #[error(transparent)]
     MqttError(#[from] rumqttc::v5::ClientError),
