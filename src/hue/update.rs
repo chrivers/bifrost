@@ -36,25 +36,9 @@ impl Update {
     #[must_use]
     pub const fn rtype(&self) -> RType {
         match self {
-            /* Self::BehaviorScript(_) => RType::BehaviorScript, */
-            /* Self::BehaviorInstance(_) => RType::BehaviorInstance, */
-            /* Self::Bridge(_) => RType::Bridge, */
-            /* Self::BridgeHome(_) => RType::BridgeHome, */
-            /* Self::Device(_) => RType::Device, */
-            /* Self::Entertainment(_) => RType::Entertainment, */
-            /* Self::GeofenceClient(_) => RType::GeofenceClient, */
-            /* Self::Geolocation(_) => RType::Geolocation, */
             Self::GroupedLight(_) => RType::GroupedLight,
-            /* Self::Homekit(_) => RType::Homekit, */
             Self::Light(_) => RType::Light,
-            /* Self::Matter(_) => RType::Matter, */
-            /* Self::PublicImage(_) => RType::PublicImage, */
-            /* Self::Room(_) => RType::Room, */
             Self::Scene(_) => RType::Scene,
-            /* Self::SmartScene(_) => RType::SmartScene, */
-            /* Self::ZigbeeConnectivity(_) => RType::ZigbeeConnectivity, */
-            /* Self::ZigbeeDeviceDiscovery(_) => RType::ZigbeeDeviceDiscovery, */
-            /* Self::Zone(_) => RType::Zone, */
         }
     }
 
