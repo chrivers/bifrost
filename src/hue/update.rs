@@ -75,23 +75,35 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub const fn with_dimming(self, dimming: Option<DimmingUpdate>) -> Self {
-        Self { dimming, ..self }
+    pub const fn with_brightness(self, brightness: f64) -> Self {
+        Self {
+            dimming: Some(DimmingUpdate { brightness }),
+            ..self
+        }
     }
 
     #[must_use]
-    pub const fn with_on(self, on: Option<On>) -> Self {
-        Self { on, ..self }
+    pub const fn with_on(self, on: bool) -> Self {
+        Self {
+            on: Some(On { on }),
+            ..self
+        }
     }
 
     #[must_use]
-    pub fn with_color_temperature(self, temp: Option<u32>) -> Self {
-        Self { color_temperature: temp.map(|mirek| ColorTemperatureUpdate { mirek }), ..self }
+    pub const fn with_color_temperature(self, mirek: u32) -> Self {
+        Self {
+            color_temperature: Some(ColorTemperatureUpdate { mirek }),
+            ..self
+        }
     }
 
     #[must_use]
-    pub fn with_color_xy(self, xy: Option<XY>) -> Self {
-        Self { color: xy.map(|xy| ColorUpdate { xy }), ..self }
+    pub const fn with_color_xy(self, xy: XY) -> Self {
+        Self {
+            color: Some(ColorUpdate { xy }),
+            ..self
+        }
     }
 }
 
