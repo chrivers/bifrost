@@ -16,7 +16,7 @@ use crate::config::{AppConfig, MqttConfig, Z2mConfig};
 use crate::error::ApiResult;
 use crate::hue::event::EventBlock;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
-use crate::hue::v2::{ResourceRecord, ResourceType};
+use crate::hue::v2::{ResourceLink, ResourceRecord, ResourceType};
 use crate::resource::Resources;
 
 #[derive(Clone)]
@@ -129,5 +129,9 @@ impl AppState {
 
     pub async fn get_resource(&self, ty: ResourceType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res.lock().await.get_resource(ty, id)
+    }
+
+    pub async fn get_link(&self, link: &ResourceLink) -> ApiResult<ResourceRecord> {
+        self.res.lock().await.get_resource(link.rtype, &link.rid)
     }
 }
