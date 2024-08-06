@@ -15,7 +15,7 @@ use crate::hue::v2::{
     V2Reply,
 };
 use crate::state::AppState;
-use crate::z2m::api::DeviceUpdate;
+use crate::z2m::update::DeviceUpdate;
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
@@ -111,9 +111,7 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            state
-                .send_set(&obj.metadata.name, payload)
-                .await?;
+            state.send_set(&obj.metadata.name, payload).await?;
         }
 
         Resource::GroupedLight(obj) => {
@@ -131,9 +129,7 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            state
-                .send_set(&rr.metadata.name, payload)
-                .await?;
+            state.send_set(&rr.metadata.name, payload).await?;
         }
 
         Resource::Scene(_obj) => {

@@ -13,7 +13,7 @@ use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, Resource,
     ResourceLink, ResourceRecord, ResourceType, TimeZone,
 };
-use crate::z2m::api::DeviceColorMode;
+use crate::z2m::update::DeviceColorMode;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct AuxData {

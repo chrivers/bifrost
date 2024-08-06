@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
-use crate::{hue::best_guess_timezone, types::XY, z2m::api::DeviceColorMode};
+use crate::{hue::best_guess_timezone, types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]

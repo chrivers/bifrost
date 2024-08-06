@@ -17,13 +17,12 @@ use crate::hue::v2::{
     SceneStatus,
 };
 
+use crate::error::ApiResult;
+use crate::hue::scene_icons;
 use crate::resource::AuxData;
-use crate::{
-    error::ApiResult,
-    hue::scene_icons,
-    resource::Resources,
-    z2m::api::{DeviceUpdate, Message, Other},
-};
+use crate::resource::Resources;
+use crate::z2m::api::{Message, Other};
+use crate::z2m::update::DeviceUpdate;
 
 pub struct Client {
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
