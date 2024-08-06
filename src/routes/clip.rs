@@ -10,7 +10,7 @@ use serde_json::{json, Value};
 use uuid::Uuid;
 
 use crate::hue::v2::{
-    GroupedLightUpdate, RType, Resource, SceneRecall, SceneRecallAction, SceneUpdate, V2Reply,
+    GroupedLightUpdate, RType, Resource, SceneRecall, SceneRecallAction, SceneStatus, SceneUpdate, V2Reply
 };
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
@@ -142,7 +142,14 @@ async fn put_resource_id(
                     action: Some(SceneRecallAction::Active),
                     ..
                 }) => {
-                    let lock = state.res.lock().await;
+                    let mut lock = state.res.lock().await;
+
+                    lock.update_scene(&id, |scn| {
+                        scn.status = Some(SceneStatus {
+                            active: "static".to_string(),
+                        });
+                    })?;
+
                     let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
 
                     let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
