@@ -98,7 +98,6 @@ impl Client {
                     "color_temperature": [],
                     "effects": [],
                 }),
-                recall: None,
                 speed: 0.5,
                 status: Some(SceneStatus {
                     active: "inactive".to_string(),

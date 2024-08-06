@@ -572,7 +572,6 @@ pub struct Scene {
     /*     effects: [] */
     /* }, */
     pub palette: Value,
-    pub recall: Option<SceneRecall>,
     pub speed: f64,
     pub status: Option<SceneStatus>,
 }
