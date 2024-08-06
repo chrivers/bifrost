@@ -46,16 +46,16 @@ pub struct UpdateRecord {
     id: Uuid,
     id_v1: String,
     #[serde(flatten)]
-    pub obj: Update,
+    pub upd: Update,
 }
 
 impl UpdateRecord {
     #[must_use]
-    pub fn from_ref((id, obj): (&Uuid, &Update)) -> Self {
+    pub fn new(id: &Uuid, upd: Update) -> Self {
         Self {
             id: *id,
             id_v1: format!("/legacy/{}", id.as_simple()),
-            obj: obj.clone(),
+            upd,
         }
     }
 }
