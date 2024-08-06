@@ -46,7 +46,6 @@ impl AuxData {
 
 #[derive(Clone, Debug)]
 pub struct Resources {
-    id_v1: u32,
     pub res: HashMap<Uuid, Resource>,
     pub aux: HashMap<Uuid, AuxData>,
     pub chan: Sender<EventBlock>,
@@ -57,7 +56,6 @@ impl Resources {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            id_v1: 1,
             res: HashMap::new(),
             aux: HashMap::new(),
             chan: Sender::new(100),
@@ -65,14 +63,14 @@ impl Resources {
     }
 
     pub fn load(&mut self, rdr: impl Read) -> ApiResult<()> {
-        (self.id_v1, self.res, self.aux) = serde_yaml::from_reader(rdr)?;
+        (self.res, self.aux) = serde_yaml::from_reader(rdr)?;
         Ok(())
     }
 
     pub fn save(&self, wr: impl Write) -> ApiResult<()> {
         Ok(serde_yaml::to_writer(
             wr,
-            &(&self.id_v1, &self.res, &self.aux),
+            &(&self.res, &self.aux),
         )?)
     }
 
@@ -80,16 +78,8 @@ impl Resources {
         self.add_bridge(bridge_id.to_owned())
     }
 
-    pub fn next_idv1(&mut self) -> u32 {
-        self.id_v1 += 1;
-        self.id_v1
-    }
-
-    pub fn add_resource(&mut self, mut obj: Resource) -> ApiResult<ResourceLink> {
-        let link = obj.rtype().deterministic(self.id_v1);
-        if obj.assign_id_v1(self.id_v1) {
-            self.id_v1 += 1;
-        }
+    pub fn add_resource(&mut self, obj: Resource) -> ApiResult<ResourceLink> {
+        let link = ResourceLink::new(Uuid::new_v4(), obj.rtype());
 
         self.add(&link, obj)?;
         Ok(link)
@@ -257,7 +247,6 @@ impl Resources {
 
         let bridge_home = BridgeHome {
             children: vec![link_bridge_dev.clone()],
-            id_v1: Some("/groups/0".to_string()),
             services: vec![RType::GroupedLight.deterministic(link_bridge_home.rid)],
         };
 

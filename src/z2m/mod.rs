@@ -53,7 +53,7 @@ impl Client {
         self.map.insert(name.to_string(), link_light.rid);
 
         let mut res = self.state.lock().await;
-        let mut light = Light::new(res.next_idv1(), link_device.clone());
+        let mut light = Light::new(link_device.clone());
         light.metadata.name = name.to_string();
 
         res.aux
@@ -86,7 +86,6 @@ impl Client {
                 actions: vec![],
                 auto_dynamic: false,
                 group: link_room.clone(),
-                id_v1: Some(format!("/scenes/{}-{}", grp.id, scn.id)),
                 metadata: SceneMetadata {
                     appdata: None,
                     image: guess_scene_icon(&scn.name),
@@ -116,7 +115,6 @@ impl Client {
         }
 
         let room = Room {
-            id_v1: Some(format!("/room/{}", grp.id)),
             children,
             metadata: Metadata::room(RoomArchetypes::Computer, &topic),
             services,
@@ -138,7 +136,6 @@ impl Client {
             },
             dimming_delta: json!({}),
             dynamics: json!({}),
-            id_v1: Some(format!("/groups/{}", grp.id)),
             on: On { on: true },
             owner: link_room,
             signaling: json!({
@@ -273,7 +270,6 @@ impl Client {
             /*     /\* println!("{obj:#?}"); *\/ */
             /* } */
             Message::Other(obj) => {
-                println!("{:#?}", obj.topic);
                 if obj.topic.contains('/') {
                     return Ok(());
                 }

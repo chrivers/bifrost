@@ -90,7 +90,6 @@ pub struct Bridge {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BridgeHome {
     pub children: Vec<ResourceLink>,
-    pub id_v1: Option<String>,
     pub services: Vec<ResourceLink>,
 }
 
@@ -115,7 +114,6 @@ pub struct DeviceProductData {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Entertainment {
     equalizer: bool,
-    id_v1: Option<String>,
     owner: ResourceLink,
     proxy: bool,
     renderer: bool,
@@ -155,7 +153,6 @@ pub struct GroupedLight {
     pub dimming: Dimming,
     pub dimming_delta: Value,
     pub dynamics: Value,
-    pub id_v1: Option<String>,
     pub on: On,
     pub owner: ResourceLink,
     pub signaling: Value,
@@ -321,7 +318,6 @@ pub struct Light {
     #[serde(skip, default)]
     pub color_mode: Option<DeviceColorMode>,
 
-    pub id_v1: Option<String>,
     pub alert: Value,
     pub color: LightColor,
     pub color_temperature: ColorTemperature,
@@ -371,9 +367,8 @@ pub struct Light {
 
 impl Light {
     #[must_use]
-    pub fn new(id: u32, owner: ResourceLink) -> Self {
+    pub fn new(owner: ResourceLink) -> Self {
         Self {
-            id_v1: Some(format!("/lights/{id}")),
             alert: json!({"action_values": ["breathe"]}),
             color_mode: None,
             color: LightColor::dummy(),
@@ -510,7 +505,6 @@ pub enum RoomArchetypes {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Room {
     pub children: Vec<ResourceLink>,
-    pub id_v1: Option<String>,
     pub metadata: Metadata,
     #[serde(default)]
     pub services: Vec<ResourceLink>,
@@ -554,7 +548,6 @@ pub struct Scene {
     #[serde(default)]
     pub auto_dynamic: bool,
     pub group: ResourceLink,
-    pub id_v1: Option<String>,
     pub metadata: SceneMetadata,
     /* palette: { */
     /*     color: [], */
@@ -613,7 +606,6 @@ pub enum ZigbeeConnectivityStatus {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
-    id_v1: Option<String>,
     mac_address: String,
     owner: ResourceLink,
     status: ZigbeeConnectivityStatus,
@@ -627,7 +619,6 @@ pub struct ZigbeeDeviceDiscovery {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Zone {
-    id_v1: Option<String>,
     pub metadata: Metadata,
     pub children: Vec<ResourceLink>,
     #[serde(default)]
@@ -708,85 +699,12 @@ impl Resource {
         };
         Ok(res)
     }
-
-    pub fn assign_id_v1(&mut self, index: u32) -> bool {
-        match self {
-            Self::BridgeHome(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::Entertainment(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::GroupedLight(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::Light(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::Room(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::Scene(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::ZigbeeConnectivity(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-            Self::Zone(obj) => {
-                obj.id_v1 = Some(format!("/foo/{index}"));
-                true
-            }
-
-            Self::BehaviorScript(_)
-            | Self::BehaviorInstance(_)
-            | Self::Bridge(_)
-            | Self::Device(_)
-            | Self::GeofenceClient(_)
-            | Self::Geolocation(_)
-            | Self::Homekit(_)
-            | Self::Matter(_)
-            | Self::PublicImage(_)
-            | Self::SmartScene(_)
-            | Self::ZigbeeDeviceDiscovery(_) => false,
-        }
-    }
-
-    pub fn get_id_v1(&mut self) -> &Option<String> {
-        match self {
-            Self::BridgeHome(obj) => &obj.id_v1,
-            Self::Entertainment(obj) => &obj.id_v1,
-            Self::GroupedLight(obj) => &obj.id_v1,
-            Self::Light(obj) => &obj.id_v1,
-            Self::Room(obj) => &obj.id_v1,
-            Self::Scene(obj) => &obj.id_v1,
-            Self::ZigbeeConnectivity(obj) => &obj.id_v1,
-            Self::Zone(obj) => &obj.id_v1,
-
-            Self::BehaviorScript(_)
-            | Self::BehaviorInstance(_)
-            | Self::Bridge(_)
-            | Self::Device(_)
-            | Self::GeofenceClient(_)
-            | Self::Geolocation(_)
-            | Self::Homekit(_)
-            | Self::Matter(_)
-            | Self::PublicImage(_)
-            | Self::SmartScene(_)
-            | Self::ZigbeeDeviceDiscovery(_) => &None,
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceRecord {
     id: Uuid,
+    id_v1: String,
     #[serde(flatten)]
     pub obj: Resource,
 }
@@ -796,6 +714,7 @@ impl ResourceRecord {
     pub fn from_ref((id, obj): (&Uuid, &Resource)) -> Self {
         Self {
             id: *id,
+            id_v1: format!("/legacy/{}", id.as_simple()),
             obj: obj.clone(),
         }
     }
