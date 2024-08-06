@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use axum::{
     extract::{Path, State},
     response::{IntoResponse, Response},
@@ -15,7 +13,7 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::v2::{
-    GroupedLightUpdate, On, Resource, ResourceType, SceneRecall, SceneRecallAction, SceneUpdate,
+    GroupedLightUpdate, Resource, ResourceType, SceneRecall, SceneRecallAction, SceneUpdate,
     V2Reply,
 };
 use crate::state::AppState;
@@ -132,11 +130,7 @@ async fn put_resource_id(
         Resource::GroupedLight(obj) => {
             log::info!("PUT {rtype:?}/{id}: updating");
 
-            let Resource::Room(rr) = state
-                .get_link(&obj.owner)
-                .await?
-                .obj
-            else {
+            let Resource::Room(rr) = state.get_link(&obj.owner).await?.obj else {
                 return Err(ApiError::NotFound(obj.owner.rid));
             };
 
