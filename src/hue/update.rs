@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{from_value, Value};
 use uuid::Uuid;
 
 use crate::{
-    error::ApiResult,
     hue::v2::{On, RType},
     types::XY,
 };
@@ -40,32 +38,6 @@ impl Update {
             Self::Light(_) => RType::Light,
             Self::Scene(_) => RType::Scene,
         }
-    }
-
-    pub fn from_value(rtype: RType, obj: Value) -> ApiResult<Self> {
-        let res = match rtype {
-            /* RType::BehaviorScript => Self::BehaviorScript(from_value(obj)?), */
-            /* RType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?), */
-            /* RType::Bridge => Self::Bridge(from_value(obj)?), */
-            /* RType::BridgeHome => Self::BridgeHome(from_value(obj)?), */
-            /* RType::Device => Self::Device(from_value(obj)?), */
-            /* RType::Entertainment => Self::Entertainment(from_value(obj)?), */
-            /* RType::GeofenceClient => Self::GeofenceClient(from_value(obj)?), */
-            /* RType::Geolocation => Self::Geolocation(from_value(obj)?), */
-            RType::GroupedLight => Self::GroupedLight(from_value(obj)?),
-            /* RType::Homekit => Self::Homekit(from_value(obj)?), */
-            RType::Light => Self::Light(from_value(obj)?),
-            /* RType::Matter => Self::Matter(from_value(obj)?), */
-            /* RType::PublicImage => Self::PublicImage(from_value(obj)?), */
-            /* RType::Room => Self::Room(from_value(obj)?), */
-            RType::Scene => Self::Scene(from_value(obj)?),
-            /* RType::SmartScene => Self::SmartScene(from_value(obj)?), */
-            /* RType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?), */
-            /* RType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?), */
-            /* RType::Zone => Self::Zone(from_value(obj)?), */
-            _ => Err(<serde_json::Error as serde::de::Error>::custom("foo"))?,
-        };
-        Ok(res)
     }
 }
 
