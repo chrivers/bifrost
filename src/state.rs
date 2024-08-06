@@ -4,11 +4,13 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use futures::stream::SplitSink;
-use futures::StreamExt;
+use futures::{SinkExt, StreamExt};
 use mac_address::MacAddress;
+use serde::Serialize;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
+use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
@@ -129,5 +131,22 @@ impl AppState {
 
     pub async fn get_link(&self, link: &ResourceLink) -> ApiResult<ResourceRecord> {
         self.res.lock().await.get_resource(link.rtype, &link.rid)
+    }
+
+    pub async fn send<T: Serialize + Send>(&self, topic: String, payload: T) -> ApiResult<()> {
+        let api_req = crate::z2m::api::Other {
+            topic,
+            payload: serde_json::to_value(payload)?,
+        };
+
+        self.ws
+            .lock()
+            .await
+            .send(Message::Text(serde_json::to_string(&api_req)?))
+            .await?;
+
+        log::info!("{api_req:#?}");
+
+        Ok(())
     }
 }
