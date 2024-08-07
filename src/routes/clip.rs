@@ -85,10 +85,7 @@ async fn post_resource(
 
     let link = match obj? {
         Resource::Scene(scn) => {
-            let Resource::Room(room) = lock.get_resource(scn.group.rtype, &scn.group.rid)?.obj
-            else {
-                return Err(ApiError::NotFound(scn.group.rid));
-            };
+            let room = lock.get_room(&scn.group.rid)?;
 
             let sid = lock.get_next_scene_id(&scn.group)?;
             println!("NEXT: {sid}");
