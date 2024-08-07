@@ -265,6 +265,18 @@ impl Resources {
         }
     }
 
+    pub fn get<T>(&self, link: &ResourceLink) -> ApiResult<T>
+    where
+        T: TryFrom<Resource, Error = ApiError>
+    {
+        self.res
+            .get(&link.rid)
+            .filter(|id| id.rtype() == link.rtype)
+            .ok_or_else(|| ApiError::NotFound(link.rid))?
+            .clone()
+            .try_into()
+    }
+
     pub fn get_resource(&self, ty: RType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.res
             .get(id)
