@@ -85,7 +85,7 @@ async fn post_resource(
 
     let link = match obj? {
         Resource::Scene(scn) => {
-            let room = lock.get_room(&scn.group.rid)?;
+            let room = lock.get::<Room>(&scn.group)?;
 
             let sid = lock.get_next_scene_id(&scn.group)?;
             println!("NEXT: {sid}");
@@ -149,15 +149,7 @@ async fn put_resource_id(
         Resource::GroupedLight(obj) => {
             log::info!("PUT {rtype:?}/{id}: updating");
 
-            let Resource::Room(rr) = state
-                .res
-                .lock()
-                .await
-                .get_resource(obj.owner.rtype, &obj.owner.rid)?
-                .obj
-            else {
-                return Err(ApiError::NotFound(obj.owner.rid));
-            };
+            let rr: Room = state.res.lock().await.get(&obj.owner)?;
 
             let upd: GroupedLightUpdate = serde_json::from_value(put)?;
 

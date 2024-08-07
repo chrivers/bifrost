@@ -12,7 +12,7 @@ use crate::hue::event::EventBlock;
 use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
-    ResourceRecord, Room, TimeZone,
+    ResourceRecord, TimeZone,
 };
 use crate::z2m::update::DeviceColorMode;
 
@@ -262,17 +262,9 @@ impl Resources {
         Err(ApiError::Full(RType::Scene))
     }
 
-    pub fn get_room(&self, id: &Uuid) -> ApiResult<Room> {
-        if let Resource::Room(res) = self.get_resource(RType::Room, id)?.obj {
-            Ok(res)
-        } else {
-            Err(ApiError::NotFound(*id))
-        }
-    }
-
     pub fn get<T>(&self, link: &ResourceLink) -> ApiResult<T>
     where
-        T: TryFrom<Resource, Error = ApiError>
+        T: TryFrom<Resource, Error = ApiError>,
     {
         self.res
             .get(&link.rid)
