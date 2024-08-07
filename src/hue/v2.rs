@@ -1,3 +1,4 @@
+use std::fmt::{self, Debug};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use serde::{Deserialize, Serialize};
@@ -698,7 +699,7 @@ pub struct V2Reply<T> {
     pub errors: Vec<String>,
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Copy, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct ResourceLink {
     pub rid: Uuid,
     pub rtype: RType,
@@ -708,6 +709,14 @@ impl ResourceLink {
     #[must_use]
     pub const fn new(rid: Uuid, rtype: RType) -> Self {
         Self { rid, rtype }
+    }
+}
+
+impl Debug for ResourceLink {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let rtype = format!("{:?}", self.rtype).to_lowercase();
+        let rid = self.rid;
+        write!(f, "{rtype}/{rid}")
     }
 }
 
