@@ -61,13 +61,13 @@ impl IntoResponse for ApiError {
 
 async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
     Json(V2Reply {
-        data: state.get_resources().await,
+        data: state.res.lock().await.get_resources(),
         errors: vec![],
     })
 }
 
 async fn get_resource(State(state): State<AppState>, Path(rtype): Path<RType>) -> ApiV2Result {
-    V2Reply::list(state.get_resources_by_type(rtype).await)
+    V2Reply::list(state.res.lock().await.get_resources_by_type(rtype))
 }
 
 async fn post_resource(
@@ -122,7 +122,7 @@ async fn get_resource_id(
     State(state): State<AppState>,
     Path((rtype, id)): Path<(RType, Uuid)>,
 ) -> ApiV2Result {
-    V2Reply::ok(state.get_resource(rtype, &id).await?)
+    V2Reply::ok(state.res.lock().await.get_resource(rtype, &id)?)
 }
 
 async fn put_resource_id(
@@ -132,7 +132,7 @@ async fn put_resource_id(
 ) -> ApiV2Result {
     log::info!("PUT {rtype:?}/{id}: {put:?}");
 
-    let res = state.get_resource(rtype, &id).await?;
+    let res = state.res.lock().await.get_resource(rtype, &id)?;
     match res.obj {
         Resource::Light(obj) => {
             let upd: GroupedLightUpdate = serde_json::from_value(put)?;
@@ -149,7 +149,13 @@ async fn put_resource_id(
         Resource::GroupedLight(obj) => {
             log::info!("PUT {rtype:?}/{id}: updating");
 
-            let Resource::Room(rr) = state.get_link(&obj.owner).await?.obj else {
+            let Resource::Room(rr) = state
+                .res
+                .lock()
+                .await
+                .get_resource(obj.owner.rtype, &obj.owner.rid)?
+                .obj
+            else {
                 return Err(ApiError::NotFound(obj.owner.rid));
             };
 

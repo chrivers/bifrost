@@ -18,7 +18,6 @@ use crate::config::{AppConfig, MqttConfig, Z2mConfig};
 use crate::error::ApiResult;
 use crate::hue::event::EventBlock;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
-use crate::hue::v2::{RType, ResourceLink, ResourceRecord};
 use crate::resource::Resources;
 
 #[derive(Clone)]
@@ -115,22 +114,6 @@ impl AppState {
             )]),
             ..ApiConfig::default()
         }
-    }
-
-    pub async fn get_resources(&self) -> Vec<ResourceRecord> {
-        self.res.lock().await.get_resources()
-    }
-
-    pub async fn get_resources_by_type(&self, ty: RType) -> Vec<ResourceRecord> {
-        self.res.lock().await.get_resources_by_type(ty)
-    }
-
-    pub async fn get_resource(&self, ty: RType, id: &Uuid) -> ApiResult<ResourceRecord> {
-        self.res.lock().await.get_resource(ty, id)
-    }
-
-    pub async fn get_link(&self, link: &ResourceLink) -> ApiResult<ResourceRecord> {
-        self.res.lock().await.get_resource(link.rtype, &link.rid)
     }
 
     pub async fn send<T: Serialize + Send>(&self, topic: String, payload: T) -> ApiResult<()> {
