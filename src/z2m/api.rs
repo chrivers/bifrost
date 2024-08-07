@@ -308,6 +308,20 @@ pub struct Device {
     pub device_type: String,
 }
 
+impl Device {
+    pub fn exposes(&self) -> &[Expose] {
+        if let Some(ref def) = self.definition {
+            &def.exposes
+        } else {
+            &[]
+        }
+    }
+
+    pub fn expose_light(&self) -> bool {
+        self.exposes().iter().any(|exp| matches!(exp, Expose::Light(_)))
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Definition {
