@@ -137,132 +137,132 @@ pub struct BridgeInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BridgeConfigSchema {
-    definitions: Value,
-    required: Vec<String>,
-    properties: Value,
+    pub definitions: Value,
+    pub required: Vec<String>,
+    pub properties: Value,
     #[serde(rename = "type")]
-    _type: Value,
+    pub _type: Value,
     #[serde(flatten)]
-    bad: HashMap<String, Value>,
+    pub bad: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
-    advanced: ConfigAdvanced,
-    blocklist: Vec<Option<Value>>,
-    device_options: ConfigDeviceOptions,
-    devices: HashMap<String, Value>,
-    external_converters: Vec<Option<Value>>,
-    frontend: Value,
-    groups: HashMap<String, GroupValue>,
-    homeassistant: ConfigHomeassistant,
-    map_options: Value,
-    mqtt: Value,
-    ota: Value,
-    passlist: Vec<Option<Value>>,
-    permit_join: bool,
-    serial: ConfigSerial,
+    pub advanced: ConfigAdvanced,
+    pub blocklist: Vec<Option<Value>>,
+    pub device_options: ConfigDeviceOptions,
+    pub devices: HashMap<String, Value>,
+    pub external_converters: Vec<Option<Value>>,
+    pub frontend: Value,
+    pub groups: HashMap<String, GroupValue>,
+    pub homeassistant: ConfigHomeassistant,
+    pub map_options: Value,
+    pub mqtt: Value,
+    pub ota: Value,
+    pub passlist: Vec<Option<Value>>,
+    pub permit_join: bool,
+    pub serial: ConfigSerial,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Version {
-    version: String,
+    pub version: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Network {
-    channel: i64,
-    extended_pan_id: f64,
-    pan_id: i64,
+    pub channel: i64,
+    pub extended_pan_id: f64,
+    pub pan_id: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Coordinator {
-    ieee_address: IeeeAddress,
-    meta: CoordinatorMeta,
+    pub ieee_address: IeeeAddress,
+    pub meta: CoordinatorMeta,
     #[serde(rename = "type")]
-    coordinator_type: String,
+    pub coordinator_type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigAdvanced {
-    adapter_concurrent: Option<Value>,
-    adapter_delay: Option<Value>,
-    availability_blacklist: Vec<Value>,
-    availability_blocklist: Vec<Value>,
-    availability_passlist: Vec<Value>,
-    availability_whitelist: Vec<Value>,
-    cache_state: bool,
-    cache_state_persistent: bool,
-    cache_state_send_on_startup: bool,
-    channel: i64,
-    elapsed: bool,
-    ext_pan_id: Vec<i64>,
-    homeassistant_legacy_entity_attributes: bool,
-    last_seen: String,
-    legacy_api: bool,
-    legacy_availability_payload: bool,
-    log_debug_namespace_ignore: String,
-    log_debug_to_mqtt_frontend: bool,
-    log_directory: String,
-    log_file: String,
-    log_level: String,
-    log_namespaced_levels: Value,
-    log_output: Vec<String>,
-    log_rotation: bool,
-    log_symlink_current: bool,
-    log_syslog: Value,
-    output: String,
-    pan_id: i64,
-    report: bool,
-    soft_reset_timeout: i64,
-    timestamp_format: String,
+    pub adapter_concurrent: Option<Value>,
+    pub adapter_delay: Option<Value>,
+    pub availability_blacklist: Vec<Value>,
+    pub availability_blocklist: Vec<Value>,
+    pub availability_passlist: Vec<Value>,
+    pub availability_whitelist: Vec<Value>,
+    pub cache_state: bool,
+    pub cache_state_persistent: bool,
+    pub cache_state_send_on_startup: bool,
+    pub channel: i64,
+    pub elapsed: bool,
+    pub ext_pan_id: Vec<i64>,
+    pub homeassistant_legacy_entity_attributes: bool,
+    pub last_seen: String,
+    pub legacy_api: bool,
+    pub legacy_availability_payload: bool,
+    pub log_debug_namespace_ignore: String,
+    pub log_debug_to_mqtt_frontend: bool,
+    pub log_directory: String,
+    pub log_file: String,
+    pub log_level: String,
+    pub log_namespaced_levels: Value,
+    pub log_output: Vec<String>,
+    pub log_rotation: bool,
+    pub log_symlink_current: bool,
+    pub log_syslog: Value,
+    pub output: String,
+    pub pan_id: i64,
+    pub report: bool,
+    pub soft_reset_timeout: i64,
+    pub timestamp_format: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoordinatorMeta {
-    build: i64,
-    ezsp: i64,
-    major: i64,
-    minor: i64,
-    patch: i64,
-    revision: String,
-    special: i64,
+    pub build: i64,
+    pub ezsp: i64,
+    pub major: i64,
+    pub minor: i64,
+    pub patch: i64,
+    pub revision: String,
+    pub special: i64,
     #[serde(rename = "type")]
-    meta_type: i64,
+    pub meta_type: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigSerial {
-    adapter: String,
-    disable_led: bool,
-    port: String,
+    pub adapter: String,
+    pub disable_led: bool,
+    pub port: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConfigHomeassistant {
-    discovery_topic: String,
-    legacy_entity_attributes: bool,
-    legacy_triggers: bool,
-    status_topic: String,
+    pub discovery_topic: String,
+    pub legacy_entity_attributes: bool,
+    pub legacy_triggers: bool,
+    pub status_topic: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConfigDeviceOptions {
-    legacy: bool,
+    pub legacy: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GroupValue {
-    devices: Vec<String>,
-    friendly_name: String,
+    pub devices: Vec<String>,
+    pub friendly_name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -311,12 +311,12 @@ pub struct Device {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Definition {
-    description: String,
-    exposes: Vec<Expose>,
-    model: String,
-    options: Vec<Expose>,
-    supports_ota: bool,
-    vendor: String,
+    pub description: String,
+    pub exposes: Vec<Expose>,
+    pub model: String,
+    pub options: Vec<Expose>,
+    pub supports_ota: bool,
+    pub vendor: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -335,16 +335,16 @@ pub enum Expose {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExposeBinary {
-    access: u8,
-    property: String,
+    pub access: u8,
+    pub property: String,
 
-    name: String,
-    label: String,
-    description: String,
+    pub name: String,
+    pub label: String,
+    pub description: String,
 
-    value_off: Value,
-    value_on: Value,
-    value_toggle: Option<String>,
+    pub value_off: Value,
+    pub value_on: Value,
+    pub value_toggle: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -354,21 +354,21 @@ pub struct ExposeComposite {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExposeEnum {
-    access: u8,
-    property: String,
+    pub access: u8,
+    pub property: String,
 
-    name: String,
-    label: String,
-    description: Option<String>,
+    pub name: String,
+    pub label: String,
+    pub description: Option<String>,
 
-    category: Option<String>,
-    values: Vec<String>,
+    pub category: Option<String>,
+    pub values: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExposeLight {
-    features: Vec<Expose>,
+    pub features: Vec<Expose>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -381,60 +381,60 @@ pub struct ExposeList {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExposeNumeric {
-    access: u8,
-    property: String,
-    name: String,
-    label: String,
+    pub access: u8,
+    pub property: String,
+    pub name: String,
+    pub label: String,
 
-    description: Option<String>,
+    pub description: Option<String>,
 
-    unit: Option<String>,
-    category: Option<String>,
-    value_max: Option<i32>,
-    value_min: Option<i32>,
+    pub unit: Option<String>,
+    pub category: Option<String>,
+    pub value_max: Option<i32>,
+    pub value_min: Option<i32>,
 
     #[serde(default)]
-    presets: Vec<Preset>,
+    pub presets: Vec<Preset>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExposeSwitch {
-    features: Vec<Expose>,
+    pub features: Vec<Expose>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Endpoint {
-    bindings: Vec<Binding>,
-    clusters: Clusters,
-    configured_reportings: Vec<ConfiguredReporting>,
-    scenes: Vec<Value>,
+    pub bindings: Vec<Binding>,
+    pub clusters: Clusters,
+    pub configured_reportings: Vec<ConfiguredReporting>,
+    pub scenes: Vec<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConfiguredReporting {
-    attribute: String,
-    cluster: String,
-    maximum_report_interval: i32,
-    minimum_report_interval: i32,
-    reportable_change: i32,
+    pub attribute: String,
+    pub cluster: String,
+    pub maximum_report_interval: i32,
+    pub minimum_report_interval: i32,
+    pub reportable_change: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Preset {
-    description: String,
-    name: String,
-    value: u16,
+    pub description: String,
+    pub name: String,
+    pub value: u16,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Binding {
-    cluster: String,
-    target: BindingTarget,
+    pub cluster: String,
+    pub target: BindingTarget,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -446,6 +446,6 @@ pub enum BindingTarget {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Clusters {
-    input: Vec<String>,
-    output: Vec<String>,
+    pub input: Vec<String>,
+    pub output: Vec<String>,
 }
