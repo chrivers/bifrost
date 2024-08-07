@@ -9,13 +9,16 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::hue::update::{GroupedLightUpdate, SceneRecall, SceneUpdate};
 use crate::hue::v2::{RType, Resource, SceneRecallAction, SceneStatus, V2Reply};
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
 use crate::{
     error::{ApiError, ApiResult},
     hue::v2::ResourceLink,
+};
+use crate::{
+    hue::update::{GroupedLightUpdate, SceneRecall, SceneUpdate},
+    resource::AuxData,
 };
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
@@ -78,7 +81,41 @@ async fn post_resource(
         log::error!("{:?}", obj);
     }
 
-    let link = state.res.lock().await.add_resource(obj?)?;
+    let mut lock = state.res.lock().await;
+
+    let link = match obj? {
+        Resource::Scene(scn) => {
+            let Resource::Room(room) = lock.get_resource(scn.group.rtype, &scn.group.rid)?.obj
+            else {
+                return Err(ApiError::NotFound(scn.group.rid));
+            };
+
+            let sid = lock.get_next_scene_id(&scn.group)?;
+            println!("NEXT: {sid}");
+
+            let payload = json!({
+                "scene_store": {
+                    "ID": sid,
+                    "name": scn.metadata.name,
+                }
+            });
+
+            let link_scene = RType::Scene.deterministic((scn.group.rid, sid));
+
+            lock.aux.insert(
+                link_scene.rid,
+                AuxData::new()
+                    .with_topic(&scn.metadata.name)
+                    .with_index(sid),
+            );
+
+            state.send_set(&room.metadata.name, payload).await?;
+
+            link_scene
+        }
+
+        obj => lock.add_resource(obj)?,
+    };
 
     V2Reply::ok(link)
 }
@@ -177,9 +214,29 @@ async fn delete_resource_id(
 ) -> ApiV2Result {
     log::info!("DELETE {rtype:?}/{id}");
     let link = rtype.link_to(id);
-    state.res.lock().await.delete(&link)?;
 
-    V2Reply::ok(link)
+    let mut lock = state.res.lock().await;
+
+    let res = lock.get_resource(rtype, &id)?;
+    match res.obj {
+        Resource::Scene(_obj) => {
+            let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
+
+            let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
+            let index = aux.index.as_ref().ok_or(ApiError::NotFound(id))?;
+            let payload = json!({
+                "scene_remove": index,
+            });
+
+            state.send_set(topic, payload).await?;
+
+            lock.delete(&link)?;
+            drop(lock);
+
+            V2Reply::ok(link)
+        }
+        _ => Err(ApiError::DeleteDenied(id))?,
+    }
 }
 
 pub fn router() -> Router<AppState> {
