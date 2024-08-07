@@ -675,6 +675,49 @@ impl Resource {
     }
 }
 
+#[macro_export]
+macro_rules! resource_conversion_impl {
+    ( $name:ident ) => {
+        impl<'a> TryFrom<&'a mut Resource> for &'a mut $name {
+            type Error = ApiError;
+
+            fn try_from(value: &'a mut Resource) -> Result<Self, Self::Error> {
+                if let Resource::$name(obj) = value {
+                    Ok(obj)
+                } else {
+                    Err(ApiError::WrongType(RType::Light, value.rtype()))
+                }
+            }
+        }
+
+        impl From<$name> for Resource {
+            fn from(value: $name) -> Self {
+                Resource::$name(value)
+            }
+        }
+    };
+}
+
+resource_conversion_impl!(BehaviorScript);
+resource_conversion_impl!(BehaviorInstance);
+resource_conversion_impl!(Bridge);
+resource_conversion_impl!(BridgeHome);
+resource_conversion_impl!(Device);
+resource_conversion_impl!(Entertainment);
+resource_conversion_impl!(GeofenceClient);
+resource_conversion_impl!(Geolocation);
+resource_conversion_impl!(GroupedLight);
+resource_conversion_impl!(Homekit);
+resource_conversion_impl!(Light);
+resource_conversion_impl!(Matter);
+resource_conversion_impl!(PublicImage);
+resource_conversion_impl!(Room);
+resource_conversion_impl!(Scene);
+resource_conversion_impl!(SmartScene);
+resource_conversion_impl!(ZigbeeConnectivity);
+resource_conversion_impl!(ZigbeeDeviceDiscovery);
+resource_conversion_impl!(Zone);
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceRecord {
     pub id: Uuid,
