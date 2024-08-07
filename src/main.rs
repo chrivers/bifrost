@@ -84,7 +84,15 @@ async fn https_server(
 
 #[tokio::main]
 async fn main() -> ApiResult<()> {
-    colog::init();
+    let mut builder = pretty_env_logger::formatted_timed_builder();
+
+    if let Ok(s) = ::std::env::var("RUST_LOG") {
+        builder.parse_filters(&s);
+    } else {
+        builder.parse_filters("debug,mdns_sd=off");
+    }
+
+    builder.try_init()?;
 
     let config = config::parse("config.yaml")?;
 
