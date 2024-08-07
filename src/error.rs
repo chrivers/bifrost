@@ -2,7 +2,7 @@ use thiserror::Error;
 use tokio::task::JoinError;
 use uuid::Uuid;
 
-use crate::hue::event::EventBlock;
+use crate::hue::{event::EventBlock, v2::RType};
 
 #[derive(Error, Debug)]
 pub enum ApiError {
@@ -40,8 +40,14 @@ pub enum ApiError {
     #[error("Request failed: {0}")]
     Fail(&'static str),
 
+    #[error("Resource {0} could not be deleted")]
+    DeleteDenied(Uuid),
+
     #[error("Resource {0} not found")]
     NotFound(Uuid),
+
+    #[error("Cannot allocate any more {0:?}")]
+    Full(RType),
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
