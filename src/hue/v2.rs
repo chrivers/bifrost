@@ -755,7 +755,7 @@ pub struct V2Reply<T> {
     pub errors: Vec<String>,
 }
 
-#[derive(Copy, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Copy, Hash, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct ResourceLink {
     pub rid: Uuid,
     pub rtype: RType,
