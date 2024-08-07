@@ -675,7 +675,7 @@ impl Resource {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceRecord {
-    id: Uuid,
+    pub id: Uuid,
     id_v1: String,
     #[serde(flatten)]
     pub obj: Resource,
@@ -698,7 +698,7 @@ pub struct V2Reply<T> {
     pub errors: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct ResourceLink {
     pub rid: Uuid,
     pub rtype: RType,
