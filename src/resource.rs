@@ -177,11 +177,11 @@ impl Resources {
     }
 
     pub fn delete(&mut self, link: &ResourceLink) -> ApiResult<()> {
-        let evt = EventBlock::delete(link)?;
-
         self.res
             .remove(&link.rid)
             .ok_or(ApiError::NotFound(link.rid))?;
+
+        let evt = EventBlock::delete(link)?;
 
         let _ = self.chan.send(evt);
 
