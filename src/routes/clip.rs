@@ -9,7 +9,10 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::hue::v2::{RType, Resource, Room, Scene, SceneRecallAction, SceneStatus, V2Reply};
+use crate::hue::{
+    update::LightUpdate,
+    v2::{RType, Resource, Room, Scene, SceneRecallAction, SceneStatus, V2Reply},
+};
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
 use crate::{
@@ -135,7 +138,7 @@ async fn put_resource_id(
     let res = state.res.lock().await.get_resource(rtype, &id)?;
     match res.obj {
         Resource::Light(obj) => {
-            let upd: GroupedLightUpdate = serde_json::from_value(put)?;
+            let upd: LightUpdate = serde_json::from_value(put)?;
 
             let payload = DeviceUpdate::default()
                 .with_state(upd.on.map(|on| on.on))
