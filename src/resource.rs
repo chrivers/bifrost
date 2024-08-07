@@ -85,9 +85,14 @@ impl Resources {
         Ok(link)
     }
 
-    #[must_use]
-    pub fn has(&self, id: &Uuid) -> bool {
-        self.res.contains_key(id)
+    pub fn aux_get(&self, link: &ResourceLink) -> ApiResult<&AuxData> {
+        self.aux
+            .get(&link.rid)
+            .ok_or_else(|| ApiError::AuxNotFound(*link))
+    }
+
+    pub fn aux_set(&mut self, link: &ResourceLink, aux: AuxData) {
+        self.aux.insert(link.rid, aux);
     }
 
     fn generate_update(obj: &Resource) -> ApiResult<Option<Update>> {

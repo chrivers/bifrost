@@ -2,7 +2,10 @@ use thiserror::Error;
 use tokio::task::JoinError;
 use uuid::Uuid;
 
-use crate::hue::{event::EventBlock, v2::RType};
+use crate::hue::{
+    event::EventBlock,
+    v2::{RType, ResourceLink},
+};
 
 #[derive(Error, Debug)]
 pub enum ApiError {
@@ -48,6 +51,9 @@ pub enum ApiError {
 
     #[error("Resource {0} could not be deleted")]
     DeleteDenied(Uuid),
+
+    #[error("Missing auxiliary data resource {0:?}")]
+    AuxNotFound(ResourceLink),
 
     #[error("Resource {0} not found")]
     NotFound(Uuid),
