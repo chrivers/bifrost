@@ -103,7 +103,7 @@ impl Client {
                 }),
             };
 
-            let link_scene = RType::Scene.deterministic((grp.id, scn.id));
+            let link_scene = RType::Scene.deterministic((link_room.rid, scn.id));
 
             res.aux.insert(
                 link_scene.rid,
