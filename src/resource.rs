@@ -169,7 +169,7 @@ impl Resources {
 
         let evt = EventBlock::add(serde_json::to_value(self.get_resource_by_id(&link.rid)?)?);
 
-        log::info!("## EVENT ##: {evt:?}");
+        log::trace!("Send event: {evt:?}");
 
         let _ = self.chan.send(evt);
 

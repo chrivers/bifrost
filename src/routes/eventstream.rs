@@ -21,7 +21,7 @@ pub async fn get_clip_v2(
     let raw = BroadcastStream::new(state.channel().await);
     let stream = raw.map(move |e| {
         let json = [e?];
-        log::info!(
+        log::trace!(
             "## EVENT ##: {}",
             serde_json::to_string(&json).unwrap_or_else(|_| "ERROR".to_string())
         );
