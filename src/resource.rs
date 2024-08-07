@@ -166,8 +166,9 @@ impl Resources {
 
         self.res.insert(link.rid, obj);
 
-        if let Ok(fd) = File::create("state.yaml") {
+        if let Ok(fd) = File::create("state.yaml.tmp") {
             self.save(fd)?;
+            std::fs::rename("state.yaml.tmp", "state.yaml")?;
         }
 
         let evt = EventBlock::add(serde_json::to_value(self.get_resource_by_id(&link.rid)?)?);
