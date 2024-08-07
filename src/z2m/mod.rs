@@ -237,20 +237,14 @@ impl Client {
             Message::BridgeDevices(ref obj) => {
                 //println!("{obj:#?}");
                 for dev in obj {
-                    match dev.model_id {
-                        Some(ref id)
-                            if (id == "TRADFRI bulb GU10 CWS 345lm")
-                                || (id == "LCG002")
-                                || (id == "TRADFRI bulb E27 CWS 806lm") =>
-                        {
-                            log::info!(
-                                "Adding light {:?}: [{}] ({id})",
-                                dev.ieee_address,
-                                dev.friendly_name
-                            );
-                            self.add_light(dev).await?;
-                        }
-                        _ => {}
+                    if dev.expose_light() {
+                        log::info!(
+                            "Adding light {:?}: [{}] ({})",
+                            dev.ieee_address,
+                            dev.friendly_name,
+                            dev.model_id.as_deref().unwrap_or("<unknown model>")
+                        );
+                        self.add_light(dev).await?;
                     }
                 }
             }
