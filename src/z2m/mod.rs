@@ -1,7 +1,8 @@
 pub mod api;
 pub mod update;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::hash::RandomState;
 use std::sync::Arc;
 
 use futures::StreamExt;
@@ -112,6 +113,19 @@ impl Client {
 
             services.push(link_scene);
             res.add(&link_scene, Resource::Scene(scene))?;
+        }
+
+        if let Ok(room) = res.get::<Room>(&link_room) {
+            log::debug!("Room {link_room:?} is known, updating..");
+            let new: HashSet<&ResourceLink, RandomState> = HashSet::from_iter(&services[..]);
+            let old: HashSet<&ResourceLink, RandomState> = HashSet::from_iter(&room.services[..]);
+            let gone = old.difference(&new);
+            for rlink in gone {
+                log::debug!("Deleting orphaned scene {rlink:?} in room {link_room:?}");
+                res.delete(rlink)?;
+            }
+        } else {
+            log::debug!("Room {link_room:?} is new, adding..");
         }
 
         let room = Room {
