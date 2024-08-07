@@ -47,8 +47,8 @@ impl AuxData {
 
 #[derive(Clone, Debug)]
 pub struct Resources {
+    aux: HashMap<Uuid, AuxData>,
     pub res: HashMap<Uuid, Resource>,
-    pub aux: HashMap<Uuid, AuxData>,
     pub chan: Sender<EventBlock>,
 }
 

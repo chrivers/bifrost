@@ -99,8 +99,8 @@ async fn post_resource(
 
             let link_scene = RType::Scene.deterministic((scn.group.rid, sid));
 
-            lock.aux.insert(
-                link_scene.rid,
+            lock.aux_set(
+                &link_scene,
                 AuxData::new()
                     .with_topic(&scn.metadata.name)
                     .with_index(sid),
@@ -189,7 +189,7 @@ async fn put_resource_id(
                         });
                     })?;
 
-                    let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
+                    let aux = lock.aux_get(&ResourceLink::new(id, rtype))?;
 
                     let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
                     let payload = json!({"scene_recall": aux.index});
@@ -223,7 +223,7 @@ async fn delete_resource_id(
     let res = lock.get_resource(rtype, &id)?;
     match res.obj {
         Resource::Scene(obj) => {
-            let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
+            let aux = lock.aux_get(&link)?;
 
             let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
             let index = aux.index.as_ref().ok_or(ApiError::NotFound(id))?;

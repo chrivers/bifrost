@@ -57,8 +57,7 @@ impl Client {
         let mut light = Light::new(link_device);
         light.metadata.name = name.to_string();
 
-        res.aux
-            .insert(link_light.rid, AuxData::new().with_topic(name));
+        res.aux_set(&link_light, AuxData::new().with_topic(name));
         res.add(&link_device, Resource::Device(dev))?;
         res.add(&link_light, Resource::Light(light))?;
         drop(res);
@@ -106,8 +105,8 @@ impl Client {
 
             let link_scene = RType::Scene.deterministic((link_room.rid, scn.id));
 
-            res.aux.insert(
-                link_scene.rid,
+            res.aux_set(
+                &link_scene,
                 AuxData::new().with_topic(&topic).with_index(scn.id),
             );
 
