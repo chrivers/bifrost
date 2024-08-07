@@ -216,7 +216,7 @@ async fn delete_resource_id(
 
     let res = lock.get_resource(rtype, &id)?;
     match res.obj {
-        Resource::Scene(_obj) => {
+        Resource::Scene(obj) => {
             let aux = lock.aux.get(&id).ok_or(ApiError::NotFound(id))?;
 
             let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
@@ -226,6 +226,8 @@ async fn delete_resource_id(
             });
 
             state.send_set(topic, payload).await?;
+
+            lock.update_room(&obj.group.rid, |room| room.services.retain(|svc| svc.rid != id))?;
 
             lock.delete(&link)?;
             drop(lock);
