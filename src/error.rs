@@ -25,7 +25,10 @@ pub enum ApiError {
     ConfigError(#[from] config::ConfigError),
 
     #[error(transparent)]
-    SendError(#[from] tokio::sync::broadcast::error::SendError<EventBlock>),
+    SendErrorHue(#[from] tokio::sync::broadcast::error::SendError<EventBlock>),
+
+    #[error(transparent)]
+    SendErrorZ2m(#[from] tokio::sync::broadcast::error::SendError<tokio_tungstenite::tungstenite::Message>),
 
     #[error(transparent)]
     SetLoggerError(#[from] log::SetLoggerError),

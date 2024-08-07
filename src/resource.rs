@@ -51,6 +51,7 @@ pub struct Resources {
     aux: HashMap<Uuid, AuxData>,
     pub res: HashMap<Uuid, Resource>,
     pub hue_updates: Sender<EventBlock>,
+    pub z2m_updates: Sender<Message>,
 }
 
 impl Resources {
@@ -63,6 +64,7 @@ impl Resources {
             res: HashMap::new(),
             aux: HashMap::new(),
             hue_updates: Sender::new(10),
+            z2m_updates: Sender::new(10),
         }
     }
 
@@ -298,5 +300,22 @@ impl Resources {
     #[must_use]
     pub fn hue_channel(&self) -> Receiver<EventBlock> {
         self.hue_updates.subscribe()
+    }
+
+    pub fn z2m_send<T: Serialize + Send>(&self, topic: String, payload: T) -> ApiResult<()> {
+        let api_req = crate::z2m::api::Other {
+            topic,
+            payload: serde_json::to_value(payload)?,
+        };
+
+        log::debug!("z2m request: {api_req:#?}");
+
+        self.z2m_updates.send(Message::Text(serde_json::to_string(&api_req)?))?;
+
+        Ok(())
+    }
+
+    pub fn z2m_send_set<T: Serialize + Send>(&self, topic: &str, payload: T) -> ApiResult<()> {
+        self.z2m_send(format!("{topic}/set"), payload)
     }
 }
