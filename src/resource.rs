@@ -4,7 +4,8 @@ use std::io::{Read, Write};
 
 use serde::{self, Deserialize, Serialize};
 use serde_json::json;
-use tokio::sync::broadcast::Sender;
+use tokio::sync::broadcast::{Receiver, Sender};
+use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
@@ -49,7 +50,7 @@ impl AuxData {
 pub struct Resources {
     aux: HashMap<Uuid, AuxData>,
     pub res: HashMap<Uuid, Resource>,
-    pub chan: Sender<EventBlock>,
+    pub hue_updates: Sender<EventBlock>,
 }
 
 impl Resources {
@@ -61,7 +62,7 @@ impl Resources {
         Self {
             res: HashMap::new(),
             aux: HashMap::new(),
-            chan: Sender::new(100),
+            hue_updates: Sender::new(10),
         }
     }
 
@@ -136,7 +137,7 @@ impl Resources {
         func(obj.try_into()?)?;
 
         if let Some(delta) = Self::generate_update(obj)? {
-            let _ = self.chan.send(EventBlock::update(id, delta)?);
+            let _ = self.hue_updates.send(EventBlock::update(id, delta)?);
         }
 
         Ok(())
@@ -171,7 +172,7 @@ impl Resources {
 
         log::trace!("Send event: {evt:?}");
 
-        let _ = self.chan.send(evt);
+        let _ = self.hue_updates.send(evt);
 
         Ok(())
     }
@@ -183,7 +184,7 @@ impl Resources {
 
         let evt = EventBlock::delete(link)?;
 
-        let _ = self.chan.send(evt);
+        let _ = self.hue_updates.send(evt);
 
         Ok(())
     }
@@ -292,5 +293,10 @@ impl Resources {
             .filter(|(_, r)| r.rtype() == ty)
             .map(ResourceRecord::from_ref)
             .collect()
+    }
+
+    #[must_use]
+    pub fn hue_channel(&self) -> Receiver<EventBlock> {
+        self.hue_updates.subscribe()
     }
 }

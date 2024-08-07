@@ -18,8 +18,9 @@ pub async fn get_clip_v2(
     let mut prev_ts = Utc::now().timestamp();
     let mut idx = 0;
 
-    let raw = BroadcastStream::new(state.channel().await);
-    let stream = raw.map(move |e| {
+    let channel = state.res.lock().await.hue_channel();
+
+    let stream = BroadcastStream::new(channel).map(move |e| {
         let json = [e?];
         log::trace!(
             "## EVENT ##: {}",

@@ -8,7 +8,6 @@ use futures::{SinkExt, StreamExt};
 use mac_address::MacAddress;
 use serde::Serialize;
 use tokio::net::TcpStream;
-use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
@@ -16,7 +15,6 @@ use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig, Z2mConfig};
 use crate::error::ApiResult;
-use crate::hue::event::EventBlock;
 use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::resource::Resources;
 
@@ -71,11 +69,6 @@ impl AppState {
     #[must_use]
     pub const fn z2m_config(&self) -> &Z2mConfig {
         &self.conf.z2m
-    }
-
-    #[must_use]
-    pub async fn channel(&self) -> Receiver<EventBlock> {
-        self.res.lock().await.chan.subscribe()
     }
 
     #[must_use]
