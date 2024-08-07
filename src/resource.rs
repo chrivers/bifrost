@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{Read, Write};
 
@@ -53,6 +53,8 @@ pub struct Resources {
 }
 
 impl Resources {
+    const MAX_SCENE_ID: u32 = 100;
+
     #[allow(clippy::new_without_default)]
     #[must_use]
     pub fn new() -> Self {
@@ -229,6 +231,34 @@ impl Resources {
         self.add(&link_bridge_home, Resource::BridgeHome(bridge_home))?;
 
         Ok(())
+    }
+
+    pub fn get_next_scene_id(&self, room: &ResourceLink) -> ApiResult<u32> {
+        let mut set: HashSet<u32> = HashSet::new();
+
+        for scene in self.get_resources_by_type(RType::Scene) {
+            let Resource::Scene(scn) = scene.obj else {
+                continue;
+            };
+
+            if &scn.group == room {
+                let Some(AuxData {
+                    index: Some(index), ..
+                }) = self.aux.get(&scene.id)
+                else {
+                    continue;
+                };
+
+                set.insert(*index);
+            }
+        }
+
+        for x in 0..Self::MAX_SCENE_ID {
+            if !set.contains(&x) {
+                return Ok(x);
+            }
+        }
+        Err(ApiError::Full(RType::Scene))
     }
 
     pub fn get_resource(&self, ty: RType, id: &Uuid) -> ApiResult<ResourceRecord> {
