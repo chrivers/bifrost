@@ -141,7 +141,7 @@ pub struct BridgeConfigSchema {
     pub required: Vec<String>,
     pub properties: Value,
     #[serde(rename = "type")]
-    pub _type: Value,
+    pub config_type: Value,
     #[serde(flatten)]
     pub bad: HashMap<String, Value>,
 }
@@ -309,16 +309,16 @@ pub struct Device {
 }
 
 impl Device {
+    #[must_use]
     pub fn exposes(&self) -> &[Expose] {
-        if let Some(ref def) = self.definition {
-            &def.exposes
-        } else {
-            &[]
-        }
+        self.definition.as_ref().map_or(&[], |def| &def.exposes)
     }
 
+    #[must_use]
     pub fn expose_light(&self) -> bool {
-        self.exposes().iter().any(|exp| matches!(exp, Expose::Light(_)))
+        self.exposes()
+            .iter()
+            .any(|exp| matches!(exp, Expose::Light(_)))
     }
 }
 
