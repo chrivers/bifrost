@@ -78,13 +78,6 @@ impl Resources {
         self.add_bridge(bridge_id.to_owned())
     }
 
-    pub fn add_resource(&mut self, obj: Resource) -> ApiResult<ResourceLink> {
-        let link = ResourceLink::new(Uuid::new_v4(), obj.rtype());
-
-        self.add(&link, obj)?;
-        Ok(link)
-    }
-
     pub fn aux_get(&self, link: &ResourceLink) -> ApiResult<&AuxData> {
         self.aux
             .get(&link.rid)

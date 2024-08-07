@@ -79,14 +79,12 @@ async fn post_resource(
     Json(req): Json<Value>,
 ) -> impl IntoResponse {
     log::info!("POST: {rtype:?} {}", serde_json::to_string(&req)?);
-    let obj = Resource::from_value(rtype, req);
-    if obj.is_err() {
-        log::error!("{:?}", obj);
-    }
+
+    let obj = Resource::from_value(rtype, req)?;
 
     let mut lock = state.res.lock().await;
 
-    let link = match obj? {
+    let link = match obj {
         Resource::Scene(scn) => {
             let room = lock.get::<Room>(&scn.group)?;
 
@@ -102,6 +100,8 @@ async fn post_resource(
 
             let link_scene = RType::Scene.deterministic((scn.group.rid, sid));
 
+            log::info!("New scene: {link_scene:?} ({})", scn.metadata.name);
+
             lock.aux_set(
                 &link_scene,
                 AuxData::new()
@@ -111,10 +111,19 @@ async fn post_resource(
 
             state.send_set(&room.metadata.name, payload).await?;
 
+            lock.add(&link_scene, Resource::Scene(scn))?;
+            drop(lock);
+
             link_scene
         }
 
-        obj => lock.add_resource(obj)?,
+        obj => {
+            let rlink = ResourceLink::new(Uuid::new_v4(), obj.rtype());
+            lock.add(&rlink, obj)?;
+            drop(lock);
+
+            rlink
+        }
     };
 
     V2Reply::ok(link)
@@ -184,9 +193,10 @@ async fn put_resource_id(
                         });
                     })?;
 
-                    let aux = lock.aux_get(&ResourceLink::new(id, rtype))?;
+                    let rlink = ResourceLink::new(id, rtype);
+                    let aux = lock.aux_get(&rlink)?;
 
-                    let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
+                    let topic = aux.topic.as_ref().ok_or(ApiError::AuxNotFound(rlink))?;
                     let payload = json!({"scene_recall": aux.index});
 
                     state.send_set(topic, payload).await?;
