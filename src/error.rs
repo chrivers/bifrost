@@ -40,6 +40,9 @@ pub enum ApiError {
     #[error(transparent)]
     TungsteniteError(#[from] tokio_tungstenite::tungstenite::Error),
 
+    #[error("State changes not supported for: {0:?}")]
+    UpdateUnsupported(RType),
+
     #[error("Request failed: {0}")]
     Fail(&'static str),
 
@@ -48,6 +51,9 @@ pub enum ApiError {
 
     #[error("Resource {0} not found")]
     NotFound(Uuid),
+
+    #[error("Resource type wrong: expected {0:?} but found {1:?}")]
+    WrongType(RType, RType),
 
     #[error("Cannot allocate any more {0:?}")]
     Full(RType),
