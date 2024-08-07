@@ -11,8 +11,8 @@ use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
 use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::v2::{
-    Bridge, BridgeHome, Device, DeviceProductData, GroupedLight, Light, Metadata, RType, Resource,
-    ResourceLink, ResourceRecord, Room, Scene, TimeZone,
+    Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
+    ResourceRecord, Room, TimeZone,
 };
 use crate::z2m::update::DeviceColorMode;
 
@@ -90,10 +90,8 @@ impl Resources {
         self.res.contains_key(id)
     }
 
-    fn update(&mut self, id: &Uuid, mut func: impl FnMut(&mut Resource)) -> ApiResult<()> {
-        let obj = self.res.get_mut(id).ok_or(ApiError::NotFound(*id))?;
-        func(obj);
-        let delta = match obj {
+    fn generate_update(obj: &Resource) -> ApiResult<Option<Update>> {
+        match obj {
             Resource::Light(light) => {
                 let mut upd = LightUpdate::new()
                     .with_brightness(light.dimming.brightness)
@@ -109,67 +107,50 @@ impl Resources {
                     None => {}
                 }
 
-                Update::Light(upd)
+                Ok(Some(Update::Light(upd)))
             }
             Resource::GroupedLight(glight) => {
                 let upd = GroupedLightUpdate::new()
                     .with_brightness(glight.dimming.brightness)
                     .with_on(glight.on.on);
 
-                Update::GroupedLight(upd)
+                Ok(Some(Update::GroupedLight(upd)))
             }
             Resource::Scene(scene) => {
                 let upd = SceneUpdate::new().with_recall_action(scene.status.map(|s| s.active));
 
-                Update::Scene(upd)
+                Ok(Some(Update::Scene(upd)))
             }
-            Resource::Room(_) => {
-                return Ok(())
-            }
-            _ => return Err(ApiError::Fail("foo")),
-        };
+            Resource::Room(_) => Ok(None),
+            obj => Err(ApiError::UpdateUnsupported(obj.rtype())),
+        }
+    }
 
-        let _ = self.chan.send(EventBlock::update(id, delta)?);
+    pub fn try_update<T>(
+        &mut self,
+        id: &Uuid,
+        func: impl Fn(&mut T) -> ApiResult<()>,
+    ) -> ApiResult<()>
+    where
+        for<'a> &'a mut T: TryFrom<&'a mut Resource, Error = ApiError>,
+    {
+        let obj = self.res.get_mut(id).ok_or(ApiError::NotFound(*id))?;
+        func(obj.try_into()?)?;
+
+        if let Some(delta) = Self::generate_update(obj)? {
+            let _ = self.chan.send(EventBlock::update(id, delta)?);
+        }
+
         Ok(())
     }
 
-    pub fn update_light(&mut self, id: &Uuid, mut func: impl FnMut(&mut Light)) -> ApiResult<()> {
-        self.update(id, |res| {
-            if let Resource::Light(ref mut obj) = res {
-                func(obj);
-            }
-        })
-    }
-
-    pub fn update_grouped_light(
-        &mut self,
-        id: &Uuid,
-        mut func: impl FnMut(&mut GroupedLight),
-    ) -> ApiResult<()> {
-        self.update(id, |res| {
-            if let Resource::GroupedLight(ref mut obj) = res {
-                func(obj);
-            }
-        })
-    }
-
-    pub fn update_room(
-        &mut self,
-        id: &Uuid,
-        mut func: impl FnMut(&mut Room),
-    ) -> ApiResult<()> {
-        self.update(id, |res| {
-            if let Resource::Room(ref mut obj) = res {
-                func(obj);
-            }
-        })
-    }
-
-    pub fn update_scene(&mut self, id: &Uuid, mut func: impl FnMut(&mut Scene)) -> ApiResult<()> {
-        self.update(id, |res| {
-            if let Resource::Scene(ref mut obj) = res {
-                func(obj);
-            }
+    pub fn update<T>(&mut self, id: &Uuid, func: impl Fn(&mut T)) -> ApiResult<()>
+    where
+        for<'a> &'a mut T: TryFrom<&'a mut Resource, Error = ApiError>,
+    {
+        self.try_update(id, |obj: &mut T| {
+            func(obj);
+            Ok(())
         })
     }
 

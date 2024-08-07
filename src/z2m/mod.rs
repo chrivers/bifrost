@@ -11,10 +11,11 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
+use crate::hue;
 use crate::hue::v2::{
-    ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
-    Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneMetadata,
-    SceneRecallAction, SceneStatus,
+    ColorTemperature, DeviceProductData, Dimming, GroupedLight, Light, LightColor, Metadata, On,
+    RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneMetadata, SceneRecallAction,
+    SceneStatus,
 };
 
 use crate::error::ApiResult;
@@ -37,13 +38,13 @@ impl Client {
         Ok(Self { socket, state, map })
     }
 
-    pub async fn add_light(&mut self, dev: &crate::z2m::api::Device) -> ApiResult<()> {
+    pub async fn add_light(&mut self, dev: &api::Device) -> ApiResult<()> {
         let name = &dev.friendly_name;
 
         let link_device = RType::Device.deterministic(&dev.ieee_address);
         let link_light = RType::Light.deterministic(&dev.ieee_address);
 
-        let dev = Device {
+        let dev = hue::v2::Device {
             product_data: DeviceProductData::hue_color_spot(),
             metadata: Metadata::spot_bulb(name),
             identify: json!({}),
@@ -172,7 +173,7 @@ impl Client {
     }
 
     fn handle_update_light(res: &mut Resources, uuid: &Uuid, upd: &DeviceUpdate) -> ApiResult<()> {
-        res.update_light(uuid, move |light| {
+        res.update::<Light>(uuid, move |light| {
             if let Some(state) = &upd.state {
                 light.on.on = (*state).into();
             }
@@ -200,7 +201,7 @@ impl Client {
         uuid: &Uuid,
         upd: &DeviceUpdate,
     ) -> ApiResult<()> {
-        res.update_grouped_light(uuid, move |glight| {
+        res.update::<GroupedLight>(uuid, move |glight| {
             if let Some(state) = &upd.state {
                 glight.on.on = (*state).into();
             }

@@ -9,7 +9,7 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::hue::v2::{RType, Resource, SceneRecallAction, SceneStatus, V2Reply};
+use crate::hue::v2::{RType, Resource, Room, Scene, SceneRecallAction, SceneStatus, V2Reply};
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
 use crate::{
@@ -177,7 +177,7 @@ async fn put_resource_id(
                 }) => {
                     let mut lock = state.res.lock().await;
 
-                    lock.update_scene(&id, |scn| {
+                    lock.update(&id, |scn: &mut Scene| {
                         scn.status = Some(SceneStatus {
                             active: SceneRecallAction::Static,
                         });
@@ -227,7 +227,9 @@ async fn delete_resource_id(
 
             state.send_set(topic, payload).await?;
 
-            lock.update_room(&obj.group.rid, |room| room.services.retain(|svc| svc.rid != id))?;
+            lock.update::<Room>(&obj.group.rid, |obj| {
+                obj.services.retain(|svc| svc.rid != id);
+            })?;
 
             lock.delete(&link)?;
             drop(lock);
