@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
+use crate::error::{ApiError, ApiResult};
 use crate::{
     hue::{
         best_guess_timezone,
@@ -648,7 +649,7 @@ impl Resource {
         }
     }
 
-    pub fn from_value(rtype: RType, obj: Value) -> Result<Self, serde_json::Error> {
+    pub fn from_value(rtype: RType, obj: Value) -> ApiResult<Self> {
         let res = match rtype {
             RType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
             RType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
