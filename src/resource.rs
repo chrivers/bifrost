@@ -201,12 +201,12 @@ impl Resources {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::hue_bridge("bifrost"),
             identify: json!({}),
-            services: vec![link_bridge.clone()],
+            services: vec![link_bridge],
         };
 
         let bridge = Bridge {
             bridge_id,
-            owner: link_bridge_dev.clone(),
+            owner: link_bridge_dev,
             time_zone: TimeZone::best_guess(),
         };
 
@@ -214,11 +214,11 @@ impl Resources {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::hue_bridge("bifrost bridge home"),
             identify: json!({}),
-            services: vec![link_bridge.clone()],
+            services: vec![link_bridge],
         };
 
         let bridge_home = BridgeHome {
-            children: vec![link_bridge_dev.clone()],
+            children: vec![link_bridge_dev],
             services: vec![RType::GroupedLight.deterministic(link_bridge_home.rid)],
         };
 

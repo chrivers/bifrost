@@ -47,13 +47,13 @@ impl Client {
             product_data: DeviceProductData::hue_color_spot(),
             metadata: Metadata::spot_bulb(name),
             identify: json!({}),
-            services: vec![link_light.clone()],
+            services: vec![link_light],
         };
 
         self.map.insert(name.to_string(), link_light.rid);
 
         let mut res = self.state.lock().await;
-        let mut light = Light::new(link_device.clone());
+        let mut light = Light::new(link_device);
         light.metadata.name = name.to_string();
 
         res.aux
@@ -75,7 +75,7 @@ impl Client {
             .map(|f| RType::Device.deterministic(&f.ieee_address))
             .collect();
 
-        let mut services = vec![link_glight.clone()];
+        let mut services = vec![link_glight];
 
         let topic = grp.friendly_name.to_string();
 
@@ -85,7 +85,7 @@ impl Client {
             let scene = Scene {
                 actions: vec![],
                 auto_dynamic: false,
-                group: link_room.clone(),
+                group: link_room,
                 metadata: SceneMetadata {
                     appdata: None,
                     image: guess_scene_icon(&scn.name),
@@ -110,7 +110,7 @@ impl Client {
                 AuxData::new().with_topic(&topic).with_index(scn.id),
             );
 
-            services.push(link_scene.clone());
+            services.push(link_scene);
             res.add(&link_scene, Resource::Scene(scene))?;
         }
 
@@ -273,7 +273,7 @@ impl Client {
                     return Ok(());
                 };
 
-                self.handle_update(&val.clone(), obj.payload).await?;
+                self.handle_update(val, obj.payload).await?;
             }
             _ => {}
         }
