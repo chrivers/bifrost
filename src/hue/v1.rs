@@ -159,7 +159,7 @@ impl SoftwareUpdate2 {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            autoinstall: json!({ "on": true, "install": false, "updatetime": "T14:00:00" }),
+            autoinstall: json!({ "on": true, "updatetime": "T14:00:00" }),
             bridge: json!({
                 "lastinstall": "2020-01-01T01:01:01",
                 "state": "noupdates",
