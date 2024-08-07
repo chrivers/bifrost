@@ -123,6 +123,9 @@ impl Resources {
 
                 Update::Scene(upd)
             }
+            Resource::Room(_) => {
+                return Ok(())
+            }
             _ => return Err(ApiError::Fail("foo")),
         };
 
@@ -145,6 +148,18 @@ impl Resources {
     ) -> ApiResult<()> {
         self.update(id, |res| {
             if let Resource::GroupedLight(ref mut obj) = res {
+                func(obj);
+            }
+        })
+    }
+
+    pub fn update_room(
+        &mut self,
+        id: &Uuid,
+        mut func: impl FnMut(&mut Room),
+    ) -> ApiResult<()> {
+        self.update(id, |res| {
+            if let Resource::Room(ref mut obj) = res {
                 func(obj);
             }
         })
