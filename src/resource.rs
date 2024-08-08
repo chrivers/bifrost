@@ -170,6 +170,11 @@ impl Resources {
             obj.rtype()
         );
 
+        if self.res.contains_key(&link.rid) {
+            log::debug!("Resource {link:?} is already known");
+            return Ok(());
+        }
+
         self.res.insert(link.rid, obj);
 
         self.state_updates.notify_one();
