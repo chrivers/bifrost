@@ -5,7 +5,9 @@ use std::collections::{HashMap, HashSet};
 use std::hash::RandomState;
 use std::sync::Arc;
 
+use chrono::{DateTime, Duration, Utc};
 use futures::{SinkExt, StreamExt};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
 use tokio::select;
@@ -14,10 +16,11 @@ use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStr
 use uuid::Uuid;
 
 use crate::hue;
+use crate::hue::update::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate};
 use crate::hue::v2::{
-    ColorTemperature, DeviceProductData, Dimming, GroupedLight, Light, LightColor, Metadata, On,
-    RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneMetadata, SceneRecallAction,
-    SceneStatus,
+    ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
+    Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneAction,
+    SceneActionElement, SceneMetadata, SceneRecallAction, SceneStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -27,17 +30,38 @@ use crate::resource::Resources;
 use crate::z2m::api::{Message, Other};
 use crate::z2m::update::DeviceUpdate;
 
+#[derive(Debug)]
+struct LearnScene {
+    pub expire: DateTime<Utc>,
+    pub missing: HashSet<Uuid>,
+    pub known: HashMap<Uuid, SceneAction>,
+}
+
 pub struct Client {
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
     state: Arc<Mutex<Resources>>,
     map: HashMap<String, Uuid>,
+    learn: HashMap<Uuid, LearnScene>,
+}
+
+#[allow(clippy::used_underscore_binding)]
+#[derive(Debug, Deserialize)]
+struct SceneRecall {
+    _scene: ResourceLink,
+    _room: ResourceLink,
 }
 
 impl Client {
     pub async fn new(conn: &str, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
         let (socket, _) = connect_async(conn).await?;
         let map = HashMap::new();
-        Ok(Self { socket, state, map })
+        let learn = HashMap::new();
+        Ok(Self {
+            socket,
+            state,
+            map,
+            learn,
+        })
     }
 
     pub async fn add_light(&mut self, dev: &api::Device) -> ApiResult<()> {
@@ -164,29 +188,29 @@ impl Client {
         Ok(())
     }
 
-    pub async fn handle_update(&self, rid: &Uuid, payload: Value) -> ApiResult<()> {
-        let mut res = self.state.lock().await;
+    pub async fn handle_update(&mut self, rid: &Uuid, payload: Value) -> ApiResult<()> {
         let upd: DeviceUpdate = serde_json::from_value(payload)?;
 
-        match res.get_resource_by_id(rid)?.obj {
+        let obj = self.state.lock().await.get_resource_by_id(rid)?.obj;
+        match obj {
             Resource::Light(_) => {
-                if let Err(e) = Self::handle_update_light(&mut res, rid, &upd) {
+                if let Err(e) = self.handle_update_light(rid, &upd).await {
                     log::error!("FAIL: {e:?} in {upd:?}");
                 }
             }
             Resource::GroupedLight(_) => {
-                if let Err(e) = Self::handle_update_grouped_light(&mut res, rid, &upd) {
+                if let Err(e) = self.handle_update_grouped_light(rid, &upd).await {
                     log::error!("FAIL: {e:?} in {upd:?}");
                 }
             }
             _ => {}
         }
-        drop(res);
 
         Ok(())
     }
 
-    fn handle_update_light(res: &mut Resources, uuid: &Uuid, upd: &DeviceUpdate) -> ApiResult<()> {
+    async fn handle_update_light(&mut self, uuid: &Uuid, upd: &DeviceUpdate) -> ApiResult<()> {
+        let mut res = self.state.lock().await;
         res.update::<Light>(uuid, move |light| {
             if let Some(state) = &upd.state {
                 light.on.on = (*state).into();
@@ -207,14 +231,60 @@ impl Client {
                 light.color.xy = col.xy;
                 /* light.color_temperature.mirek_valid = false; */
             }
-        })
+        })?;
+
+        for learn in self.learn.values_mut() {
+            if learn.missing.remove(uuid) {
+                let rlink = RType::Light.link_to(*uuid);
+                let light = res.get::<Light>(&rlink)?;
+                let mut color_temperature = None;
+                let mut color = None;
+                if let Some(col) = upd.color {
+                    color = Some(ColorUpdate { xy: col.xy });
+                } else if let Some(mirek) = upd.color_temp {
+                    color_temperature = Some(ColorTemperatureUpdate { mirek });
+                }
+
+                learn.known.insert(
+                    *uuid,
+                    SceneAction {
+                        color,
+                        color_temperature,
+                        dimming: Some(DimmingUpdate {
+                            brightness: light.dimming.brightness,
+                        }),
+                        on: Some(light.on),
+                    },
+                );
+            }
+            log::info!("Learn: {learn:?}");
+        }
+
+        let keys: Vec<Uuid> = self.learn.keys().copied().collect();
+        for uuid in &keys {
+            if self.learn[uuid].missing.is_empty() {
+                let lscene = self.learn.remove(uuid).unwrap();
+                log::info!("Learned all lights {uuid}");
+                let actions: Vec<SceneActionElement> = lscene
+                    .known
+                    .into_iter()
+                    .map(|(uuid, action)| SceneActionElement {
+                        action,
+                        target: RType::Light.link_to(uuid),
+                    })
+                    .collect();
+                res.update(uuid, move |scene: &mut Scene| {
+                    scene.actions = actions;
+                })?;
+            }
+        }
+        drop(res);
+
+        Ok(())
     }
 
-    fn handle_update_grouped_light(
-        res: &mut Resources,
-        uuid: &Uuid,
-        upd: &DeviceUpdate,
-    ) -> ApiResult<()> {
+    async fn handle_update_grouped_light(&self, uuid: &Uuid, upd: &DeviceUpdate) -> ApiResult<()> {
+        let mut res = self.state.lock().await;
         res.update::<GroupedLight>(uuid, move |glight| {
             if let Some(state) = &upd.state {
                 glight.on.on = (*state).into();
@@ -283,7 +353,7 @@ impl Client {
                     return Ok(());
                 }
 
-                let Some(val) = self.map.get(&obj.topic) else {
+                let Some(ref val) = self.map.get(&obj.topic).copied() else {
                     log::warn!("Notification on unknown topic {}", &obj.topic);
                     return Ok(());
                 };
@@ -316,8 +386,58 @@ impl Client {
         }
     }
 
+    fn learn_cleanup(&mut self) {
+        let now = Utc::now();
+        self.learn.retain(|uuid, lscene| {
+            let res = lscene.expire < now;
+            if !res {
+                log::warn!("Failed to learn scene {uuid} before deadline");
+            }
+            res
+        });
+    }
+
+    async fn learn_scene_recall(&mut self, upd: SceneRecall) -> ApiResult<()> {
+        log::info!("recall scene: {upd:?}");
+        let lock = self.state.lock().await;
+        let scene: Scene = lock.get(&upd._scene)?;
+
+        if scene.actions.is_empty() {
+            let room: Room = lock.get(&upd._room)?;
+
+            let devices: Vec<Device> = room
+                .children
+                .iter()
+                .filter_map(|rl| lock.get(rl).ok())
+                .collect();
+
+            let lights: Vec<Uuid> = devices
+                .iter()
+                .filter_map(Device::light)
+                .map(|rl| rl.rid)
+                .collect();
+
+            drop(lock);
+
+            log::info!("{scene:?}");
+            log::info!("{room:?}");
+            log::info!("{lights:#?}");
+
+            let learn = LearnScene {
+                expire: Utc::now() + Duration::seconds(5),
+                missing: HashSet::from_iter(lights),
+                known: HashMap::new(),
+            };
+            self.learn.insert(upd._scene.rid, learn);
+        }
+
+        Ok(())
+    }
+
     #[allow(clippy::single_match_else)]
     async fn websocket_write(&mut self, api_req: Other) -> ApiResult<()> {
+        self.learn_cleanup();
+
         let topic = api_req
             .topic
             .as_str()
@@ -328,6 +448,9 @@ impl Client {
                 log::trace!(
                     "Topic [{topic}] known as {uuid} on this z2m connection, sending event.."
                 );
+                if let Ok(upd) = serde_json::from_value(api_req.payload.clone()) {
+                    self.learn_scene_recall(upd).await?;
+                }
                 let msg = tungstenite::Message::Text(serde_json::to_string(&api_req)?);
                 Ok(self.socket.send(msg).await?)
             }

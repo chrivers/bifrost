@@ -176,7 +176,7 @@ async fn put_resource_id(
             lock.z2m_send_set(&rr.metadata.name, payload)?;
         }
 
-        Resource::Scene(_obj) => {
+        Resource::Scene(obj) => {
             log::info!("PUT {rtype:?}/{id}: updating");
 
             let upd: SceneUpdate = serde_json::from_value(put)?;
@@ -196,7 +196,8 @@ async fn put_resource_id(
                     let aux = lock.aux_get(&rlink)?;
 
                     let topic = aux.topic.as_ref().ok_or(ApiError::AuxNotFound(rlink))?;
-                    let payload = json!({"scene_recall": aux.index});
+                    let payload =
+                        json!({"scene_recall": aux.index, "_scene": rlink, "_room": obj.group});
 
                     lock.z2m_send_set(topic, payload)?;
                     drop(lock);
