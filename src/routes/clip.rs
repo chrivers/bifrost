@@ -187,6 +187,16 @@ async fn put_resource_id(
                     action: Some(SceneStatusUpdate::Active),
                     ..
                 }) => {
+                    let room = lock.get::<Room>(&obj.group)?;
+                    for scn in room.services.iter().filter(|rl| rl.rtype == RType::Scene) {
+                        if let Ok(scene) = lock.get::<Scene>(scn) {
+                            if scene.status != Some(SceneStatus::Inactive) {
+                                lock.update::<Scene>(&scn.rid, |scn| {
+                                    scn.status = Some(SceneStatus::Inactive);
+                                })?;
+                            }
+                        }
+                    }
                     lock.update(&id, |scn: &mut Scene| {
                         scn.status = Some(SceneStatus::Static);
                     })?;
