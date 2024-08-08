@@ -23,7 +23,7 @@ pub struct Light {
     pub dynamics: Value,
     pub effects: Value,
     pub identify: Value,
-    pub mode: String,
+    pub mode: LightMode,
     pub on: On,
     pub powerup: Value,
     pub signaling: Value,
@@ -98,7 +98,7 @@ impl Light {
                 ]
             }),
             identify: json!({}),
-            mode: "normal".to_string(),
+            mode: LightMode::Normal,
             on: On { on: true },
             metadata: LightMetadata {
                 archetype: "spot_bulb".to_string(),
@@ -140,6 +140,14 @@ impl Light {
             }),
         }
     }
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum LightMode {
+    #[default]
+    Normal,
+    Streaming,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
