@@ -163,6 +163,11 @@ pub struct Geolocation {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupedLight {
+    /* This field does not exist in the hue api, but we need it to keep track of
+     * last-used color mode for a light. */
+    #[serde(skip, default)]
+    pub color_mode: Option<DeviceColorMode>,
+
     pub alert: Value,
     pub color: LightColor,
     pub color_temperature: ColorTemperature,
