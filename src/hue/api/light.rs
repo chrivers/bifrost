@@ -290,7 +290,6 @@ impl ColorGamut {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
 pub enum GamutType {
     A,
     B,
