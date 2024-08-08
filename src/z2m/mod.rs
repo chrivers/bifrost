@@ -117,16 +117,16 @@ impl Client {
         }
 
         if let Ok(room) = res.get::<Room>(&link_room) {
-            log::debug!("Room {link_room:?} is known, updating..");
+            log::debug!("{link_room:?} is known, updating..");
             let new: HashSet<&ResourceLink, RandomState> = HashSet::from_iter(&services[..]);
             let old: HashSet<&ResourceLink, RandomState> = HashSet::from_iter(&room.services[..]);
             let gone = old.difference(&new);
             for rlink in gone {
-                log::debug!("Deleting orphaned scene {rlink:?} in room {link_room:?}");
+                log::debug!("Deleting orphaned {rlink:?} in {link_room:?}");
                 res.delete(rlink)?;
             }
         } else {
-            log::debug!("Room {link_room:?} is new, adding..");
+            log::debug!("{link_room:?} is new, adding..");
         }
 
         let room = Room {
