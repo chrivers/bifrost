@@ -142,7 +142,7 @@ impl Resources {
         func(obj.try_into()?)?;
 
         if let Some(delta) = Self::generate_update(obj)? {
-            let _ = self.hue_updates.send(EventBlock::update(id, delta)?);
+            self.hue_event(EventBlock::update(id, delta)?);
         }
 
         Ok(())
@@ -174,7 +174,7 @@ impl Resources {
 
         log::trace!("Send event: {evt:?}");
 
-        let _ = self.hue_updates.send(evt);
+        self.hue_event(evt);
 
         Ok(())
     }
@@ -186,7 +186,7 @@ impl Resources {
 
         let evt = EventBlock::delete(link)?;
 
-        let _ = self.hue_updates.send(evt);
+        self.hue_event(evt);
 
         Ok(())
     }
@@ -305,6 +305,12 @@ impl Resources {
     #[must_use]
     pub fn hue_channel(&self) -> Receiver<EventBlock> {
         self.hue_updates.subscribe()
+    }
+
+    fn hue_event(&self, evt: EventBlock) {
+        if let Err(err) = self.hue_updates.send(evt) {
+            log::warn!("Overflow on hue event pipe: {err}");
+        }
     }
 
     #[must_use]
