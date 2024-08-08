@@ -4,7 +4,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::Resource;
+use crate::hue::api::Resource;
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]

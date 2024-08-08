@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use super::{ColorTemperature, Delta, Dimming, LightColor, Metadata, On, ResourceLink};
+use crate::hue::api::{ColorTemperature, Delta, Dimming, LightColor, Metadata, On, ResourceLink};
 use crate::{types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -139,4 +139,70 @@ impl Light {
             }),
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct LightUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub on: Option<On>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dimming: Option<DimmingUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<ColorUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature: Option<ColorTemperatureUpdate>,
+}
+
+impl LightUpdate {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub const fn with_brightness(self, brightness: f64) -> Self {
+        Self {
+            dimming: Some(DimmingUpdate { brightness }),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn with_on(self, on: bool) -> Self {
+        Self {
+            on: Some(On { on }),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn with_color_temperature(self, mirek: u32) -> Self {
+        Self {
+            color_temperature: Some(ColorTemperatureUpdate { mirek }),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn with_color_xy(self, xy: XY) -> Self {
+        Self {
+            color: Some(ColorUpdate { xy }),
+            ..self
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DimmingUpdate {
+    pub brightness: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ColorUpdate {
+    pub xy: XY,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ColorTemperatureUpdate {
+    pub mirek: u32,
 }

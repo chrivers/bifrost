@@ -17,11 +17,10 @@ use uuid::Uuid;
 
 use crate::hue;
 use crate::hue::api::{
-    ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
-    Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneAction,
-    SceneActionElement, SceneMetadata, SceneStatus,
+    ColorTemperature, ColorTemperatureUpdate, ColorUpdate, Device, DeviceProductData, Dimming,
+    DimmingUpdate, GroupedLight, Light, LightColor, Metadata, On, RType, Resource, ResourceLink,
+    Room, RoomArchetypes, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
 };
-use crate::hue::update::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate};
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;

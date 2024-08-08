@@ -5,20 +5,23 @@ mod resource;
 mod room;
 mod scene;
 mod stubs;
+mod update;
 
 pub use device::{Device, DeviceProductData};
-pub use grouped_light::GroupedLight;
-pub use light::Light;
+pub use grouped_light::{GroupedLight, GroupedLightUpdate};
+pub use light::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate, Light, LightUpdate};
 pub use resource::{RType, ResourceLink, ResourceRecord};
 pub use room::{Room, RoomArchetypes};
 pub use scene::{
-    Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus, SceneStatusUpdate,
+    Scene, SceneAction, SceneActionElement, SceneMetadata, SceneRecall, SceneStatus,
+    SceneStatusUpdate, SceneUpdate,
 };
 pub use stubs::{
     BehaviorInstance, BehaviorScript, DollarRef, Entertainment, EntertainmentSegment,
     EntertainmentSegments, GeofenceClient, Geolocation, Homekit, Matter, PublicImage, SmartScene,
     ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
 };
+pub use update::{Update, UpdateRecord};
 
 use std::fmt::Debug;
 

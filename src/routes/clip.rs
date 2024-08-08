@@ -10,16 +10,13 @@ use serde_json::{json, Value};
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
-use crate::hue::{
-    api::{RType, Resource, ResourceLink, Room, Scene, SceneStatus, SceneStatusUpdate, V2Reply},
-    update::LightUpdate,
+use crate::hue::api::{
+    GroupedLightUpdate, LightUpdate, RType, Resource, ResourceLink, Room, Scene, SceneRecall,
+    SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
 };
+use crate::resource::AuxData;
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
-use crate::{
-    hue::update::{GroupedLightUpdate, SceneRecall, SceneUpdate},
-    resource::AuxData,
-};
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 

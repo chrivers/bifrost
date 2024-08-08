@@ -13,8 +13,8 @@ use crate::hue::api::{
     Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
     ResourceRecord, TimeZone,
 };
+use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
-use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::z2m::api::Other;
 use crate::z2m::update::DeviceColorMode;
 

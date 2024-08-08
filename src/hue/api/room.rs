@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{Metadata, RType, ResourceLink};
+use crate::hue::api::{Metadata, RType, ResourceLink};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Room {

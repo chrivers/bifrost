@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::{Metadata, RType, ResourceLink};
+use crate::hue::api::{Metadata, RType, ResourceLink};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Device {

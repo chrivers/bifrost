@@ -1,12 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::hue::{
-    api::On,
-    update::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate},
-};
-
-use super::ResourceLink;
+use crate::hue::api::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate, On, ResourceLink};
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(tag = "active", rename_all = "snake_case")]
@@ -75,4 +70,45 @@ pub struct SceneMetadata {
     pub appdata: Option<String>,
     pub image: Option<ResourceLink>,
     pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct SceneUpdate {
+    pub actions: Option<Vec<SceneActionElement>>,
+    pub recall: Option<SceneRecall>,
+}
+
+impl SceneUpdate {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub fn with_actions(self, actions: Option<Vec<SceneActionElement>>) -> Self {
+        Self { actions, ..self }
+    }
+
+    #[must_use]
+    pub fn with_recall_action(self, action: Option<SceneStatus>) -> Self {
+        Self {
+            recall: Some(SceneRecall {
+                action: match action {
+                    Some(SceneStatus::DynamicPalette) => Some(SceneStatusUpdate::DynamicPalette),
+                    Some(SceneStatus::Static) => Some(SceneStatusUpdate::Active),
+                    Some(SceneStatus::Inactive) | None => None,
+                },
+                duration: None,
+                dimming: None,
+            }),
+            ..self
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SceneRecall {
+    pub action: Option<SceneStatusUpdate>,
+    pub duration: Option<u32>,
+    pub dimming: Option<DimmingUpdate>,
 }
