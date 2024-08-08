@@ -144,6 +144,7 @@ async fn put_resource_id(
 ) -> ApiV2Result {
     log::info!("PUT {rtype:?}/{id}: {put:?}");
 
+    let rlink = rtype.link_to(id);
     let mut lock = state.res.lock().await;
     let res = lock.get_resource(rtype, &id)?;
     match res.obj {
@@ -192,7 +193,6 @@ async fn put_resource_id(
                         });
                     })?;
 
-                    let rlink = ResourceLink::new(id, rtype);
                     let aux = lock.aux_get(&rlink)?;
 
                     let topic = aux.topic.as_ref().ok_or(ApiError::AuxNotFound(rlink))?;
@@ -212,7 +212,7 @@ async fn put_resource_id(
         }
     }
 
-    V2Reply::ok(ResourceLink::new(id, rtype))
+    V2Reply::ok(rlink)
 }
 
 async fn delete_resource_id(
