@@ -68,8 +68,8 @@ impl Client {
     }
 
     pub async fn add_group(&mut self, grp: &crate::z2m::api::Group) -> ApiResult<()> {
-        let link_room = RType::Room.deterministic(grp.id);
-        let link_glight = RType::GroupedLight.deterministic(grp.id);
+        let link_room = RType::Room.deterministic(&grp.friendly_name);
+        let link_glight = RType::GroupedLight.deterministic((link_room.rid, grp.id));
 
         let children = grp
             .members
