@@ -20,43 +20,14 @@ pub struct Light {
     pub color_temperature_delta: Delta,
     pub dimming: Dimming,
     pub dimming_delta: Delta,
-    pub dynamics: Value,
-    pub effects: Value,
+    pub dynamics: Option<LightDynamics>,
+    pub effects: Option<LightEffects>,
+    pub timed_effects: Option<LightTimedEffects>,
     pub identify: Value,
     pub mode: LightMode,
     pub on: On,
-    pub powerup: Value,
-    pub signaling: Value,
-    /* powerup: { */
-    /*     color: { */
-    /*         color_temperature: { */
-    /*             mirek: 366 */
-    /*         }, */
-    /*         mode: color_temperature */
-    /*     }, */
-    /*     configured: true, */
-    /*     dimming: { */
-    /*         dimming: { */
-    /*             brightness: 100 */
-    /*         }, */
-    /*         mode: dimming */
-    /*     }, */
-    /*     on: { */
-    /*         mode: on, */
-    /*         on: { */
-    /*             on: true */
-    /*         } */
-    /*     }, */
-    /*     preset: safety */
-    /* }, */
-    /* signaling: { */
-    /*     signal_values: [ */
-    /*         no_signal, */
-    /*         on_off, */
-    /*         on_off_color, */
-    /*         alternating */
-    /*     ] */
-    /* }, */
+    pub powerup: Option<LightPowerup>,
+    pub signaling: Option<LightSignaling>,
 }
 
 impl Light {
@@ -73,30 +44,9 @@ impl Light {
                 min_dim_level: Some(0.2),
             },
             dimming_delta: Delta {},
-            dynamics: json!({
-                "speed": 0,
-                "speed_valid": false,
-                "status": "none",
-                "status_values": [
-                    "none",
-                    "dynamic_palette",
-                ]
-            }),
-            effects: json!({
-                "effect_values": [
-                    "no_effect",
-                    "candle",
-                    "fire",
-                    "prism"
-                ],
-                "status": "no_effect",
-                "status_values": [
-                    "no_effect",
-                    "candle",
-                    "fire",
-                    "prism"
-                ]
-            }),
+            dynamics: None,
+            effects: None,
+            timed_effects: None,
             identify: json!({}),
             mode: LightMode::Normal,
             on: On { on: true },
@@ -105,39 +55,8 @@ impl Light {
                 name: "Light 1".to_string(),
             },
             owner,
-            powerup: json!({
-                "color": {
-                    "color": {
-                        "xy": XY { x: 0.4573, y: 0.41 },
-                    },
-                    "color_temperature": {
-                        "mirek": 366
-                    },
-                    "mode": "color_temperature"
-                },
-                "configured": true,
-                "dimming": {
-                    "dimming": {
-                        "brightness": 100
-                    },
-                    "mode": "dimming"
-                },
-                "on": {
-                    "mode": "on",
-                    "on": {
-                        "on": true
-                    }
-                },
-                "preset": "safety"
-            }),
-            signaling: json!({
-                "signal_values": [
-                    "no_signal",
-                    "on_off",
-                    "on_off_color",
-                    "alternating"
-                ]
-            }),
+            powerup: None,
+            signaling: None,
         }
     }
 }
@@ -148,6 +67,67 @@ pub enum LightMode {
     #[default]
     Normal,
     Streaming,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum LightPowerupPreset {
+    Safety,
+    Powerfail,
+    LastOnState,
+    Custom,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightPowerup {
+    pub preset: LightPowerupPreset,
+    #[serde(flatten)]
+    pub data: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightSignaling {
+    pub signal_values: Vec<LightSignal>,
+    pub status: Value,
+}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum LightSignal {
+    #[default]
+    NoSignal,
+    OnOff,
+    OnOffColor,
+    Alternating,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum LightDynamicsStatus {
+    DynamicPalette,
+    None,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightDynamics {
+    pub status: LightDynamicsStatus,
+    pub status_values: Value,
+    pub speed: f64,
+    pub speed_valid: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightEffects {
+    pub status_values: Value,
+    pub status: Value,
+    pub effect_values: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightTimedEffects {
+    pub status_values: Value,
+    pub status: Value,
+    pub effect_values: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
