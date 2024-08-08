@@ -1,9 +1,9 @@
+pub mod api;
 pub mod date_format;
 pub mod event;
+pub mod legacy_api;
 pub mod scene_icons;
 pub mod update;
-pub mod api;
-pub mod legacy_api;
 
 pub const HUE_BRIDGE_V2_MODEL_ID: &str = "BSB002";
 

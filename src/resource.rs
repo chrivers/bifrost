@@ -9,12 +9,12 @@ use tokio::sync::Notify;
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
-use crate::hue::event::EventBlock;
-use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::api::{
     Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
     ResourceRecord, TimeZone,
 };
+use crate::hue::event::EventBlock;
+use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::z2m::api::Other;
 use crate::z2m::update::DeviceColorMode;
 
