@@ -133,7 +133,7 @@ impl Resources {
     pub fn try_update<T>(
         &mut self,
         id: &Uuid,
-        func: impl Fn(&mut T) -> ApiResult<()>,
+        func: impl FnOnce(&mut T) -> ApiResult<()>,
     ) -> ApiResult<()>
     where
         for<'a> &'a mut T: TryFrom<&'a mut Resource, Error = ApiError>,
@@ -148,7 +148,7 @@ impl Resources {
         Ok(())
     }
 
-    pub fn update<T>(&mut self, id: &Uuid, func: impl Fn(&mut T)) -> ApiResult<()>
+    pub fn update<T>(&mut self, id: &Uuid, func: impl FnOnce(&mut T)) -> ApiResult<()>
     where
         for<'a> &'a mut T: TryFrom<&'a mut Resource, Error = ApiError>,
     {
