@@ -1,7 +1,21 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
-use crate::hue::api::{Metadata, ResourceLink, SceneMetadata};
+use crate::hue::api::{ResourceLink, RoomArchetypes, SceneMetadata};
+use crate::hue::best_guess_timezone;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Bridge {
+    pub bridge_id: String,
+    pub owner: ResourceLink,
+    pub time_zone: TimeZone,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BridgeHome {
+    pub children: Vec<ResourceLink>,
+    pub services: Vec<ResourceLink>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DollarRef {
@@ -124,4 +138,49 @@ pub struct Zone {
     pub children: Vec<ResourceLink>,
     #[serde(default)]
     pub services: Vec<ResourceLink>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TimeZone {
+    pub time_zone: String,
+}
+
+impl TimeZone {
+    #[must_use]
+    pub fn best_guess() -> Self {
+        Self {
+            time_zone: best_guess_timezone(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Metadata {
+    pub name: String,
+    pub archetype: String,
+}
+
+impl Metadata {
+    #[must_use]
+    pub fn new(archetype: &str, name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            archetype: archetype.to_string(),
+        }
+    }
+
+    #[must_use]
+    pub fn room(archetype: RoomArchetypes, name: &str) -> Self {
+        Self::new(json!(archetype).as_str().unwrap(), name)
+    }
+
+    #[must_use]
+    pub fn hue_bridge(name: &str) -> Self {
+        Self::new("bridge_v2", name)
+    }
+
+    #[must_use]
+    pub fn spot_bulb(name: &str) -> Self {
+        Self::new("spot_bulb", name)
+    }
 }

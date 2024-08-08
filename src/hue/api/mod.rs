@@ -9,7 +9,10 @@ mod update;
 
 pub use device::{Device, DeviceProductData};
 pub use grouped_light::{GroupedLight, GroupedLightUpdate};
-pub use light::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate, Light, LightUpdate};
+pub use light::{
+    ColorGamut, ColorTemperature, ColorTemperatureUpdate, ColorUpdate, Delta, Dimming,
+    DimmingUpdate, Light, LightColor, LightMetadata, LightUpdate, MirekSchema, On,
+};
 pub use resource::{RType, ResourceLink, ResourceRecord};
 pub use room::{Room, RoomArchetypes};
 pub use scene::{
@@ -17,19 +20,19 @@ pub use scene::{
     SceneStatusUpdate, SceneUpdate,
 };
 pub use stubs::{
-    BehaviorInstance, BehaviorScript, DollarRef, Entertainment, EntertainmentSegment,
-    EntertainmentSegments, GeofenceClient, Geolocation, Homekit, Matter, PublicImage, SmartScene,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
+    BehaviorInstance, BehaviorScript, Bridge, BridgeHome, DollarRef, Entertainment,
+    EntertainmentSegment, EntertainmentSegments, GeofenceClient, Geolocation, Homekit, Matter,
+    Metadata, PublicImage, SmartScene, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    ZigbeeDeviceDiscovery, Zone,
 };
 pub use update::{Update, UpdateRecord};
 
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{from_value, json, Value};
+use serde_json::{from_value, Value};
 
 use crate::error::{ApiError, ApiResult};
-use crate::{hue::best_guess_timezone, types::XY};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -162,162 +165,8 @@ resource_conversion_impl!(ZigbeeConnectivity);
 resource_conversion_impl!(ZigbeeDeviceDiscovery);
 resource_conversion_impl!(Zone);
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Bridge {
-    pub bridge_id: String,
-    pub owner: ResourceLink,
-    pub time_zone: TimeZone,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BridgeHome {
-    pub children: Vec<ResourceLink>,
-    pub services: Vec<ResourceLink>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ColorGamut {
-    pub red: XY,
-    pub green: XY,
-    pub blue: XY,
-}
-
-impl ColorGamut {
-    pub const GAMUT_C: Self = Self {
-        blue: XY {
-            x: 0.1532,
-            y: 0.0475,
-        },
-        green: XY {
-            x: 0.1700,
-            y: 0.7000,
-        },
-        red: XY {
-            x: 0.6915,
-            y: 0.3083,
-        },
-    };
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LightColor {
-    pub gamut: Option<ColorGamut>,
-    pub gamut_type: Option<String>,
-    pub xy: XY,
-}
-
-impl LightColor {
-    #[must_use]
-    pub fn dummy() -> Self {
-        Self {
-            gamut: Some(ColorGamut {
-                red: XY {
-                    x: 0.681_235,
-                    y: 0.318_186,
-                },
-                green: XY {
-                    x: 0.391_898,
-                    y: 0.525_033,
-                },
-                blue: XY {
-                    x: 0.150_241,
-                    y: 0.027_116,
-                },
-            }),
-            gamut_type: Some("Other".to_string()),
-            xy: XY { x: 0.4573, y: 0.41 },
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MirekSchema {
-    mirek_minimum: u32,
-    mirek_maximum: u32,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ColorTemperature {
-    pub mirek: u32,
-    pub mirek_schema: MirekSchema,
-    pub mirek_valid: bool,
-}
-
-impl ColorTemperature {
-    #[must_use]
-    pub const fn dummy() -> Self {
-        Self {
-            mirek_schema: MirekSchema {
-                mirek_maximum: 454,
-                mirek_minimum: 250,
-            },
-            mirek_valid: true,
-            mirek: 366,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Dimming {
-    pub brightness: f64,
-    pub min_dim_level: Option<f64>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Delta {}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Metadata {
-    pub name: String,
-    archetype: String,
-}
-
-impl Metadata {
-    #[must_use]
-    pub fn new(archetype: &str, name: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            archetype: archetype.to_string(),
-        }
-    }
-
-    #[must_use]
-    pub fn room(archetype: RoomArchetypes, name: &str) -> Self {
-        Self::new(json!(archetype).as_str().unwrap(), name)
-    }
-
-    #[must_use]
-    pub fn hue_bridge(name: &str) -> Self {
-        Self::new("bridge_v2", name)
-    }
-
-    #[must_use]
-    pub fn spot_bulb(name: &str) -> Self {
-        Self::new("spot_bulb", name)
-    }
-}
-
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
-pub struct On {
-    pub on: bool,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct V2Reply<T> {
     pub data: Vec<T>,
     pub errors: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TimeZone {
-    pub time_zone: String,
-}
-
-impl TimeZone {
-    #[must_use]
-    pub fn best_guess() -> Self {
-        Self {
-            time_zone: best_guess_timezone(),
-        }
-    }
 }

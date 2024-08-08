@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::hue::api::{ColorTemperature, Delta, Dimming, LightColor, Metadata, On, ResourceLink};
+use crate::hue::api::ResourceLink;
 use crate::{types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -10,6 +10,9 @@ pub struct Light {
      * last-used color mode for a light. */
     #[serde(skip, default)]
     pub color_mode: Option<DeviceColorMode>,
+
+    pub owner: ResourceLink,
+    pub metadata: LightMetadata,
 
     pub alert: Value,
     pub color: LightColor,
@@ -20,10 +23,8 @@ pub struct Light {
     pub dynamics: Value,
     pub effects: Value,
     pub identify: Value,
-    pub metadata: Metadata,
     pub mode: String,
     pub on: On,
-    pub owner: ResourceLink,
     pub powerup: Value,
     pub signaling: Value,
     /* powerup: { */
@@ -99,7 +100,7 @@ impl Light {
             identify: json!({}),
             mode: "normal".to_string(),
             on: On { on: true },
-            metadata: Metadata {
+            metadata: LightMetadata {
                 archetype: "spot_bulb".to_string(),
                 name: "Light 1".to_string(),
             },
@@ -138,6 +139,32 @@ impl Light {
                 ]
             }),
         }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightMetadata {
+    pub name: String,
+    pub archetype: String,
+}
+
+impl LightMetadata {
+    #[must_use]
+    pub fn new(archetype: &str, name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            archetype: archetype.to_string(),
+        }
+    }
+
+    #[must_use]
+    pub fn hue_bridge(name: &str) -> Self {
+        Self::new("bridge_v2", name)
+    }
+
+    #[must_use]
+    pub fn spot_bulb(name: &str) -> Self {
+        Self::new("spot_bulb", name)
     }
 }
 
@@ -198,6 +225,14 @@ pub struct DimmingUpdate {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Delta {}
+
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+pub struct On {
+    pub on: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorUpdate {
     pub xy: XY,
 }
@@ -205,4 +240,92 @@ pub struct ColorUpdate {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperatureUpdate {
     pub mirek: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ColorGamut {
+    pub red: XY,
+    pub green: XY,
+    pub blue: XY,
+}
+
+impl ColorGamut {
+    pub const GAMUT_C: Self = Self {
+        blue: XY {
+            x: 0.1532,
+            y: 0.0475,
+        },
+        green: XY {
+            x: 0.1700,
+            y: 0.7000,
+        },
+        red: XY {
+            x: 0.6915,
+            y: 0.3083,
+        },
+    };
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightColor {
+    pub gamut: Option<ColorGamut>,
+    pub gamut_type: String,
+    pub xy: XY,
+}
+
+impl LightColor {
+    #[must_use]
+    pub fn dummy() -> Self {
+        Self {
+            gamut: Some(ColorGamut {
+                red: XY {
+                    x: 0.681_235,
+                    y: 0.318_186,
+                },
+                green: XY {
+                    x: 0.391_898,
+                    y: 0.525_033,
+                },
+                blue: XY {
+                    x: 0.150_241,
+                    y: 0.027_116,
+                },
+            }),
+            gamut_type: "Other".to_string(),
+            xy: XY { x: 0.4573, y: 0.41 },
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MirekSchema {
+    mirek_minimum: u32,
+    mirek_maximum: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ColorTemperature {
+    pub mirek: u32,
+    pub mirek_schema: MirekSchema,
+    pub mirek_valid: bool,
+}
+
+impl ColorTemperature {
+    #[must_use]
+    pub const fn dummy() -> Self {
+        Self {
+            mirek_schema: MirekSchema {
+                mirek_maximum: 454,
+                mirek_minimum: 250,
+            },
+            mirek_valid: true,
+            mirek: 366,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Dimming {
+    pub brightness: f64,
+    pub min_dim_level: Option<f64>,
 }
