@@ -513,16 +513,16 @@ impl Room {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneAction {
-    color: Option<LightColor>,
-    color_temperature: Option<ColorTemperatureUpdate>,
-    dimming: DimmingUpdate,
-    on: On,
+    pub color: Option<LightColor>,
+    pub color_temperature: Option<ColorTemperatureUpdate>,
+    pub dimming: DimmingUpdate,
+    pub on: On,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneActionElement {
-    action: SceneAction,
-    target: ResourceLink,
+    pub action: SceneAction,
+    pub target: ResourceLink,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
