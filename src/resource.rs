@@ -328,7 +328,7 @@ impl Resources {
 
     fn hue_event(&self, evt: EventBlock) {
         if let Err(err) = self.hue_updates.send(evt) {
-            log::warn!("Overflow on hue event pipe: {err}");
+            log::trace!("Overflow on hue event pipe: {err}");
         }
     }
 
