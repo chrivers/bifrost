@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::net::Ipv4Addr;
+use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::body::Body;
@@ -10,7 +11,9 @@ use axum::{response::Response, Router};
 use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
 
+use bifrost::resource::Resources;
 use hyper::body::Incoming;
+use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
@@ -82,6 +85,22 @@ async fn https_server(
     Ok(())
 }
 
+async fn config_writer(res: Arc<Mutex<Resources>>) -> ApiResult<()> {
+    let rx = res.lock().await.state_channel();
+    loop {
+        rx.notified().await;
+
+        log::debug!("Config changed, saving..");
+
+        if let Ok(fd) = File::create("state.yaml.tmp") {
+            res.lock().await.write(fd)?;
+            std::fs::rename("state.yaml.tmp", "state.yaml")?;
+        }
+
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+    }
+}
+
 #[tokio::main]
 async fn main() -> ApiResult<()> {
     let mut builder = pretty_env_logger::formatted_timed_builder();
@@ -98,7 +117,7 @@ async fn main() -> ApiResult<()> {
 
     let appstate = AppState::new(config)?;
     if let Ok(fd) = File::open("state.yaml") {
-        appstate.res.lock().await.load(fd)?;
+        appstate.res.lock().await.read(fd)?;
     } else {
         appstate.res.lock().await.init(&appstate.bridge_id())?;
     }
@@ -116,6 +135,7 @@ async fn main() -> ApiResult<()> {
 
     tasks.spawn(http_server(ip, svc.clone()));
     tasks.spawn(https_server(ip, svc));
+    tasks.spawn(config_writer(appstate.res.clone()));
 
     for (name, server) in &appstate.z2m_config().servers {
         log::info!("Connecting to [{name}]: {}", server.url);

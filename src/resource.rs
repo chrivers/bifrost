@@ -1,10 +1,11 @@
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
 use std::io::{Read, Write};
+use std::sync::Arc;
 
 use serde::{self, Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::broadcast::{Receiver, Sender};
+use tokio::sync::Notify;
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
@@ -49,6 +50,7 @@ impl AuxData {
 #[derive(Clone, Debug)]
 pub struct Resources {
     aux: HashMap<Uuid, AuxData>,
+    state_updates: Arc<Notify>,
     pub res: HashMap<Uuid, Resource>,
     pub hue_updates: Sender<EventBlock>,
     pub z2m_updates: Sender<Other>,
@@ -63,17 +65,18 @@ impl Resources {
         Self {
             res: HashMap::new(),
             aux: HashMap::new(),
+            state_updates: Arc::new(Notify::new()),
             hue_updates: Sender::new(10),
             z2m_updates: Sender::new(10),
         }
     }
 
-    pub fn load(&mut self, rdr: impl Read) -> ApiResult<()> {
+    pub fn read(&mut self, rdr: impl Read) -> ApiResult<()> {
         (self.res, self.aux) = serde_yaml::from_reader(rdr)?;
         Ok(())
     }
 
-    pub fn save(&self, wr: impl Write) -> ApiResult<()> {
+    pub fn write(&self, wr: impl Write) -> ApiResult<()> {
         Ok(serde_yaml::to_writer(wr, &(&self.res, &self.aux))?)
     }
 
@@ -165,10 +168,7 @@ impl Resources {
 
         self.res.insert(link.rid, obj);
 
-        if let Ok(fd) = File::create("state.yaml.tmp") {
-            self.save(fd)?;
-            std::fs::rename("state.yaml.tmp", "state.yaml")?;
-        }
+        self.state_updates.notify_one();
 
         let evt = EventBlock::add(serde_json::to_value(self.get_resource_by_id(&link.rid)?)?);
 
@@ -295,6 +295,11 @@ impl Resources {
             .filter(|(_, r)| r.rtype() == ty)
             .map(ResourceRecord::from_ref)
             .collect()
+    }
+
+    #[must_use]
+    pub fn state_channel(&self) -> Arc<Notify> {
+        self.state_updates.clone()
     }
 
     #[must_use]
