@@ -147,6 +147,8 @@ impl Resources {
             self.hue_event(EventBlock::update(id, delta)?);
         }
 
+        self.state_updates.notify_one();
+
         Ok(())
     }
 
