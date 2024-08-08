@@ -110,6 +110,13 @@ pub struct Device {
     pub services: Vec<ResourceLink>,
 }
 
+impl Device {
+    #[must_use]
+    pub fn light(&self) -> Option<&ResourceLink> {
+        self.services.iter().find(|rl| rl.rtype == RType::Light)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeviceProductData {
     pub model_id: String,
@@ -493,6 +500,15 @@ pub struct Room {
     pub metadata: Metadata,
     #[serde(default)]
     pub services: Vec<ResourceLink>,
+}
+
+impl Room {
+    #[must_use]
+    pub fn group(&self) -> Option<&ResourceLink> {
+        self.services
+            .iter()
+            .find(|rl| rl.rtype == RType::GroupedLight)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
