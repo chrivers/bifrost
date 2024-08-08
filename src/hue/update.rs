@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    hue::v2::{On, RType, SceneActionElement, SceneStatus, SceneStatusUpdate},
+    hue::api::{On, RType, SceneActionElement, SceneStatus, SceneStatusUpdate},
     types::XY,
 };
 

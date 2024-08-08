@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 use crate::hue;
 use crate::hue::update::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate};
-use crate::hue::v2::{
+use crate::hue::api::{
     ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
     Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneAction,
     SceneActionElement, SceneMetadata, SceneStatus,
@@ -70,7 +70,7 @@ impl Client {
         let link_device = RType::Device.deterministic(&dev.ieee_address);
         let link_light = RType::Light.deterministic(&dev.ieee_address);
 
-        let dev = hue::v2::Device {
+        let dev = hue::api::Device {
             product_data: DeviceProductData::hue_color_spot(),
             metadata: Metadata::spot_bulb(name),
             identify: json!({}),

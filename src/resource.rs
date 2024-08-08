@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::error::{ApiError, ApiResult};
 use crate::hue::event::EventBlock;
 use crate::hue::update::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
-use crate::hue::v2::{
+use crate::hue::api::{
     Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
     ResourceRecord, TimeZone,
 };

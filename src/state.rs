@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig, Z2mConfig};
 use crate::error::ApiResult;
-use crate::hue::v1::{ApiConfig, ApiShortConfig, Whitelist};
+use crate::hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::resource::Resources;
 
 #[derive(Clone)]

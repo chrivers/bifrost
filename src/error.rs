@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::{
     hue::{
         event::EventBlock,
-        v2::{RType, ResourceLink},
+        api::{RType, ResourceLink},
     },
     z2m::api::Other,
 };

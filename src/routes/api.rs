@@ -11,7 +11,7 @@ use serde_json::{json, Value};
 use tracing::info;
 use uuid::Uuid;
 
-use crate::hue::v1::{
+use crate::hue::legacy_api::{
     ApiResourceType, ApiUserConfig, Capabilities, HueResult, NewUser, NewUserReply,
 };
 use crate::state::AppState;
