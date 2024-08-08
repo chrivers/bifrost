@@ -62,9 +62,13 @@ impl UpdateRecord {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct LightUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<On>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dimming: Option<DimmingUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<ColorUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature: Option<ColorTemperatureUpdate>,
 }
 
@@ -109,9 +113,13 @@ impl LightUpdate {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct GroupedLightUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<On>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dimming: Option<DimmingUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<ColorUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature: Option<ColorTemperatureUpdate>,
 }
 
