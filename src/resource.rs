@@ -123,7 +123,7 @@ impl Resources {
             Resource::Scene(scene) => {
                 let upd = SceneUpdate::new()
                     .with_actions(Some(scene.actions.clone()))
-                    .with_recall_action(scene.status.map(|s| s.active));
+                    .with_recall_action(scene.status);
 
                 Ok(Some(Update::Scene(upd)))
             }

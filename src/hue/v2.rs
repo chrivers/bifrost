@@ -543,18 +543,20 @@ pub struct SceneMetadata {
     pub name: String,
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
-pub struct SceneStatus {
-    pub active: SceneRecallAction,
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(tag = "active", rename_all = "snake_case")]
+pub enum SceneStatus {
+    Inactive,
+    Static,
+    DynamicPalette,
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum SceneRecallAction {
-    Inactive,
+pub enum SceneStatusUpdate {
     Active,
-    DynamicPalette,
     Static,
+    DynamicPalette,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

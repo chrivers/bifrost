@@ -20,7 +20,7 @@ use crate::hue::update::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate};
 use crate::hue::v2::{
     ColorTemperature, Device, DeviceProductData, Dimming, GroupedLight, Light, LightColor,
     Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene, SceneAction,
-    SceneActionElement, SceneMetadata, SceneRecallAction, SceneStatus,
+    SceneActionElement, SceneMetadata, SceneStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -124,9 +124,7 @@ impl Client {
                     "effects": [],
                 }),
                 speed: 0.5,
-                status: Some(SceneStatus {
-                    active: SceneRecallAction::Inactive,
-                }),
+                status: Some(SceneStatus::Inactive),
             };
 
             let link_scene = RType::Scene.deterministic((link_room.rid, scn.id));

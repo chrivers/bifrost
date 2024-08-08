@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::hue::{
     update::LightUpdate,
-    v2::{RType, Resource, Room, Scene, SceneRecallAction, SceneStatus, V2Reply},
+    v2::{RType, Resource, Room, Scene, SceneStatus, SceneStatusUpdate, V2Reply},
 };
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
@@ -184,13 +184,11 @@ async fn put_resource_id(
 
             match upd.recall {
                 Some(SceneRecall {
-                    action: Some(SceneRecallAction::Active),
+                    action: Some(SceneStatusUpdate::Active),
                     ..
                 }) => {
                     lock.update(&id, |scn: &mut Scene| {
-                        scn.status = Some(SceneStatus {
-                            active: SceneRecallAction::Static,
-                        });
+                        scn.status = Some(SceneStatus::Static);
                     })?;
 
                     let aux = lock.aux_get(&rlink)?;

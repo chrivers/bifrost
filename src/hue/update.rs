@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    hue::v2::{On, RType, SceneActionElement, SceneRecallAction},
+    hue::v2::{On, RType, SceneActionElement, SceneStatus, SceneStatusUpdate},
     types::XY,
 };
 
@@ -195,10 +195,15 @@ impl SceneUpdate {
     }
 
     #[must_use]
-    pub fn with_recall_action(self, action: Option<SceneRecallAction>) -> Self {
+    pub fn with_recall_action(self, action: Option<SceneStatus>) -> Self {
         Self {
             recall: Some(SceneRecall {
-                action,
+                action: match action {
+                    Some(SceneStatus::DynamicPalette) => Some(SceneStatusUpdate::DynamicPalette),
+                    Some(SceneStatus::Inactive) => None,
+                    Some(SceneStatus::Static) => Some(SceneStatusUpdate::Active),
+                    None => None,
+                },
                 duration: None,
                 dimming: None,
             }),
@@ -209,7 +214,7 @@ impl SceneUpdate {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneRecall {
-    pub action: Option<SceneRecallAction>,
+    pub action: Option<SceneStatusUpdate>,
     pub duration: Option<u32>,
     pub dimming: Option<DimmingUpdate>,
 }
