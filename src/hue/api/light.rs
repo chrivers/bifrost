@@ -264,6 +264,21 @@ impl ColorGamut {
             y: 0.3083,
         },
     };
+
+    pub const IKEA_ESTIMATE: Self = Self {
+        red: XY {
+            x: 0.681_235,
+            y: 0.318_186,
+        },
+        green: XY {
+            x: 0.391_898,
+            y: 0.525_033,
+        },
+        blue: XY {
+            x: 0.150_241,
+            y: 0.027_116,
+        },
+    };
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -284,22 +299,9 @@ pub struct LightColor {
 
 impl LightColor {
     #[must_use]
-    pub fn dummy() -> Self {
+    pub const fn dummy() -> Self {
         Self {
-            gamut: Some(ColorGamut {
-                red: XY {
-                    x: 0.681_235,
-                    y: 0.318_186,
-                },
-                green: XY {
-                    x: 0.391_898,
-                    y: 0.525_033,
-                },
-                blue: XY {
-                    x: 0.150_241,
-                    y: 0.027_116,
-                },
-            }),
+            gamut: Some(ColorGamut::IKEA_ESTIMATE),
             gamut_type: GamutType::Other,
             xy: XY { x: 0.4573, y: 0.41 },
         }
