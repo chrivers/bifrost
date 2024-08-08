@@ -267,9 +267,18 @@ impl ColorGamut {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum GamutType {
+    A,
+    B,
+    C,
+    Other,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightColor {
     pub gamut: Option<ColorGamut>,
-    pub gamut_type: String,
+    pub gamut_type: GamutType,
     pub xy: XY,
 }
 
@@ -291,7 +300,7 @@ impl LightColor {
                     y: 0.027_116,
                 },
             }),
-            gamut_type: "Other".to_string(),
+            gamut_type: GamutType::Other,
             xy: XY { x: 0.4573, y: 0.41 },
         }
     }
