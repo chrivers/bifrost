@@ -66,8 +66,8 @@ impl Resources {
             res: HashMap::new(),
             aux: HashMap::new(),
             state_updates: Arc::new(Notify::new()),
-            hue_updates: Sender::new(10),
-            z2m_updates: Sender::new(10),
+            hue_updates: Sender::new(32),
+            z2m_updates: Sender::new(32),
         }
     }
 
