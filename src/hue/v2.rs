@@ -6,6 +6,7 @@ use serde_json::{from_value, json, Value};
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
+use crate::hue::update::ColorUpdate;
 use crate::{
     hue::{
         best_guess_timezone,
@@ -513,10 +514,10 @@ impl Room {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SceneAction {
-    pub color: Option<LightColor>,
+    pub color: Option<ColorUpdate>,
     pub color_temperature: Option<ColorTemperatureUpdate>,
-    pub dimming: DimmingUpdate,
-    pub on: On,
+    pub dimming: Option<DimmingUpdate>,
+    pub on: Option<On>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
