@@ -200,9 +200,8 @@ impl SceneUpdate {
             recall: Some(SceneRecall {
                 action: match action {
                     Some(SceneStatus::DynamicPalette) => Some(SceneStatusUpdate::DynamicPalette),
-                    Some(SceneStatus::Inactive) => None,
                     Some(SceneStatus::Static) => Some(SceneStatusUpdate::Active),
-                    None => None,
+                    Some(SceneStatus::Inactive) | None => None,
                 },
                 duration: None,
                 dimming: None,
