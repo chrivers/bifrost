@@ -114,9 +114,19 @@ impl Resources {
                 Ok(Some(Update::Light(upd)))
             }
             Resource::GroupedLight(glight) => {
-                let upd = GroupedLightUpdate::new()
+                let mut upd = GroupedLightUpdate::new()
                     .with_brightness(glight.dimming.brightness)
                     .with_on(glight.on.on);
+
+                match glight.color_mode {
+                    Some(DeviceColorMode::ColorTemp) => {
+                        upd = upd.with_color_temperature(glight.color_temperature.mirek);
+                    }
+                    Some(DeviceColorMode::Xy) => {
+                        upd = upd.with_color_xy(glight.color.xy);
+                    }
+                    None => {}
+                }
 
                 Ok(Some(Update::GroupedLight(upd)))
             }
