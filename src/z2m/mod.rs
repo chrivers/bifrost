@@ -353,6 +353,7 @@ impl Client {
 
             if let Err(ref err) = res {
                 log::error!("Event loop failed!: {err:?}");
+                return res;
             }
         }
     }
