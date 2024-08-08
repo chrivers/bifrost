@@ -24,7 +24,7 @@ use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;
 use crate::resource::AuxData;
 use crate::resource::Resources;
-use crate::z2m::api::Message;
+use crate::z2m::api::{Message, Other};
 use crate::z2m::update::DeviceUpdate;
 
 pub struct Client {
@@ -295,7 +295,7 @@ impl Client {
         Ok(())
     }
 
-    async fn websocket_packet(&mut self, pkt: tungstenite::Message) -> ApiResult<()> {
+    async fn websocket_read(&mut self, pkt: tungstenite::Message) -> ApiResult<()> {
         let tungstenite::Message::Text(txt) = pkt else {
             log::error!("Received non-text message on websocket :(");
             return Err(ApiError::UnexpectedZ2mReply(pkt));
@@ -316,24 +316,38 @@ impl Client {
         }
     }
 
+    #[allow(clippy::single_match_else)]
+    async fn websocket_write(&mut self, api_req: Other) -> ApiResult<()> {
+        let topic = api_req
+            .topic
+            .as_str()
+            .strip_suffix("/set")
+            .unwrap_or(&api_req.topic);
+        match self.map.get(topic) {
+            Some(uuid) => {
+                log::trace!(
+                    "Topic [{topic}] known as {uuid} on this z2m connection, sending event.."
+                );
+                let msg = tungstenite::Message::Text(serde_json::to_string(&api_req)?);
+                Ok(self.socket.send(msg).await?)
+            }
+            None => {
+                log::trace!("Topic [{topic}] unknown on this z2m connection");
+                Ok(())
+            }
+        }
+    }
+
     pub async fn event_loop(mut self) -> ApiResult<()> {
         let mut chan = self.state.lock().await.z2m_channel();
         loop {
             let res = select! {
                 pkt = chan.recv() => {
                     let api_req = pkt?;
-                    let topic = api_req.topic.as_str().strip_suffix("/set").unwrap_or(&api_req.topic);
-                    if self.map.contains_key(topic) {
-                        log::trace!("Topic [{}] found on this z2m connection, sending event..", &topic);
-                        let msg = tungstenite::Message::Text(serde_json::to_string(&api_req)?);
-                        Ok(self.socket.send(msg).await?)
-                    } else {
-                        log::trace!("Topic [{}] unknown on this z2m connection", &topic);
-                        Ok(())
-                    }
+                    self.websocket_write(api_req).await
                 },
                 pkt = self.socket.next() => {
-                    self.websocket_packet(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await
+                    self.websocket_read(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await
                 },
             };
 
