@@ -167,6 +167,7 @@ impl Client {
                 "action_values": [],
             }),
             color: LightColor::dummy(),
+            color_mode: None,
             color_temperature: ColorTemperature::dummy(),
             color_temperature_delta: json!({}),
             dimming: Dimming {
@@ -294,7 +295,7 @@ impl Client {
                 glight.dimming.brightness = b / 254.0 * 100.0;
             }
 
-            /* glight.color_mode = upd.color_mode; */
+            glight.color_mode = upd.color_mode;
 
             if let Some(ct) = upd.color_temp {
                 glight.color_temperature.mirek = ct;
