@@ -121,7 +121,9 @@ impl Resources {
                 Ok(Some(Update::GroupedLight(upd)))
             }
             Resource::Scene(scene) => {
-                let upd = SceneUpdate::new().with_recall_action(scene.status.map(|s| s.active));
+                let upd = SceneUpdate::new()
+                    .with_actions(Some(scene.actions.clone()))
+                    .with_recall_action(scene.status.map(|s| s.active));
 
                 Ok(Some(Update::Scene(upd)))
             }
