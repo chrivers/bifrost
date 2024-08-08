@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    hue::v2::{On, RType, SceneRecallAction},
+    hue::v2::{On, RType, SceneActionElement, SceneRecallAction},
     types::XY,
 };
 
@@ -171,6 +171,7 @@ pub struct ColorTemperatureUpdate {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SceneUpdate {
+    pub actions: Option<Vec<SceneActionElement>>,
     pub recall: Option<SceneRecall>,
 }
 
@@ -181,13 +182,19 @@ impl SceneUpdate {
     }
 
     #[must_use]
-    pub const fn with_recall_action(self, action: Option<SceneRecallAction>) -> Self {
+    pub fn with_actions(self, actions: Option<Vec<SceneActionElement>>) -> Self {
+        Self { actions, ..self }
+    }
+
+    #[must_use]
+    pub fn with_recall_action(self, action: Option<SceneRecallAction>) -> Self {
         Self {
             recall: Some(SceneRecall {
                 action,
                 duration: None,
                 dimming: None,
             }),
+            ..self
         }
     }
 }
