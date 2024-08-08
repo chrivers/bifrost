@@ -3,14 +3,8 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 
 use chrono::Utc;
-use futures::stream::SplitSink;
-use futures::{SinkExt, StreamExt};
 use mac_address::MacAddress;
-use serde::Serialize;
-use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
 use crate::config::{AppConfig, MqttConfig, Z2mConfig};
@@ -22,33 +16,13 @@ use crate::resource::Resources;
 pub struct AppState {
     conf: AppConfig,
     pub res: Arc<Mutex<Resources>>,
-    pub ws: Arc<
-        Mutex<
-            SplitSink<
-                WebSocketStream<MaybeTlsStream<TcpStream>>,
-                tokio_tungstenite::tungstenite::Message,
-            >,
-        >,
-    >,
 }
 
 impl AppState {
-    pub async fn new(conf: AppConfig) -> ApiResult<Self> {
-        /* FIXME: just for proof of concept */
-        let first_z2m_server = &conf.z2m.servers.values().next().unwrap().url.clone();
-
-        let ws = connect_async(first_z2m_server).await?.0;
-        let (ws_sink, mut ws_stream) = ws.split();
-        tokio::spawn(async move {
-            loop {
-                let _ = ws_stream.next().await;
-            }
-        });
-
+    pub fn new(conf: AppConfig) -> ApiResult<Self> {
         let res = Arc::new(Mutex::new(Resources::new()));
-        let ws = Arc::new(Mutex::new(ws_sink));
 
-        Ok(Self { conf, res, ws })
+        Ok(Self { conf, res })
     }
 
     #[must_use]
@@ -107,26 +81,5 @@ impl AppState {
             )]),
             ..ApiConfig::default()
         }
-    }
-
-    pub async fn send<T: Serialize + Send>(&self, topic: String, payload: T) -> ApiResult<()> {
-        let api_req = crate::z2m::api::Other {
-            topic,
-            payload: serde_json::to_value(payload)?,
-        };
-
-        self.ws
-            .lock()
-            .await
-            .send(Message::Text(serde_json::to_string(&api_req)?))
-            .await?;
-
-        log::info!("{api_req:#?}");
-
-        Ok(())
-    }
-
-    pub async fn send_set<T: Serialize + Send>(&self, topic: &str, payload: T) -> ApiResult<()> {
-        self.send(format!("{topic}/set"), payload).await
     }
 }

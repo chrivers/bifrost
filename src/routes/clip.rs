@@ -109,7 +109,7 @@ async fn post_resource(
                     .with_index(sid),
             );
 
-            state.send_set(&room.metadata.name, payload).await?;
+            lock.z2m_send_set(&room.metadata.name, payload)?;
 
             lock.add(&link_scene, Resource::Scene(scn))?;
             drop(lock);
@@ -144,7 +144,8 @@ async fn put_resource_id(
 ) -> ApiV2Result {
     log::info!("PUT {rtype:?}/{id}: {put:?}");
 
-    let res = state.res.lock().await.get_resource(rtype, &id)?;
+    let mut lock = state.res.lock().await;
+    let res = lock.get_resource(rtype, &id)?;
     match res.obj {
         Resource::Light(obj) => {
             let upd: LightUpdate = serde_json::from_value(put)?;
@@ -155,13 +156,13 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            state.send_set(&obj.metadata.name, payload).await?;
+            lock.z2m_send_set(&obj.metadata.name, payload)?;
         }
 
         Resource::GroupedLight(obj) => {
             log::info!("PUT {rtype:?}/{id}: updating");
 
-            let rr: Room = state.res.lock().await.get(&obj.owner)?;
+            let rr: Room = lock.get(&obj.owner)?;
 
             let upd: GroupedLightUpdate = serde_json::from_value(put)?;
 
@@ -171,7 +172,7 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            state.send_set(&rr.metadata.name, payload).await?;
+            lock.z2m_send_set(&rr.metadata.name, payload)?;
         }
 
         Resource::Scene(_obj) => {
@@ -185,8 +186,6 @@ async fn put_resource_id(
                     action: Some(SceneRecallAction::Active),
                     ..
                 }) => {
-                    let mut lock = state.res.lock().await;
-
                     lock.update(&id, |scn: &mut Scene| {
                         scn.status = Some(SceneStatus {
                             active: SceneRecallAction::Static,
@@ -199,7 +198,7 @@ async fn put_resource_id(
                     let topic = aux.topic.as_ref().ok_or(ApiError::AuxNotFound(rlink))?;
                     let payload = json!({"scene_recall": aux.index});
 
-                    state.send_set(topic, payload).await?;
+                    lock.z2m_send_set(topic, payload)?;
                     drop(lock);
                 }
                 Some(recall) => {
@@ -236,7 +235,7 @@ async fn delete_resource_id(
                 "scene_remove": index,
             });
 
-            state.send_set(topic, payload).await?;
+            lock.z2m_send_set(topic, payload)?;
 
             lock.update::<Room>(&obj.group.rid, |obj| {
                 obj.services.retain(|svc| svc.rid != id);

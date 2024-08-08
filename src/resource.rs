@@ -5,7 +5,6 @@ use std::io::{Read, Write};
 use serde::{self, Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::broadcast::{Receiver, Sender};
-use tokio_tungstenite::tungstenite::Message;
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
@@ -15,6 +14,7 @@ use crate::hue::v2::{
     Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
     ResourceRecord, TimeZone,
 };
+use crate::z2m::api::Other;
 use crate::z2m::update::DeviceColorMode;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -51,7 +51,7 @@ pub struct Resources {
     aux: HashMap<Uuid, AuxData>,
     pub res: HashMap<Uuid, Resource>,
     pub hue_updates: Sender<EventBlock>,
-    pub z2m_updates: Sender<Message>,
+    pub z2m_updates: Sender<Other>,
 }
 
 impl Resources {
@@ -302,6 +302,11 @@ impl Resources {
         self.hue_updates.subscribe()
     }
 
+    #[must_use]
+    pub fn z2m_channel(&self) -> Receiver<Other> {
+        self.z2m_updates.subscribe()
+    }
+
     pub fn z2m_send<T: Serialize + Send>(&self, topic: String, payload: T) -> ApiResult<()> {
         let api_req = crate::z2m::api::Other {
             topic,
@@ -310,7 +315,7 @@ impl Resources {
 
         log::debug!("z2m request: {api_req:#?}");
 
-        self.z2m_updates.send(Message::Text(serde_json::to_string(&api_req)?))?;
+        self.z2m_updates.send(api_req)?;
 
         Ok(())
     }

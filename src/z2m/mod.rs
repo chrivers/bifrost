@@ -5,9 +5,10 @@ use std::collections::{HashMap, HashSet};
 use std::hash::RandomState;
 use std::sync::Arc;
 
-use futures::StreamExt;
+use futures::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
+use tokio::select;
 use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
@@ -19,7 +20,7 @@ use crate::hue::v2::{
     SceneStatus,
 };
 
-use crate::error::ApiResult;
+use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;
 use crate::resource::AuxData;
 use crate::resource::Resources;
@@ -294,40 +295,52 @@ impl Client {
         Ok(())
     }
 
-    async fn _event_loop(mut self) -> ApiResult<()> {
-        loop {
-            let Some(pkt) = self.socket.next().await else {
-                log::error!("Websocket broke :(");
-                break;
-            };
+    async fn websocket_packet(&mut self, pkt: tungstenite::Message) -> ApiResult<()> {
+        let tungstenite::Message::Text(txt) = pkt else {
+            log::error!("Received non-text message on websocket :(");
+            return Err(ApiError::UnexpectedZ2mReply(pkt));
+        };
 
-            let tungstenite::Message::Text(txt) = pkt? else {
-                log::error!("Received non-text message on websocket :(");
-                break;
-            };
+        let data = serde_json::from_str(&txt);
 
-            let data = serde_json::from_str(&txt);
-
-            let Ok(msg) = data else {
+        match data {
+            Ok(msg) => self.handle_message(msg).await,
+            Err(err) => {
                 log::error!(
-                    "INVALID: {:#?} [{}..]",
-                    data,
+                    "Invalid websocket message: {:#?} [{}..]",
+                    err,
                     &txt.chars().take(128).collect::<String>()
                 );
-                continue;
-            };
-
-            self.handle_message(msg).await?;
+                Err(err)?
+            }
         }
-        Ok(())
     }
 
-    pub async fn event_loop(self) -> ApiResult<()> {
-        let res = self._event_loop().await;
-        if let Err(ref err) = res {
-            log::error!("Event loop failed!: {err:?}");
+    pub async fn event_loop(mut self) -> ApiResult<()> {
+        let mut chan = self.state.lock().await.z2m_channel();
+        loop {
+            let res = select! {
+                pkt = chan.recv() => {
+                    let api_req = pkt?;
+                    let topic = api_req.topic.as_str().strip_suffix("/set").unwrap_or(&api_req.topic);
+                    if self.map.contains_key(topic) {
+                        log::trace!("Topic [{}] found on this z2m connection, sending event..", &topic);
+                        let msg = tungstenite::Message::Text(serde_json::to_string(&api_req)?);
+                        Ok(self.socket.send(msg).await?)
+                    } else {
+                        log::trace!("Topic [{}] unknown on this z2m connection", &topic);
+                        Ok(())
+                    }
+                },
+                pkt = self.socket.next() => {
+                    self.websocket_packet(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await
+                },
+            };
+
+            if let Err(ref err) = res {
+                log::error!("Event loop failed!: {err:?}");
+            }
         }
-        res
     }
 }
 

@@ -2,9 +2,12 @@ use thiserror::Error;
 use tokio::task::JoinError;
 use uuid::Uuid;
 
-use crate::hue::{
-    event::EventBlock,
-    v2::{RType, ResourceLink},
+use crate::{
+    hue::{
+        event::EventBlock,
+        v2::{RType, ResourceLink},
+    },
+    z2m::api::Other,
 };
 
 #[derive(Error, Debug)]
@@ -28,13 +31,16 @@ pub enum ApiError {
     SendErrorHue(#[from] tokio::sync::broadcast::error::SendError<EventBlock>),
 
     #[error(transparent)]
-    SendErrorZ2m(#[from] tokio::sync::broadcast::error::SendError<tokio_tungstenite::tungstenite::Message>),
+    SendErrorZ2m(#[from] tokio::sync::broadcast::error::SendError<Other>),
 
     #[error(transparent)]
     SetLoggerError(#[from] log::SetLoggerError),
 
     #[error(transparent)]
     BroadcastStreamRecvError(#[from] tokio_stream::wrappers::errors::BroadcastStreamRecvError),
+
+    #[error(transparent)]
+    TokioRecvError(#[from] tokio::sync::broadcast::error::RecvError),
 
     #[cfg(feature = "mqtt")]
     #[error(transparent)]
@@ -45,6 +51,12 @@ pub enum ApiError {
 
     #[error(transparent)]
     TungsteniteError(#[from] tokio_tungstenite::tungstenite::Error),
+
+    #[error("Unexpected eof on z2m socket")]
+    UnexpectedZ2mEof,
+
+    #[error("Unexpected z2m message: {0:?}")]
+    UnexpectedZ2mReply(tokio_tungstenite::tungstenite::Message),
 
     #[error("State changes not supported for: {0:?}")]
     UpdateUnsupported(RType),
