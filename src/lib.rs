@@ -25,6 +25,3 @@ pub mod resource;
 pub mod routes;
 pub mod state;
 pub mod types;
-
-#[cfg(feature = "mqtt")]
-pub mod mqtt;

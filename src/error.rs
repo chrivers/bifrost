@@ -44,10 +44,6 @@ pub enum ApiError {
     #[error(transparent)]
     TokioRecvError(#[from] tokio::sync::broadcast::error::RecvError),
 
-    #[cfg(feature = "mqtt")]
-    #[error(transparent)]
-    MqttError(#[from] rumqttc::v5::ClientError),
-
     #[error(transparent)]
     AxumError(#[from] axum::Error),
 
