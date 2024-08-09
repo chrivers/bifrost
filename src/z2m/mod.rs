@@ -17,9 +17,9 @@ use uuid::Uuid;
 
 use crate::hue;
 use crate::hue::api::{
-    ColorTemperature, ColorTemperatureUpdate, ColorUpdate, Device, DeviceProductData, Dimming,
-    DimmingUpdate, GroupedLight, Light, LightColor, Metadata, On, RType, Resource, ResourceLink,
-    Room, RoomArchetypes, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
+    ColorTemperatureUpdate, ColorUpdate, Device, DeviceProductData, Dimming, DimmingUpdate,
+    GroupedLight, Light, Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene,
+    SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -160,24 +160,11 @@ impl Client {
         res.add(&link_room, Resource::Room(room))?;
 
         let glight = GroupedLight {
-            alert: json!({
-                "action_values": [],
-            }),
-            color: LightColor::dummy(),
-            color_mode: None,
-            color_temperature: ColorTemperature::dummy(),
-            color_temperature_delta: json!({}),
-            dimming: Dimming {
-                brightness: 100.0,
-                min_dim_level: None,
-            },
-            dimming_delta: json!({}),
-            dynamics: json!({}),
+            alert: Value::Null,
+            dimming: None,
             on: On { on: true },
             owner: link_room,
-            signaling: json!({
-                "signal_values": [],
-            }),
+            signaling: Value::Null,
         };
 
         res.add(&link_glight, Resource::GroupedLight(glight))?;
@@ -292,19 +279,9 @@ impl Client {
             }
 
             if let Some(b) = upd.brightness {
-                glight.dimming.brightness = b / 254.0 * 100.0;
-            }
-
-            glight.color_mode = upd.color_mode;
-
-            if let Some(ct) = upd.color_temp {
-                glight.color_temperature.mirek = ct;
-                /* glight.color_temperature.mirek_valid = true; */
-            }
-
-            if let Some(col) = upd.color {
-                glight.color.xy = col.xy;
-                /* glight.color_temperature.mirek_valid = false; */
+                glight.dimming = Some(DimmingUpdate {
+                    brightness: b / 254.0 * 100.0,
+                });
             }
         })
     }
