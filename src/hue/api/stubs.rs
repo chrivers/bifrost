@@ -121,6 +121,8 @@ pub enum ZigbeeConnectivityStatus {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
+    pub channel: Option<Value>,
+    pub extended_pan_id: String,
     pub mac_address: String,
     pub owner: ResourceLink,
     pub status: ZigbeeConnectivityStatus,
