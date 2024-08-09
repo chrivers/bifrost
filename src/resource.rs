@@ -237,7 +237,6 @@ impl Resources {
         let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::hue_bridge("bifrost"),
-            identify: json!({}),
             services: vec![link_bridge, link_zbdd, link_zbc],
         };
 
@@ -250,7 +249,6 @@ impl Resources {
         let bridge_home_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::hue_bridge("bifrost bridge home"),
-            identify: json!({}),
             services: vec![link_bridge],
         };
 

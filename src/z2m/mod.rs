@@ -120,7 +120,6 @@ impl Client {
         let dev = hue::api::Device {
             product_data: DeviceProductData::hue_color_spot(),
             metadata: Metadata::spot_bulb(name),
-            identify: json!({}),
             services: vec![link_light],
         };
 

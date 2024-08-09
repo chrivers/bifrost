@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::hue::api::{Metadata, RType, ResourceLink};
 
@@ -7,7 +6,6 @@ use crate::hue::api::{Metadata, RType, ResourceLink};
 pub struct Device {
     pub product_data: DeviceProductData,
     pub metadata: Metadata,
-    pub identify: Value,
     pub services: Vec<ResourceLink>,
 }
 
