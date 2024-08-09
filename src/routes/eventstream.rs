@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use axum::extract::State;
 use axum::response::sse::{Event, Sse};
 use chrono::Utc;
@@ -36,9 +34,5 @@ pub async fn get_clip_v2(
         Ok(Event::default().id(format!("{ts}:{idx}")).json_data(json)?)
     });
 
-    Sse::new(hello.chain(stream)).keep_alive(
-        axum::response::sse::KeepAlive::new()
-            .interval(Duration::from_secs(5))
-            .text("keep-alive"),
-    )
+    Sse::new(hello.chain(stream))
 }
