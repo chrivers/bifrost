@@ -198,16 +198,6 @@ impl LightMetadata {
             archetype: archetype.to_string(),
         }
     }
-
-    #[must_use]
-    pub fn hue_bridge(name: &str) -> Self {
-        Self::new("bridge_v2", name)
-    }
-
-    #[must_use]
-    pub fn spot_bulb(name: &str) -> Self {
-        Self::new("spot_bulb", name)
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
