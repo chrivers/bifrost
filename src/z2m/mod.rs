@@ -524,29 +524,29 @@ impl Client {
             ClientRequest::LightUpdate { device, upd } => {
                 let dev = lock.get::<Light>(device)?;
                 let topic = dev.metadata.name;
-
                 drop(lock);
+
                 self.websocket_send(socket, &topic, &upd).await
             }
             ClientRequest::GroupUpdate { device, upd } => {
                 let group = lock.get::<GroupedLight>(device)?;
                 let room = lock.get::<Room>(&group.owner)?;
                 let topic = room.metadata.name;
-
                 drop(lock);
+
                 self.websocket_send(socket, &topic, &upd).await
             }
             ClientRequest::SceneStore { room, id, name } => {
                 let room = lock.get::<Room>(room)?;
+                let topic = room.metadata.name;
+                drop(lock);
+
                 let payload = json!({
                     "scene_store": {
                         "ID": id,
                         "name": name,
                     }
                 });
-                let topic = room.metadata.name;
-
-                drop(lock);
                 self.websocket_send(socket, &topic, payload).await
             }
             ClientRequest::SceneRecall { scene } => {
