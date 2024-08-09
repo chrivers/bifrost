@@ -139,7 +139,8 @@ async fn put_resource_id(
     Path((rtype, id)): Path<(RType, Uuid)>,
     Json(put): Json<Value>,
 ) -> ApiV2Result {
-    log::info!("PUT {rtype:?}/{id}: {put:?}");
+    log::info!("PUT {rtype:?}/{id}");
+    log::debug!("json data\n{}", serde_json::to_string_pretty(&put)?);
 
     let rlink = rtype.link_to(id);
     let mut lock = state.res.lock().await;
@@ -176,7 +177,6 @@ async fn put_resource_id(
             log::info!("PUT {rtype:?}/{id}: updating");
 
             let upd: SceneUpdate = serde_json::from_value(put)?;
-            log::info!("{upd:#?}");
 
             if let Some(md) = upd.metadata {
                 lock.update(&id, |scn: &mut Scene| {
