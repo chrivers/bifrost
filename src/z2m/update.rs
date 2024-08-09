@@ -37,6 +37,10 @@ pub struct DeviceUpdate {
     pub update: HashMap<String, Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub update_available: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub battery: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transition: Option<f64>,
 }
 
 impl DeviceUpdate {
