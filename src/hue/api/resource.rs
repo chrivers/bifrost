@@ -9,8 +9,8 @@ use crate::hue::api::Resource;
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum RType {
-    BehaviorScript,
     BehaviorInstance,
+    BehaviorScript,
     Bridge,
     BridgeHome,
     Device,

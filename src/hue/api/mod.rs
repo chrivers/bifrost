@@ -37,8 +37,8 @@ use crate::error::{ApiError, ApiResult};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Resource {
-    BehaviorScript(BehaviorScript),
     BehaviorInstance(BehaviorInstance),
+    BehaviorScript(BehaviorScript),
     Bridge(Bridge),
     BridgeHome(BridgeHome),
     Device(Device),
