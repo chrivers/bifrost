@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::error::{ApiError, ApiResult};
 use crate::hue::api::{
     Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
-    ResourceRecord, TimeZone,
+    ResourceRecord, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery,
 };
 use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
@@ -231,12 +231,14 @@ impl Resources {
         let link_bridge_home = RType::BridgeHome.deterministic(&format!("{bridge_id}HOME"));
         let link_bridge_dev = RType::Device.deterministic(link_bridge.rid);
         let link_bridge_home_dev = RType::Device.deterministic(link_bridge_home.rid);
+        let link_zbdd = RType::ZigbeeDeviceDiscovery.deterministic(link_bridge.rid);
+        let link_zbc = RType::ZigbeeConnectivity.deterministic(link_bridge.rid);
 
         let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::hue_bridge("bifrost"),
             identify: json!({}),
-            services: vec![link_bridge],
+            services: vec![link_bridge, link_zbdd, link_zbc],
         };
 
         let bridge = Bridge {
@@ -257,10 +259,28 @@ impl Resources {
             services: vec![RType::GroupedLight.deterministic(link_bridge_home.rid)],
         };
 
+        let zbdd = ZigbeeDeviceDiscovery {
+            owner: link_bridge_dev,
+            status: String::from("ready"),
+        };
+
+        let zbc = ZigbeeConnectivity {
+            owner: link_bridge_dev,
+            mac_address: String::from("11:22:33:44:55:66:77:88"),
+            status: ZigbeeConnectivityStatus::ConnectivityIssue,
+            channel: Some(json!({
+                "status": "set",
+                "value": "channel_25",
+            })),
+            extended_pan_id: String::from("0123456789abcdef"),
+        };
+
         self.add(&link_bridge_dev, Resource::Device(bridge_dev))?;
         self.add(&link_bridge, Resource::Bridge(bridge))?;
         self.add(&link_bridge_home_dev, Resource::Device(bridge_home_dev))?;
         self.add(&link_bridge_home, Resource::BridgeHome(bridge_home))?;
+        self.add(&link_zbdd, Resource::ZigbeeDeviceDiscovery(zbdd))?;
+        self.add(&link_zbc, Resource::ZigbeeConnectivity(zbc))?;
 
         Ok(())
     }
