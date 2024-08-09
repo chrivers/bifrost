@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::Value;
 
 use crate::hue::api::ResourceLink;
 use crate::{types::XY, z2m::update::DeviceColorMode};
@@ -14,16 +14,13 @@ pub struct Light {
     pub owner: ResourceLink,
     pub metadata: LightMetadata,
 
-    pub alert: Value,
+    pub alert: Option<Vec<Value>>,
     pub color: LightColor,
     pub color_temperature: ColorTemperature,
-    pub color_temperature_delta: Delta,
-    pub dimming: Dimming,
-    pub dimming_delta: Delta,
+    pub dimming: Option<Dimming>,
     pub dynamics: Option<LightDynamics>,
     pub effects: Option<LightEffects>,
     pub timed_effects: Option<LightTimedEffects>,
-    pub identify: Value,
     pub mode: LightMode,
     pub on: On,
     pub powerup: Option<LightPowerup>,
@@ -34,26 +31,17 @@ impl Light {
     #[must_use]
     pub fn new(owner: ResourceLink) -> Self {
         Self {
-            alert: json!({"action_values": ["breathe"]}),
+            alert: None,
             color_mode: None,
             color: LightColor::dummy(),
             color_temperature: ColorTemperature::dummy(),
-            color_temperature_delta: Delta {},
-            dimming: Dimming {
-                brightness: 100.0,
-                min_dim_level: Some(0.2),
-            },
-            dimming_delta: Delta {},
+            dimming: None,
             dynamics: None,
             effects: None,
             timed_effects: None,
-            identify: json!({}),
             mode: LightMode::Normal,
             on: On { on: true },
-            metadata: LightMetadata {
-                archetype: "spot_bulb".to_string(),
-                name: "Light 1".to_string(),
-            },
+            metadata: LightMetadata::new(LightArchetype::SpotBulb, "Light 1".to_string()),
             owner,
             powerup: None,
             signaling: None,
@@ -187,16 +175,13 @@ pub enum LightArchetype {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightMetadata {
     pub name: String,
-    pub archetype: String,
+    pub archetype: LightArchetype,
 }
 
 impl LightMetadata {
     #[must_use]
-    pub fn new(archetype: &str, name: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            archetype: archetype.to_string(),
-        }
+    pub const fn new(archetype: LightArchetype, name: String) -> Self {
+        Self { name, archetype }
     }
 }
 
@@ -219,9 +204,11 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub const fn with_brightness(self, brightness: f64) -> Self {
+    pub fn with_brightness(self, dim: Option<Dimming>) -> Self {
         Self {
-            dimming: Some(DimmingUpdate { brightness }),
+            dimming: dim.map(|d| DimmingUpdate {
+                brightness: d.brightness,
+            }),
             ..self
         }
     }
@@ -366,7 +353,7 @@ impl ColorTemperature {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 pub struct Dimming {
     pub brightness: f64,
     pub min_dim_level: Option<f64>,

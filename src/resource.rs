@@ -98,7 +98,7 @@ impl Resources {
         match obj {
             Resource::Light(light) => {
                 let mut upd = LightUpdate::new()
-                    .with_brightness(light.dimming.brightness)
+                    .with_brightness(light.dimming)
                     .with_on(light.on.on);
 
                 match light.color_mode {

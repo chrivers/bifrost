@@ -215,7 +215,10 @@ impl Client {
             }
 
             if let Some(b) = upd.brightness {
-                light.dimming.brightness = b / 254.0 * 100.0;
+                light.dimming = Some(Dimming {
+                    brightness: b / 254.0 * 100.0,
+                    min_dim_level: None,
+                });
             }
 
             light.color_mode = upd.color_mode;
@@ -248,8 +251,8 @@ impl Client {
                     SceneAction {
                         color,
                         color_temperature,
-                        dimming: Some(DimmingUpdate {
-                            brightness: light.dimming.brightness,
+                        dimming: light.dimming.map(|b| DimmingUpdate {
+                            brightness: b.brightness,
                         }),
                         on: Some(light.on),
                     },
