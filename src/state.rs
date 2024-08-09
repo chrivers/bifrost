@@ -7,7 +7,7 @@ use mac_address::MacAddress;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::config::{AppConfig, MqttConfig, Z2mConfig};
+use crate::config::{AppConfig, Z2mConfig};
 use crate::error::ApiResult;
 use crate::hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::resource::Resources;
@@ -33,11 +33,6 @@ impl AppState {
     #[must_use]
     pub const fn ip(&self) -> Ipv4Addr {
         self.conf.bridge.ipaddress
-    }
-
-    #[must_use]
-    pub const fn mqtt_config(&self) -> &MqttConfig {
-        &self.conf.mqtt
     }
 
     #[must_use]

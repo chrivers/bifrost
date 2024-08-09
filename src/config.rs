@@ -26,19 +26,9 @@ pub struct Z2mServer {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MqttConfig {
-    pub host: String,
-    pub username: String,
-    pub password: String,
-    pub ha_discovery_topic: String,
-    pub topics: Vec<String>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AppConfig {
     pub bridge: BridgeConfig,
     pub z2m: Z2mConfig,
-    pub mqtt: MqttConfig,
 }
 
 pub fn parse(filename: &str) -> Result<AppConfig, ConfigError> {
