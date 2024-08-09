@@ -56,7 +56,7 @@ impl EventBlock {
                 data: vec![json!({
                     "id": link.rid,
                     "id_v1": format!("/legacy/{}", link.rid.as_simple()),
-                    "rtype": link.rtype,
+                    "type": link.rtype,
                 })],
             }),
         })
