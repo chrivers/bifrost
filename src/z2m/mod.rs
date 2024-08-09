@@ -49,6 +49,70 @@ struct SceneRecall {
     _scene: ResourceLink,
     _room: ResourceLink,
 }
+#[derive(Clone, Debug, Deserialize)]
+pub struct Z2mLightUpdate {
+    device: ResourceLink,
+    upd: DeviceUpdate,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Z2mGroupUpdate {
+    device: ResourceLink,
+    upd: DeviceUpdate,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Z2mSceneStore {
+    room: ResourceLink,
+    id: u32,
+    name: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Z2mSceneRecall {
+    scene: ResourceLink,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Z2mSceneRemove {
+    scene: ResourceLink,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub enum ClientRequest {
+    LightUpdate(Z2mLightUpdate),
+    GroupUpdate(Z2mGroupUpdate),
+    SceneStore(Z2mSceneStore),
+    SceneRecall(Z2mSceneRecall),
+    SceneRemove(Z2mSceneRemove),
+}
+
+impl ClientRequest {
+    #[must_use]
+    pub const fn light_update(device: ResourceLink, upd: DeviceUpdate) -> Self {
+        Self::LightUpdate(Z2mLightUpdate { device, upd })
+    }
+
+    #[must_use]
+    pub const fn group_update(device: ResourceLink, upd: DeviceUpdate) -> Self {
+        Self::GroupUpdate(Z2mGroupUpdate { device, upd })
+    }
+
+    #[must_use]
+    pub const fn scene_remove(scene: ResourceLink) -> Self {
+        Self::SceneRemove(Z2mSceneRemove { scene })
+    }
+
+    #[must_use]
+    pub const fn scene_recall(scene: ResourceLink) -> Self {
+        Self::SceneRecall(Z2mSceneRecall { scene })
+    }
+
+    #[must_use]
+    pub const fn scene_store(room: ResourceLink, id: u32, name: String) -> Self {
+        Self::SceneStore(Z2mSceneStore { room, id, name })
+    }
+}
 
 impl Client {
     pub async fn new(conn: &str, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
