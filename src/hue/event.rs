@@ -1,9 +1,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::{error::ApiResult, hue::api};
+use crate::{
+    error::ApiResult,
+    hue::api::{self, ResourceLink},
+};
 
 use super::date_format;
 
@@ -45,12 +48,16 @@ impl EventBlock {
         })
     }
 
-    pub fn delete<T: Serialize>(data: T) -> ApiResult<Self> {
+    pub fn delete(link: &ResourceLink) -> ApiResult<Self> {
         Ok(Self {
             creationtime: Utc::now(),
             id: Uuid::new_v4(),
             event: Event::Delete(Delete {
-                data: vec![serde_json::to_value(data)?],
+                data: vec![json!({
+                    "id": link.rid,
+                    "id_v1": format!("/legacy/{}", link.rid.as_simple()),
+                    "rtype": link.rtype,
+                })],
             }),
         })
     }

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use thiserror::Error;
 use tokio::task::JoinError;
 use uuid::Uuid;
@@ -7,7 +9,7 @@ use crate::{
         api::{RType, ResourceLink},
         event::EventBlock,
     },
-    z2m::api::Other,
+    z2m::ClientRequest,
 };
 
 #[derive(Error, Debug)]
@@ -31,7 +33,7 @@ pub enum ApiError {
     SendErrorHue(#[from] tokio::sync::broadcast::error::SendError<EventBlock>),
 
     #[error(transparent)]
-    SendErrorZ2m(#[from] tokio::sync::broadcast::error::SendError<Other>),
+    SendErrorZ2m(#[from] tokio::sync::broadcast::error::SendError<Arc<ClientRequest>>),
 
     #[error(transparent)]
     SetLoggerError(#[from] log::SetLoggerError),

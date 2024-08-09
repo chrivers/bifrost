@@ -6,17 +6,20 @@ use axum::{
 };
 use hyper::StatusCode;
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::Value;
 use uuid::Uuid;
 
-use crate::error::{ApiError, ApiResult};
 use crate::hue::api::{
-    GroupedLightUpdate, LightUpdate, RType, Resource, ResourceLink, Room, Scene, SceneRecall,
+    GroupedLightUpdate, LightUpdate, RType, Resource, ResourceLink, Scene, SceneRecall,
     SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
 };
 use crate::resource::AuxData;
 use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
+use crate::{
+    error::{ApiError, ApiResult},
+    z2m::ClientRequest,
+};
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
@@ -86,17 +89,7 @@ async fn post_resource(
 
     let link = match obj {
         Resource::Scene(scn) => {
-            let room = lock.get::<Room>(&scn.group)?;
-
             let sid = lock.get_next_scene_id(&scn.group)?;
-            println!("NEXT: {sid}");
-
-            let payload = json!({
-                "scene_store": {
-                    "ID": sid,
-                    "name": scn.metadata.name,
-                }
-            });
 
             let link_scene = RType::Scene.deterministic((scn.group.rid, sid));
 
@@ -109,7 +102,11 @@ async fn post_resource(
                     .with_index(sid),
             );
 
-            lock.z2m_send_set(&room.metadata.name, payload)?;
+            lock.z2m_request(ClientRequest::scene_store(
+                scn.group,
+                sid,
+                scn.metadata.name.clone(),
+            ))?;
 
             lock.add(&link_scene, Resource::Scene(scn))?;
             drop(lock);
@@ -146,9 +143,10 @@ async fn put_resource_id(
 
     let rlink = rtype.link_to(id);
     let mut lock = state.res.lock().await;
-    let res = lock.get_resource(rtype, &id)?;
-    match res.obj {
-        Resource::Light(obj) => {
+    let res = lock.get_resource(rtype, &id);
+
+    match res?.obj {
+        Resource::Light(_) => {
             let upd: LightUpdate = serde_json::from_value(put)?;
 
             let payload = DeviceUpdate::default()
@@ -157,13 +155,11 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            lock.z2m_send_set(&obj.metadata.name, payload)?;
+            lock.z2m_request(ClientRequest::light_update(rlink, payload))?;
         }
 
-        Resource::GroupedLight(obj) => {
+        Resource::GroupedLight(_) => {
             log::info!("PUT {rtype:?}/{id}: updating");
-
-            let rr: Room = lock.get(&obj.owner)?;
 
             let upd: GroupedLightUpdate = serde_json::from_value(put)?;
 
@@ -173,7 +169,7 @@ async fn put_resource_id(
                 .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
                 .with_color_xy(upd.color.map(|col| col.xy));
 
-            lock.z2m_send_set(&rr.metadata.name, payload)?;
+            lock.z2m_request(ClientRequest::group_update(rlink, payload))?;
         }
 
         Resource::Scene(obj) => {
@@ -199,27 +195,18 @@ async fn put_resource_id(
                     action: Some(SceneStatusUpdate::Active),
                     ..
                 }) => {
-                    let room = lock.get::<Room>(&obj.group)?;
-                    for scn in room.services.iter().filter(|rl| rl.rtype == RType::Scene) {
-                        if let Ok(scene) = lock.get::<Scene>(scn) {
-                            if scene.status != Some(SceneStatus::Inactive) {
-                                lock.update::<Scene>(&scn.rid, |scn| {
-                                    scn.status = Some(SceneStatus::Inactive);
-                                })?;
+                    let scenes = lock.get_scenes_for_room(&obj.group.rid);
+                    for rid in scenes {
+                        lock.update(&rid, |scn: &mut Scene| {
+                            if rid == id {
+                                scn.status = Some(SceneStatus::Static);
+                            } else {
+                                scn.status = Some(SceneStatus::Inactive);
                             }
-                        }
+                        })?;
                     }
-                    lock.update(&id, |scn: &mut Scene| {
-                        scn.status = Some(SceneStatus::Static);
-                    })?;
 
-                    let aux = lock.aux_get(&rlink)?;
-
-                    let topic = aux.topic.as_ref().ok_or(ApiError::AuxNotFound(rlink))?;
-                    let payload =
-                        json!({"scene_recall": aux.index, "_scene": rlink, "_room": obj.group});
-
-                    lock.z2m_send_set(topic, payload)?;
+                    lock.z2m_request(ClientRequest::scene_recall(rlink))?;
                     drop(lock);
                 }
                 Some(recall) => {
@@ -243,26 +230,13 @@ async fn delete_resource_id(
     log::info!("DELETE {rtype:?}/{id}");
     let link = rtype.link_to(id);
 
-    let mut lock = state.res.lock().await;
-
+    let lock = state.res.lock().await;
     let res = lock.get_resource(rtype, &id)?;
+
     match res.obj {
-        Resource::Scene(obj) => {
-            let aux = lock.aux_get(&link)?;
+        Resource::Scene(_) => {
+            lock.z2m_request(ClientRequest::scene_remove(link))?;
 
-            let topic = aux.topic.as_ref().ok_or(ApiError::NotFound(id))?;
-            let index = aux.index.as_ref().ok_or(ApiError::NotFound(id))?;
-            let payload = json!({
-                "scene_remove": index,
-            });
-
-            lock.z2m_send_set(topic, payload)?;
-
-            lock.update::<Room>(&obj.group.rid, |obj| {
-                obj.services.retain(|svc| svc.rid != id);
-            })?;
-
-            lock.delete(&link)?;
             drop(lock);
 
             V2Reply::ok(link)

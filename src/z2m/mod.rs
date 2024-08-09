@@ -2,12 +2,11 @@ pub mod api;
 pub mod update;
 
 use std::collections::{HashMap, HashSet};
-use std::hash::RandomState;
 use std::sync::Arc;
 
 use chrono::{DateTime, Duration, Utc};
 use futures::{SinkExt, StreamExt};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
 use tokio::select;
@@ -203,8 +202,8 @@ impl Client {
 
         if let Ok(room) = res.get::<Room>(&link_room) {
             log::debug!("{link_room:?} is known, updating..");
-            let new: HashSet<&ResourceLink, RandomState> = HashSet::from_iter(&services[..]);
-            let old: HashSet<&ResourceLink, RandomState> = HashSet::from_iter(&room.services[..]);
+            let new: HashSet<&ResourceLink> = HashSet::from_iter(&services[..]);
+            let old: HashSet<&ResourceLink> = HashSet::from_iter(&room.services[..]);
             let gone = old.difference(&new);
             for rlink in gone {
                 log::debug!("Deleting orphaned {rlink:?} in {link_room:?}");
@@ -220,7 +219,8 @@ impl Client {
             services,
         };
 
-        self.map.insert(topic, link_glight.rid);
+        self.map.insert(topic.clone(), link_glight.rid);
+
         res.add(&link_room, Resource::Room(room))?;
 
         let glight = GroupedLight {
@@ -439,13 +439,13 @@ impl Client {
         });
     }
 
-    async fn learn_scene_recall(&mut self, upd: SceneRecall) -> ApiResult<()> {
+    async fn learn_scene_recall(&mut self, upd: &Z2mSceneRecall) -> ApiResult<()> {
         log::info!("recall scene: {upd:?}");
         let lock = self.state.lock().await;
-        let scene: Scene = lock.get(&upd._scene)?;
+        let scene: Scene = lock.get(&upd.scene)?;
 
         if scene.actions.is_empty() {
-            let room: Room = lock.get(&upd._room)?;
+            let room: Room = lock.get(&scene.group)?;
 
             let devices: Vec<Device> = room
                 .children
@@ -470,35 +470,104 @@ impl Client {
                 missing: HashSet::from_iter(lights),
                 known: HashMap::new(),
             };
-            self.learn.insert(upd._scene.rid, learn);
+
+            self.learn.insert(upd.scene.rid, learn);
         }
 
         Ok(())
     }
 
     #[allow(clippy::single_match_else)]
-    async fn websocket_write(&mut self, api_req: Other) -> ApiResult<()> {
-        self.learn_cleanup();
-
-        let topic = api_req
-            .topic
-            .as_str()
-            .strip_suffix("/set")
-            .unwrap_or(&api_req.topic);
+    async fn websocket_send<T: Serialize + Send>(
+        &mut self,
+        topic: &str,
+        payload: T,
+    ) -> ApiResult<()> {
         match self.map.get(topic) {
             Some(uuid) => {
                 log::trace!(
                     "Topic [{topic}] known as {uuid} on this z2m connection, sending event.."
                 );
-                if let Ok(upd) = serde_json::from_value(api_req.payload.clone()) {
-                    self.learn_scene_recall(upd).await?;
-                }
-                let msg = tungstenite::Message::Text(serde_json::to_string(&api_req)?);
+                let api_req = Other {
+                    payload: serde_json::to_value(payload)?,
+                    topic: format!("{topic}/set"),
+                };
+                let json = serde_json::to_string(&api_req)?;
+                log::debug!("Sending {json}");
+                let msg = tungstenite::Message::Text(json);
                 Ok(self.socket.send(msg).await?)
             }
             None => {
                 log::trace!("Topic [{topic}] unknown on this z2m connection");
                 Ok(())
+            }
+        }
+    }
+
+    #[allow(clippy::single_match_else)]
+    async fn websocket_write(&mut self, req: Arc<ClientRequest>) -> ApiResult<()> {
+        self.learn_cleanup();
+
+        let mut lock = self.state.lock().await;
+
+        match &*req {
+            ClientRequest::LightUpdate(ref upd) => {
+                let dev = lock.get::<Light>(&upd.device)?;
+                let topic = dev.metadata.name;
+
+                drop(lock);
+                self.websocket_send(&topic, &upd.upd).await
+            }
+            ClientRequest::GroupUpdate(upd) => {
+                let group = lock.get::<GroupedLight>(&upd.device)?;
+                let room = lock.get::<Room>(&group.owner)?;
+                let topic = room.metadata.name;
+
+                drop(lock);
+                self.websocket_send(&topic, &upd.upd).await
+            }
+            ClientRequest::SceneStore(upd) => {
+                let room = lock.get::<Room>(&upd.room)?;
+                let payload = json!({
+                    "scene_store": {
+                        "ID": upd.id,
+                        "name": upd.name,
+                    }
+                });
+                let topic = room.metadata.name;
+
+                drop(lock);
+                self.websocket_send(&topic, payload).await
+            }
+            ClientRequest::SceneRecall(upd) => {
+                let scene = lock.get::<Scene>(&upd.scene)?;
+                let room = lock.get::<Room>(&scene.group)?;
+                let topic = room.metadata.name;
+                let index = lock.aux_get(&upd.scene)?.index;
+                drop(lock);
+
+                if self.map.contains_key(&topic) {
+                    self.learn_scene_recall(upd).await?;
+                }
+
+                let payload = json!({"scene_recall": index});
+                self.websocket_send(&topic, payload).await
+            }
+            ClientRequest::SceneRemove(upd) => {
+                let scene = lock.get::<Scene>(&upd.scene)?;
+                let room = lock.get::<Room>(&scene.group)?;
+                let topic = room.metadata.name;
+                let index = lock.aux_get(&upd.scene)?.index;
+                if self.map.contains_key(&topic) {
+                    let _ = lock.delete(&upd.scene);
+                }
+                drop(lock);
+
+                let payload = json!({
+                    "scene_remove": index,
+                });
+
+                self.websocket_send(&topic, payload).await
             }
         }
     }
