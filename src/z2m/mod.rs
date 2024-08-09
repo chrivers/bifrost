@@ -509,9 +509,9 @@ impl Client {
             let res = select! {
                 pkt = chan.recv() => {
                     let api_req = pkt?;
-                    self.websocket_write(api_req).await?;
+                    let res = self.websocket_write(api_req).await;
                     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                    Ok(())
+                    res
                 },
                 pkt = self.socket.next() => {
                     self.websocket_read(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await
