@@ -176,6 +176,18 @@ async fn put_resource_id(
             let upd: SceneUpdate = serde_json::from_value(put)?;
             log::info!("{upd:#?}");
 
+            if let Some(md) = upd.metadata {
+                lock.update(&id, |scn: &mut Scene| {
+                    if md.appdata.is_some() {
+                        scn.metadata.appdata = md.appdata;
+                    }
+                    if md.image.is_some() {
+                        scn.metadata.image = md.image;
+                    }
+                    scn.metadata.name = md.name;
+                })?;
+            }
+
             match upd.recall {
                 Some(SceneRecall {
                     action: Some(SceneStatusUpdate::Active),

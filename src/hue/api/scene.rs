@@ -76,6 +76,10 @@ pub struct SceneMetadata {
 pub struct SceneUpdate {
     pub actions: Option<Vec<SceneActionElement>>,
     pub recall: Option<SceneRecall>,
+    pub metadata: Option<SceneMetadata>,
+    pub palette: Option<Value>,
+    pub speed: Option<f64>,
+    pub auto_dynamic: Option<bool>,
 }
 
 impl SceneUpdate {
