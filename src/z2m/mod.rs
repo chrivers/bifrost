@@ -163,11 +163,11 @@ impl Client {
             .map(|f| RType::Device.deterministic(&f.ieee_address))
             .collect();
 
-        let mut services = vec![link_glight];
-
         let topic = grp.friendly_name.to_string();
 
         let mut res = self.state.lock().await;
+
+        let mut scenes_new = HashSet::new();
 
         for scn in &grp.scenes {
             let scene = Scene {
@@ -196,18 +196,23 @@ impl Client {
                 AuxData::new().with_topic(&topic).with_index(scn.id),
             );
 
-            services.push(link_scene);
+            scenes_new.insert(link_scene.rid);
             res.add(&link_scene, Resource::Scene(scene))?;
         }
 
         if let Ok(room) = res.get::<Room>(&link_room) {
-            log::debug!("{link_room:?} is known, updating..");
-            let new: HashSet<&ResourceLink> = HashSet::from_iter(&services[..]);
-            let old: HashSet<&ResourceLink> = HashSet::from_iter(&room.services[..]);
-            let gone = old.difference(&new);
-            for rlink in gone {
-                log::debug!("Deleting orphaned {rlink:?} in {link_room:?}");
-                let _ = res.delete(rlink);
+            log::info!("{link_room:?} ({}) known, updating..", room.metadata.name);
+
+            let scenes_old: HashSet<Uuid> =
+                HashSet::from_iter(res.get_scenes_for_room(&link_room.rid));
+
+            log::trace!("old scenes: {scenes_old:?}");
+            log::trace!("new scenes: {scenes_new:?}");
+            let gone = scenes_old.difference(&scenes_new);
+            log::trace!("   deleted: {gone:?}");
+            for uuid in gone {
+                log::debug!("Deleting orphaned {uuid:?} in {link_room:?}");
+                let _ = res.delete(&RType::Scene.link_to(*uuid));
             }
         } else {
             log::debug!("{link_room:?} is new, adding..");
@@ -216,7 +221,7 @@ impl Client {
         let room = Room {
             children,
             metadata: Metadata::room(RoomArchetypes::Computer, &topic),
-            services,
+            services: vec![link_glight],
         };
 
         self.map.insert(topic.clone(), link_glight.rid);
@@ -508,7 +513,7 @@ impl Client {
     async fn websocket_write(&mut self, req: Arc<ClientRequest>) -> ApiResult<()> {
         self.learn_cleanup();
 
-        let mut lock = self.state.lock().await;
+        let lock = self.state.lock().await;
 
         match &*req {
             ClientRequest::LightUpdate(ref upd) => {
@@ -558,9 +563,6 @@ impl Client {
                 let room = lock.get::<Room>(&scene.group)?;
                 let topic = room.metadata.name;
                 let index = lock.aux_get(&upd.scene)?.index;
-                if self.map.contains_key(&topic) {
-                    let _ = lock.delete(&upd.scene);
-                }
                 drop(lock);
 
                 let payload = json!({
