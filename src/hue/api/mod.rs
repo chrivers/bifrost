@@ -20,10 +20,10 @@ pub use scene::{
     SceneStatusUpdate, SceneUpdate,
 };
 pub use stubs::{
-    BehaviorInstance, BehaviorScript, Bridge, BridgeHome, DollarRef, Entertainment,
-    EntertainmentSegment, EntertainmentSegments, GeofenceClient, Geolocation, Homekit, Matter,
-    Metadata, PublicImage, SmartScene, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus,
-    ZigbeeDeviceDiscovery, Zone,
+    BehaviorInstance, BehaviorScript, Bridge, BridgeHome, Button, ButtonData, ButtonMetadata,
+    ButtonReport, DollarRef, Entertainment, EntertainmentSegment, EntertainmentSegments,
+    GeofenceClient, Geolocation, Homekit, Matter, Metadata, PublicImage, SmartScene, TimeZone,
+    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
 };
 pub use update::{Update, UpdateRecord};
 
@@ -41,6 +41,7 @@ pub enum Resource {
     BehaviorScript(BehaviorScript),
     Bridge(Bridge),
     BridgeHome(BridgeHome),
+    Button(Button),
     Device(Device),
     Entertainment(Entertainment),
     GeofenceClient(GeofenceClient),
@@ -66,6 +67,7 @@ impl Resource {
             Self::BehaviorInstance(_) => RType::BehaviorInstance,
             Self::Bridge(_) => RType::Bridge,
             Self::BridgeHome(_) => RType::BridgeHome,
+            Self::Button(_) => RType::Button,
             Self::Device(_) => RType::Device,
             Self::Entertainment(_) => RType::Entertainment,
             Self::GeofenceClient(_) => RType::GeofenceClient,
@@ -90,6 +92,7 @@ impl Resource {
             RType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
             RType::Bridge => Self::Bridge(from_value(obj)?),
             RType::BridgeHome => Self::BridgeHome(from_value(obj)?),
+            RType::Button => Self::Button(from_value(obj)?),
             RType::Device => Self::Device(from_value(obj)?),
             RType::Entertainment => Self::Entertainment(from_value(obj)?),
             RType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
@@ -149,6 +152,7 @@ resource_conversion_impl!(BehaviorScript);
 resource_conversion_impl!(BehaviorInstance);
 resource_conversion_impl!(Bridge);
 resource_conversion_impl!(BridgeHome);
+resource_conversion_impl!(Button);
 resource_conversion_impl!(Device);
 resource_conversion_impl!(Entertainment);
 resource_conversion_impl!(GeofenceClient);

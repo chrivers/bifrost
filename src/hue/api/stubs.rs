@@ -1,8 +1,9 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::hue::api::{ResourceLink, RoomArchetypes, SceneMetadata};
-use crate::hue::best_guess_timezone;
+use crate::hue::{best_guess_timezone, date_format};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Bridge {
@@ -15,6 +16,37 @@ pub struct Bridge {
 pub struct BridgeHome {
     pub children: Vec<ResourceLink>,
     pub services: Vec<ResourceLink>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Button {
+    pub owner: ResourceLink,
+    pub metadata: ButtonMetadata,
+    pub button: ButtonData,
+    #[serde(rename = "type")]
+    pub button_type: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ButtonMetadata {
+    pub control_id: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ButtonData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub button_report: Option<ButtonReport>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repeat_interval: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_values: Option<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ButtonReport {
+    #[serde(with = "date_format::utc")]
+    pub updated: DateTime<Utc>,
+    pub event: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -13,6 +13,7 @@ pub enum RType {
     BehaviorScript,
     Bridge,
     BridgeHome,
+    Button,
     Device,
     Entertainment,
     GeofenceClient,
