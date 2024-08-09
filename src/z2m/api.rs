@@ -320,6 +320,17 @@ impl Device {
             .iter()
             .any(|exp| matches!(exp, Expose::Light(_)))
     }
+
+    #[must_use]
+    pub fn expose_action(&self) -> bool {
+        self.exposes().iter().any(|exp| {
+            if let Expose::Enum(ExposeEnum { name, .. }) = exp {
+                name == "action"
+            } else {
+                false
+            }
+        })
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
