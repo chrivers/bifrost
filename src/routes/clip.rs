@@ -225,11 +225,11 @@ async fn put_resource_id(
                 Some(recall) => {
                     log::error!("Scene recall type not supported: {recall:?}");
                 }
-                _ => {}
+                None => {}
             }
         }
-        _ => {
-            log::warn!("PUT {rtype:?}/{id}: state update not supported");
+        resource => {
+            log::warn!("PUT {rtype:?}/{id}: state update not supported: {resource:?}");
         }
     }
 
