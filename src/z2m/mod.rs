@@ -36,6 +36,7 @@ struct LearnScene {
 }
 
 pub struct Client {
+    name: String,
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
     state: Arc<Mutex<Resources>>,
     map: HashMap<String, Uuid>,
@@ -114,11 +115,12 @@ impl ClientRequest {
 }
 
 impl Client {
-    pub async fn new(conn: &str, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
+    pub async fn new(name: String, conn: &str, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
         let (socket, _) = connect_async(conn).await?;
         let map = HashMap::new();
         let learn = HashMap::new();
         Ok(Self {
+            name,
             socket,
             state,
             map,
@@ -201,21 +203,28 @@ impl Client {
         }
 
         if let Ok(room) = res.get::<Room>(&link_room) {
-            log::info!("{link_room:?} ({}) known, updating..", room.metadata.name);
+            log::info!(
+                "[{}] {link_room:?} ({}) known, updating..",
+                self.name,
+                room.metadata.name
+            );
 
             let scenes_old: HashSet<Uuid> =
                 HashSet::from_iter(res.get_scenes_for_room(&link_room.rid));
 
-            log::trace!("old scenes: {scenes_old:?}");
-            log::trace!("new scenes: {scenes_new:?}");
+            log::trace!("[{}] old scenes: {scenes_old:?}", self.name);
+            log::trace!("[{}] new scenes: {scenes_new:?}", self.name);
             let gone = scenes_old.difference(&scenes_new);
-            log::trace!("   deleted: {gone:?}");
+            log::trace!("[{}]   deleted: {gone:?}", self.name);
             for uuid in gone {
-                log::debug!("Deleting orphaned {uuid:?} in {link_room:?}");
+                log::debug!(
+                    "[{}] Deleting orphaned {uuid:?} in {link_room:?}",
+                    self.name
+                );
                 let _ = res.delete(&RType::Scene.link_to(*uuid));
             }
         } else {
-            log::debug!("{link_room:?} is new, adding..");
+            log::debug!("[{}] {link_room:?} is new, adding..", self.name);
         }
 
         let room = Room {
@@ -314,14 +323,14 @@ impl Client {
                     },
                 );
             }
-            log::info!("Learn: {learn:?}");
+            log::info!("[{}] Learn: {learn:?}", self.name);
         }
 
         let keys: Vec<Uuid> = self.learn.keys().copied().collect();
         for uuid in &keys {
             if self.learn[uuid].missing.is_empty() {
                 let lscene = self.learn.remove(uuid).unwrap();
-                log::info!("Learned all lights {uuid}");
+                log::info!("[{}] Learned all lights {uuid}", self.name);
                 let actions: Vec<SceneActionElement> = lscene
                     .known
                     .into_iter()
@@ -401,7 +410,11 @@ impl Client {
                 }
 
                 let Some(ref val) = self.map.get(&obj.topic).copied() else {
-                    log::warn!("Notification on unknown topic {}", &obj.topic);
+                    log::warn!(
+                        "[{}] Notification on unknown topic {}",
+                        self.name,
+                        &obj.topic
+                    );
                     return Ok(());
                 };
 
@@ -414,7 +427,7 @@ impl Client {
 
     async fn websocket_read(&mut self, pkt: tungstenite::Message) -> ApiResult<()> {
         let tungstenite::Message::Text(txt) = pkt else {
-            log::error!("Received non-text message on websocket :(");
+            log::error!("[{}] Received non-text message on websocket :(", self.name);
             return Err(ApiError::UnexpectedZ2mReply(pkt));
         };
 
@@ -424,7 +437,8 @@ impl Client {
             Ok(msg) => self.handle_message(msg).await,
             Err(err) => {
                 log::error!(
-                    "Invalid websocket message: {:#?} [{}..]",
+                    "[{}] Invalid websocket message: {:#?} [{}..]",
+                    self.name,
                     err,
                     &txt.chars().take(128).collect::<String>()
                 );
@@ -438,14 +452,17 @@ impl Client {
         self.learn.retain(|uuid, lscene| {
             let res = lscene.expire < now;
             if !res {
-                log::warn!("Failed to learn scene {uuid} before deadline");
+                log::warn!(
+                    "[{}] Failed to learn scene {uuid} before deadline",
+                    self.name
+                );
             }
             res
         });
     }
 
     async fn learn_scene_recall(&mut self, upd: &Z2mSceneRecall) -> ApiResult<()> {
-        log::info!("recall scene: {upd:?}");
+        log::info!("[{}] Recall scene: {upd:?}", self.name);
         let lock = self.state.lock().await;
         let scene: Scene = lock.get(&upd.scene)?;
 
@@ -465,10 +482,6 @@ impl Client {
                 .collect();
 
             drop(lock);
-
-            log::info!("{scene:?}");
-            log::info!("{room:?}");
-            log::info!("{lights:#?}");
 
             let learn = LearnScene {
                 expire: Utc::now() + Duration::seconds(5),
@@ -491,19 +504,23 @@ impl Client {
         match self.map.get(topic) {
             Some(uuid) => {
                 log::trace!(
-                    "Topic [{topic}] known as {uuid} on this z2m connection, sending event.."
+                    "[{}] Topic [{topic}] known as {uuid} on this z2m connection, sending event..",
+                    self.name
                 );
                 let api_req = Other {
                     payload: serde_json::to_value(payload)?,
                     topic: format!("{topic}/set"),
                 };
                 let json = serde_json::to_string(&api_req)?;
-                log::debug!("Sending {json}");
+                log::debug!("[{}] Sending {json}", self.name);
                 let msg = tungstenite::Message::Text(json);
                 Ok(self.socket.send(msg).await?)
             }
             None => {
-                log::trace!("Topic [{topic}] unknown on this z2m connection");
+                log::trace!(
+                    "[{}] Topic [{topic}] unknown on this z2m connection",
+                    self.name
+                );
                 Ok(())
             }
         }
@@ -590,7 +607,7 @@ impl Client {
             };
 
             if let Err(ref err) = res {
-                log::error!("Event loop failed!: {err:?}");
+                log::error!("[{}] Event loop failed!: {err:?}", self.name);
                 return res;
             }
         }
