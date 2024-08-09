@@ -20,19 +20,19 @@ pub struct BridgeHome {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DollarRef {
     #[serde(rename = "$ref")]
-    dref: String,
+    pub dref: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
-    configuration_schema: DollarRef,
-    description: String,
-    max_number_instances: Option<u32>,
-    metadata: Value,
-    state_schema: DollarRef,
-    supported_features: Vec<String>,
-    trigger_schema: DollarRef,
-    version: String,
+    pub configuration_schema: DollarRef,
+    pub description: String,
+    pub max_number_instances: Option<u32>,
+    pub metadata: Value,
+    pub state_schema: DollarRef,
+    pub supported_features: Vec<String>,
+    pub trigger_schema: DollarRef,
+    pub version: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -40,41 +40,41 @@ pub struct BehaviorInstance {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Entertainment {
-    equalizer: bool,
-    owner: ResourceLink,
-    proxy: bool,
-    renderer: bool,
-    renderer_reference: ResourceLink,
-    segments: EntertainmentSegments,
+    pub equalizer: bool,
+    pub owner: ResourceLink,
+    pub proxy: bool,
+    pub renderer: bool,
+    pub renderer_reference: ResourceLink,
+    pub segments: EntertainmentSegments,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentSegments {
-    configurable: bool,
-    max_segments: u32,
-    segments: Vec<EntertainmentSegment>,
+    pub configurable: bool,
+    pub max_segments: u32,
+    pub segments: Vec<EntertainmentSegment>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentSegment {
-    length: u32,
-    start: u32,
+    pub length: u32,
+    pub start: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GeofenceClient {
-    name: String,
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Geolocation {
-    is_configured: bool,
+    pub is_configured: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Homekit {
-    status: String,
-    status_values: Vec<String>,
+    pub status: String,
+    pub status_values: Vec<String>,
 }
 
 impl Default for Homekit {
@@ -92,8 +92,8 @@ impl Default for Homekit {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Matter {
-    has_qr_code: bool,
-    max_fabrics: u32,
+    pub has_qr_code: bool,
+    pub max_fabrics: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -105,12 +105,12 @@ pub struct SmartScene {
     /*     timeslot_id: 3, */
     /*     weekday: monday */
     /* }, */
-    active_timeslot: Value,
-    group: ResourceLink,
-    metadata: SceneMetadata,
-    state: String,
-    transition_duration: u32,
-    week_timeslots: Value,
+    pub active_timeslot: Value,
+    pub group: ResourceLink,
+    pub metadata: SceneMetadata,
+    pub state: String,
+    pub transition_duration: u32,
+    pub week_timeslots: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -121,15 +121,15 @@ pub enum ZigbeeConnectivityStatus {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
-    mac_address: String,
-    owner: ResourceLink,
-    status: ZigbeeConnectivityStatus,
+    pub mac_address: String,
+    pub owner: ResourceLink,
+    pub status: ZigbeeConnectivityStatus,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeDeviceDiscovery {
-    owner: ResourceLink,
-    status: String,
+    pub owner: ResourceLink,
+    pub status: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
