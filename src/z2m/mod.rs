@@ -208,7 +208,7 @@ impl Client {
             let gone = old.difference(&new);
             for rlink in gone {
                 log::debug!("Deleting orphaned {rlink:?} in {link_room:?}");
-                res.delete(rlink)?;
+                let _ = res.delete(rlink);
             }
         } else {
             log::debug!("{link_room:?} is new, adding..");
