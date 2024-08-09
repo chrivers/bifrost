@@ -191,6 +191,7 @@ impl Resources {
     }
 
     pub fn delete(&mut self, link: &ResourceLink) -> ApiResult<()> {
+        log::info!("Deleting {link:?}..");
         self.res
             .remove(&link.rid)
             .ok_or(ApiError::NotFound(link.rid))?;
