@@ -44,74 +44,57 @@ pub struct Client {
     learn: HashMap<Uuid, LearnScene>,
 }
 
-#[allow(clippy::used_underscore_binding)]
-#[derive(Debug, Deserialize)]
-struct SceneRecall {
-    _scene: ResourceLink,
-    _room: ResourceLink,
-}
-#[derive(Clone, Debug, Deserialize)]
-pub struct Z2mLightUpdate {
-    device: ResourceLink,
-    upd: DeviceUpdate,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct Z2mGroupUpdate {
-    device: ResourceLink,
-    upd: DeviceUpdate,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct Z2mSceneStore {
-    room: ResourceLink,
-    id: u32,
-    name: String,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct Z2mSceneRecall {
-    scene: ResourceLink,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct Z2mSceneRemove {
-    scene: ResourceLink,
-}
-
 #[derive(Clone, Debug, Deserialize)]
 pub enum ClientRequest {
-    LightUpdate(Z2mLightUpdate),
-    GroupUpdate(Z2mGroupUpdate),
-    SceneStore(Z2mSceneStore),
-    SceneRecall(Z2mSceneRecall),
-    SceneRemove(Z2mSceneRemove),
+    LightUpdate {
+        device: ResourceLink,
+        upd: DeviceUpdate,
+    },
+
+    GroupUpdate {
+        device: ResourceLink,
+        upd: DeviceUpdate,
+    },
+
+    SceneStore {
+        room: ResourceLink,
+        id: u32,
+        name: String,
+    },
+
+    SceneRecall {
+        scene: ResourceLink,
+    },
+
+    SceneRemove {
+        scene: ResourceLink,
+    },
 }
 
 impl ClientRequest {
     #[must_use]
     pub const fn light_update(device: ResourceLink, upd: DeviceUpdate) -> Self {
-        Self::LightUpdate(Z2mLightUpdate { device, upd })
+        Self::LightUpdate { device, upd }
     }
 
     #[must_use]
     pub const fn group_update(device: ResourceLink, upd: DeviceUpdate) -> Self {
-        Self::GroupUpdate(Z2mGroupUpdate { device, upd })
+        Self::GroupUpdate { device, upd }
     }
 
     #[must_use]
     pub const fn scene_remove(scene: ResourceLink) -> Self {
-        Self::SceneRemove(Z2mSceneRemove { scene })
+        Self::SceneRemove { scene }
     }
 
     #[must_use]
     pub const fn scene_recall(scene: ResourceLink) -> Self {
-        Self::SceneRecall(Z2mSceneRecall { scene })
+        Self::SceneRecall { scene }
     }
 
     #[must_use]
     pub const fn scene_store(room: ResourceLink, id: u32, name: String) -> Self {
-        Self::SceneStore(Z2mSceneStore { room, id, name })
+        Self::SceneStore { room, id, name }
     }
 }
 
@@ -462,10 +445,10 @@ impl Client {
         });
     }
 
-    async fn learn_scene_recall(&mut self, upd: &Z2mSceneRecall) -> ApiResult<()> {
-        log::info!("[{}] Recall scene: {upd:?}", self.name);
+    async fn learn_scene_recall(&mut self, lscene: &ResourceLink) -> ApiResult<()> {
+        log::info!("[{}] Recall scene: {lscene:?}", self.name);
         let lock = self.state.lock().await;
-        let scene: Scene = lock.get(&upd.scene)?;
+        let scene: Scene = lock.get(lscene)?;
 
         if scene.actions.is_empty() {
             let room: Room = lock.get(&scene.group)?;
@@ -490,7 +473,7 @@ impl Client {
                 known: HashMap::new(),
             };
 
-            self.learn.insert(upd.scene.rid, learn);
+            self.learn.insert(lscene.rid, learn);
         }
 
         Ok(())
@@ -539,27 +522,27 @@ impl Client {
         let lock = self.state.lock().await;
 
         match &*req {
-            ClientRequest::LightUpdate(ref upd) => {
-                let dev = lock.get::<Light>(&upd.device)?;
+            ClientRequest::LightUpdate { device, upd } => {
+                let dev = lock.get::<Light>(device)?;
                 let topic = dev.metadata.name;
 
                 drop(lock);
-                self.websocket_send(socket, &topic, &upd.upd).await
+                self.websocket_send(socket, &topic, &upd).await
             }
-            ClientRequest::GroupUpdate(upd) => {
-                let group = lock.get::<GroupedLight>(&upd.device)?;
+            ClientRequest::GroupUpdate { device, upd } => {
+                let group = lock.get::<GroupedLight>(device)?;
                 let room = lock.get::<Room>(&group.owner)?;
                 let topic = room.metadata.name;
 
                 drop(lock);
-                self.websocket_send(socket, &topic, &upd.upd).await
+                self.websocket_send(socket, &topic, &upd).await
             }
-            ClientRequest::SceneStore(upd) => {
-                let room = lock.get::<Room>(&upd.room)?;
+            ClientRequest::SceneStore { room, id, name } => {
+                let room = lock.get::<Room>(room)?;
                 let payload = json!({
                     "scene_store": {
-                        "ID": upd.id,
-                        "name": upd.name,
+                        "ID": id,
+                        "name": name,
                     }
                 });
                 let topic = room.metadata.name;
@@ -567,25 +550,25 @@ impl Client {
                 drop(lock);
                 self.websocket_send(socket, &topic, payload).await
             }
-            ClientRequest::SceneRecall(upd) => {
-                let scene = lock.get::<Scene>(&upd.scene)?;
-                let room = lock.get::<Room>(&scene.group)?;
+            ClientRequest::SceneRecall { scene } => {
+                let scn = lock.get::<Scene>(scene)?;
+                let room = lock.get::<Room>(&scn.group)?;
                 let topic = room.metadata.name;
-                let index = lock.aux_get(&upd.scene)?.index;
+                let index = lock.aux_get(scene)?.index;
                 drop(lock);
 
                 if self.map.contains_key(&topic) {
-                    self.learn_scene_recall(upd).await?;
+                    self.learn_scene_recall(scene).await?;
                 }
 
                 let payload = json!({"scene_recall": index});
                 self.websocket_send(socket, &topic, payload).await
             }
-            ClientRequest::SceneRemove(upd) => {
-                let scene = lock.get::<Scene>(&upd.scene)?;
-                let room = lock.get::<Room>(&scene.group)?;
+            ClientRequest::SceneRemove { scene } => {
+                let scn = lock.get::<Scene>(scene)?;
+                let room = lock.get::<Room>(&scn.group)?;
                 let topic = room.metadata.name;
-                let index = lock.aux_get(&upd.scene)?.index;
+                let index = lock.aux_get(scene)?.index;
                 drop(lock);
 
                 let payload = json!({
