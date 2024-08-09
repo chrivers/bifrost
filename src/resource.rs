@@ -192,7 +192,7 @@ impl Resources {
         );
 
         if self.res.contains_key(&link.rid) {
-            log::debug!("Resource {link:?} is already known");
+            log::trace!("Resource {link:?} is already known");
             return Ok(());
         }
 
