@@ -138,10 +138,8 @@ async fn main() -> ApiResult<()> {
     tasks.spawn(config_writer(appstate.res.clone()));
 
     for (name, server) in &appstate.z2m_config().servers {
-        log::info!("Connecting to [{name}]: {}", server.url);
-        let client = z2m::Client::new(name.clone(), &server.url, appstate.res.clone()).await?;
-
-        tasks.spawn(client.event_loop());
+        let client = z2m::Client::new(name.clone(), server.url.clone(), appstate.res.clone())?;
+        tasks.spawn(client.run_forever());
     }
 
     while let Some(res) = tasks.join_next().await {

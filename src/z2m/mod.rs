@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
 use tokio::select;
+use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
@@ -37,7 +38,7 @@ struct LearnScene {
 
 pub struct Client {
     name: String,
-    socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    conn: String,
     state: Arc<Mutex<Resources>>,
     map: HashMap<String, Uuid>,
     learn: HashMap<Uuid, LearnScene>,
@@ -115,13 +116,12 @@ impl ClientRequest {
 }
 
 impl Client {
-    pub async fn new(name: String, conn: &str, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
-        let (socket, _) = connect_async(conn).await?;
+    pub fn new(name: String, conn: String, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
         let map = HashMap::new();
         let learn = HashMap::new();
         Ok(Self {
             name,
-            socket,
+            conn,
             state,
             map,
             learn,
@@ -380,7 +380,8 @@ impl Client {
                 for dev in obj {
                     if dev.expose_light() {
                         log::info!(
-                            "Adding light {:?}: [{}] ({})",
+                            "[{}] Adding light {:?}: [{}] ({})",
+                            self.name,
                             dev.ieee_address,
                             dev.friendly_name,
                             dev.model_id.as_deref().unwrap_or("<unknown model>")
@@ -497,7 +498,8 @@ impl Client {
 
     #[allow(clippy::single_match_else)]
     async fn websocket_send<T: Serialize + Send>(
-        &mut self,
+        &self,
+        socket: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
         topic: &str,
         payload: T,
     ) -> ApiResult<()> {
@@ -514,7 +516,7 @@ impl Client {
                 let json = serde_json::to_string(&api_req)?;
                 log::debug!("[{}] Sending {json}", self.name);
                 let msg = tungstenite::Message::Text(json);
-                Ok(self.socket.send(msg).await?)
+                Ok(socket.send(msg).await?)
             }
             None => {
                 log::trace!(
@@ -527,7 +529,11 @@ impl Client {
     }
 
     #[allow(clippy::single_match_else)]
-    async fn websocket_write(&mut self, req: Arc<ClientRequest>) -> ApiResult<()> {
+    async fn websocket_write(
+        &mut self,
+        socket: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
+        req: Arc<ClientRequest>,
+    ) -> ApiResult<()> {
         self.learn_cleanup();
 
         let lock = self.state.lock().await;
@@ -538,7 +544,7 @@ impl Client {
                 let topic = dev.metadata.name;
 
                 drop(lock);
-                self.websocket_send(&topic, &upd.upd).await
+                self.websocket_send(socket, &topic, &upd.upd).await
             }
             ClientRequest::GroupUpdate(upd) => {
                 let group = lock.get::<GroupedLight>(&upd.device)?;
@@ -546,7 +552,7 @@ impl Client {
                 let topic = room.metadata.name;
 
                 drop(lock);
-                self.websocket_send(&topic, &upd.upd).await
+                self.websocket_send(socket, &topic, &upd.upd).await
             }
             ClientRequest::SceneStore(upd) => {
                 let room = lock.get::<Room>(&upd.room)?;
@@ -559,7 +565,7 @@ impl Client {
                 let topic = room.metadata.name;
 
                 drop(lock);
-                self.websocket_send(&topic, payload).await
+                self.websocket_send(socket, &topic, payload).await
             }
             ClientRequest::SceneRecall(upd) => {
                 let scene = lock.get::<Scene>(&upd.scene)?;
@@ -573,7 +579,7 @@ impl Client {
                 }
 
                 let payload = json!({"scene_recall": index});
-                self.websocket_send(&topic, payload).await
+                self.websocket_send(socket, &topic, payload).await
             }
             ClientRequest::SceneRemove(upd) => {
                 let scene = lock.get::<Scene>(&upd.scene)?;
@@ -586,22 +592,25 @@ impl Client {
                     "scene_remove": index,
                 });
 
-                self.websocket_send(&topic, payload).await
+                self.websocket_send(socket, &topic, payload).await
             }
         }
     }
 
-    pub async fn event_loop(mut self) -> ApiResult<()> {
-        let mut chan = self.state.lock().await.z2m_channel();
+    pub async fn event_loop(
+        &mut self,
+        chan: &mut Receiver<Arc<ClientRequest>>,
+        mut socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    ) -> ApiResult<()> {
         loop {
             let res = select! {
                 pkt = chan.recv() => {
                     let api_req = pkt?;
-                    let res = self.websocket_write(api_req).await;
+                    let res = self.websocket_write(&mut socket, api_req).await;
                     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                     res
                 },
-                pkt = self.socket.next() => {
+                pkt = socket.next() => {
                     self.websocket_read(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await
                 },
             };
@@ -609,6 +618,24 @@ impl Client {
             if let Err(ref err) = res {
                 log::error!("[{}] Event loop failed!: {err:?}", self.name);
                 return res;
+            }
+        }
+    }
+
+    pub async fn run_forever(mut self) -> ApiResult<()> {
+        let mut chan = self.state.lock().await.z2m_channel();
+        loop {
+            log::info!("[{}] Connecting to {}", self.name, self.conn);
+            match connect_async(&self.conn).await {
+                Ok((socket, _)) => {
+                    let res = self.event_loop(&mut chan, socket).await;
+                    log::error!("[{}] Event loop broke: {res:?}", self.name);
+                    tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+                }
+                Err(err) => {
+                    log::error!("[{}] Connect failed: {err:?}", self.name);
+                    tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+                }
             }
         }
     }
