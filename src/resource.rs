@@ -195,6 +195,8 @@ impl Resources {
             .remove(&link.rid)
             .ok_or(ApiError::NotFound(link.rid))?;
 
+        self.aux.remove(&link.rid);
+
         self.state_updates.notify_one();
 
         let evt = EventBlock::delete(link)?;
