@@ -45,14 +45,20 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let error_msg = format!("{self}");
         log::error!("Request failed: {error_msg}");
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(V2Reply::<Value> {
-                data: vec![],
-                errors: vec![error_msg],
-            }),
-        )
-            .into_response()
+        let res = Json(V2Reply::<Value> {
+            data: vec![],
+            errors: vec![error_msg],
+        });
+
+        let status = match self {
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Full(_) => StatusCode::INSUFFICIENT_STORAGE,
+            Self::WrongType(_, _) => StatusCode::NOT_ACCEPTABLE,
+            Self::DeleteDenied(_) => StatusCode::FORBIDDEN,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        };
+
+        (status, res).into_response()
     }
 }
 
