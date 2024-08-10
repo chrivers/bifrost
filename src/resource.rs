@@ -10,8 +10,9 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::api::{
-    Bridge, BridgeHome, Device, DeviceProductData, Metadata, RType, Resource, ResourceLink,
-    ResourceRecord, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery,
+    Bridge, BridgeHome, Device, DeviceArchetype, DeviceProductData, Metadata, RType, Resource,
+    ResourceLink, ResourceRecord, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    ZigbeeDeviceDiscovery,
 };
 use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
@@ -236,7 +237,7 @@ impl Resources {
 
         let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
-            metadata: Metadata::hue_bridge("bifrost"),
+            metadata: Metadata::new(DeviceArchetype::BridgeV2, "bifrost"),
             services: vec![link_bridge, link_zbdd, link_zbc],
         };
 
@@ -248,7 +249,7 @@ impl Resources {
 
         let bridge_home_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
-            metadata: Metadata::hue_bridge("bifrost bridge home"),
+            metadata: Metadata::new(DeviceArchetype::BridgeV2, "bifrost bridge home"),
             services: vec![link_bridge],
         };
 

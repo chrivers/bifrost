@@ -1,18 +1,24 @@
 use serde::{Deserialize, Serialize};
 
-use crate::hue::api::{Metadata, RType, ResourceLink};
+use crate::hue::api::ResourceLink;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RoomMetadata {
+    pub name: String,
+    pub archetype: RoomArchetype,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Room {
     pub children: Vec<ResourceLink>,
-    pub metadata: Metadata,
+    pub metadata: RoomMetadata,
     #[serde(default)]
     pub services: Vec<ResourceLink>,
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
-pub enum RoomArchetypes {
+pub enum RoomArchetype {
     LivingRoom,
     Kitchen,
     Dining,
@@ -53,4 +59,14 @@ pub enum RoomArchetypes {
     Barbecue,
     Pool,
     Other,
+}
+
+impl RoomMetadata {
+    #[must_use]
+    pub fn new(archetype: RoomArchetype, name: &str) -> Self {
+        Self {
+            archetype,
+            name: name.to_string(),
+        }
+    }
 }

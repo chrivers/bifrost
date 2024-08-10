@@ -18,9 +18,9 @@ use uuid::Uuid;
 use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperatureUpdate, ColorUpdate, Device,
-    DeviceProductData, Dimming, DimmingUpdate, GroupedLight, Light, Metadata, On, RType, Resource,
-    ResourceLink, Room, RoomArchetypes, Scene, SceneAction, SceneActionElement, SceneMetadata,
-    SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight, Light, Metadata, On,
+    RType, Resource, ResourceLink, Room, RoomArchetype, RoomMetadata, Scene, SceneAction,
+    SceneActionElement, SceneMetadata, SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -120,14 +120,14 @@ impl Client {
 
         let dev = hue::api::Device {
             product_data: DeviceProductData::guess_from_device(dev),
-            metadata: Metadata::spot_bulb(name),
+            metadata: Metadata::new(DeviceArchetype::SpotBulb, name),
             services: vec![link_light],
         };
 
         self.map.insert(name.to_string(), link_light.rid);
 
         let mut res = self.state.lock().await;
-        let mut light = Light::new(link_device);
+        let mut light = Light::new(link_device, Metadata::new(DeviceArchetype::SpotBulb, name));
         light.metadata.name = name.to_string();
 
         res.aux_set(&link_light, AuxData::new().with_topic(name));
@@ -147,7 +147,7 @@ impl Client {
 
         let dev = hue::api::Device {
             product_data: DeviceProductData::guess_from_device(dev),
-            metadata: Metadata::spot_bulb("foo"),
+            metadata: Metadata::new(DeviceArchetype::UnknownArchetype, "foo"),
             services: vec![link_button, link_zbc],
         };
 
@@ -260,7 +260,7 @@ impl Client {
 
         let room = Room {
             children,
-            metadata: Metadata::room(RoomArchetypes::Computer, &topic),
+            metadata: RoomMetadata::new(RoomArchetype::Computer, &topic),
             services: vec![link_glight],
         };
 

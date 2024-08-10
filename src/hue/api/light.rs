@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::hue::api::{DeviceArchetype, ResourceLink};
+use crate::hue::api::{Metadata, ResourceLink};
 use crate::{types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -12,7 +12,7 @@ pub struct Light {
     pub color_mode: Option<DeviceColorMode>,
 
     pub owner: ResourceLink,
-    pub metadata: LightMetadata,
+    pub metadata: Metadata,
 
     pub alert: Option<Vec<Value>>,
     pub color: LightColor,
@@ -29,7 +29,7 @@ pub struct Light {
 
 impl Light {
     #[must_use]
-    pub fn new(owner: ResourceLink) -> Self {
+    pub fn new(owner: ResourceLink, metadata: Metadata) -> Self {
         Self {
             alert: None,
             color_mode: None,
@@ -41,7 +41,7 @@ impl Light {
             timed_effects: None,
             mode: LightMode::Normal,
             on: On { on: true },
-            metadata: LightMetadata::new(DeviceArchetype::SpotBulb, "Light 1".to_string()),
+            metadata,
             owner,
             powerup: None,
             signaling: None,
@@ -116,19 +116,6 @@ pub struct LightTimedEffects {
     pub status_values: Value,
     pub status: Value,
     pub effect_values: Value,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LightMetadata {
-    pub name: String,
-    pub archetype: DeviceArchetype,
-}
-
-impl LightMetadata {
-    #[must_use]
-    pub const fn new(archetype: DeviceArchetype, name: String) -> Self {
-        Self { name, archetype }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
