@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::hue::api::{Metadata, ResourceLink};
+use crate::z2m::api::Expose;
 use crate::{types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -257,6 +258,19 @@ impl LightColor {
             xy,
         }
     }
+
+    #[must_use]
+    pub const fn extract_from_expose(expose: &Expose) -> Option<Self> {
+        let Expose::Composite(_) = expose else {
+            return None;
+        };
+
+        Some(Self {
+            gamut: Some(ColorGamut::GAMUT_C),
+            gamut_type: GamutType::C,
+            xy: XY::D65_WHITE_POINT,
+        })
+    }
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
@@ -277,6 +291,26 @@ pub struct ColorTemperature {
     pub mirek: u32,
     pub mirek_schema: MirekSchema,
     pub mirek_valid: bool,
+}
+
+impl ColorTemperature {
+    #[must_use]
+    pub fn extract_from_expose(expose: &Expose) -> Option<Self> {
+        let Expose::Numeric(num) = expose else {
+            return None;
+        };
+
+        let schema_opt = num.extract_mirek_schema();
+        let mirek_valid = schema_opt.is_some();
+        let mirek_schema = schema_opt.unwrap_or(MirekSchema::DEFAULT);
+        let mirek = (mirek_schema.mirek_maximum - mirek_schema.mirek_minimum) / 2;
+
+        Some(Self {
+            mirek,
+            mirek_schema,
+            mirek_valid,
+        })
+    }
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
