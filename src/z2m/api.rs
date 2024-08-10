@@ -363,13 +363,11 @@ impl Expose {
     #[must_use]
     pub fn name(&self) -> Option<&str> {
         match self {
-            Expose::Binary(obj) => Some(obj.name.as_str()),
-            Expose::Composite(_) => None,
-            Expose::Enum(obj) => Some(obj.name.as_str()),
-            Expose::Light(_) => None,
-            Expose::List(_) => None,
-            Expose::Numeric(obj) => Some(obj.name.as_str()),
-            Expose::Switch(_) => None,
+            Self::Binary(obj) => Some(obj.name.as_str()),
+            Self::Composite(obj) => Some(obj.name.as_str()),
+            Self::Enum(obj) => Some(obj.name.as_str()),
+            Self::Numeric(obj) => Some(obj.name.as_str()),
+            Self::Light(_) | Self::List(_) | Self::Switch(_) => None,
         }
     }
 }
