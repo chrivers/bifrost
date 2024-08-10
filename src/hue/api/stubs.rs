@@ -23,8 +23,6 @@ pub struct Button {
     pub owner: ResourceLink,
     pub metadata: ButtonMetadata,
     pub button: ButtonData,
-    #[serde(rename = "type")]
-    pub button_type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

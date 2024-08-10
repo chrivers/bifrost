@@ -157,7 +157,6 @@ impl Client {
         let button = Button {
             owner: link_device,
             metadata: ButtonMetadata { control_id: 0 },
-            button_type: "ZGPSwitch".to_string(),
             button: ButtonData {
                 button_report: Some(ButtonReport {
                     updated: Utc::now(),
