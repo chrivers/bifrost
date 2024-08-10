@@ -17,9 +17,10 @@ use uuid::Uuid;
 
 use crate::hue;
 use crate::hue::api::{
-    ColorTemperatureUpdate, ColorUpdate, Device, DeviceProductData, Dimming, DimmingUpdate,
-    GroupedLight, Light, Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetypes, Scene,
-    SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
+    Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperatureUpdate, ColorUpdate, Device,
+    DeviceProductData, Dimming, DimmingUpdate, GroupedLight, Light, Metadata, On, RType, Resource,
+    ResourceLink, Room, RoomArchetypes, Scene, SceneAction, SceneActionElement, SceneMetadata,
+    SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -132,6 +133,55 @@ impl Client {
         res.aux_set(&link_light, AuxData::new().with_topic(name));
         res.add(&link_device, Resource::Device(dev))?;
         res.add(&link_light, Resource::Light(light))?;
+        drop(res);
+
+        Ok(())
+    }
+
+    pub async fn add_switch(&mut self, dev: &api::Device) -> ApiResult<()> {
+        let name = &dev.friendly_name;
+
+        let link_device = RType::Device.deterministic(&dev.ieee_address);
+        let link_button = RType::Button.deterministic(&dev.ieee_address);
+        let link_zbc = RType::ZigbeeConnectivity.deterministic(&dev.ieee_address);
+
+        let dev = hue::api::Device {
+            product_data: DeviceProductData::hue_color_spot(),
+            metadata: Metadata::spot_bulb("foo"),
+            services: vec![link_button, link_zbc],
+        };
+
+        self.map.insert(name.to_string(), link_button.rid);
+
+        let mut res = self.state.lock().await;
+        let button = Button {
+            owner: link_device,
+            metadata: ButtonMetadata { control_id: 0 },
+            button_type: "ZGPSwitch".to_string(),
+            button: ButtonData {
+                button_report: Some(ButtonReport {
+                    updated: Utc::now(),
+                    event: String::from("initial_press"),
+                }),
+                repeat_interval: Some(100),
+                event_values: Some(json!(["initial_press", "repeat"])),
+            },
+        };
+
+        let zbc = ZigbeeConnectivity {
+            owner: link_device,
+            mac_address: String::from("11:22:33:44:55:66:77:89"),
+            status: ZigbeeConnectivityStatus::ConnectivityIssue,
+            channel: Some(json!({
+                "status": "set",
+                "value": "channel_25",
+            })),
+            extended_pan_id: String::from("0123456789abcdef"),
+        };
+
+        res.add(&link_device, Resource::Device(dev))?;
+        res.add(&link_button, Resource::Button(button))?;
+        res.add(&link_zbc, Resource::ZigbeeConnectivity(zbc))?;
         drop(res);
 
         Ok(())
@@ -370,6 +420,18 @@ impl Client {
                         );
                         self.add_light(dev).await?;
                     }
+                    /*
+                    if dev.expose_action() {
+                        log::info!(
+                            "[{}] Adding switch {:?}: [{}] ({})",
+                            self.name,
+                            dev.ieee_address,
+                            dev.friendly_name,
+                            dev.model_id.as_deref().unwrap_or("<unknown model>")
+                        );
+                        self.add_switch(dev).await?;
+                    }
+                    */
                 }
             }
 
