@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::hue::api::ResourceLink;
+use crate::hue::api::{DeviceArchetype, ResourceLink};
 use crate::{types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -41,7 +41,7 @@ impl Light {
             timed_effects: None,
             mode: LightMode::Normal,
             on: On { on: true },
-            metadata: LightMetadata::new(LightArchetype::SpotBulb, "Light 1".to_string()),
+            metadata: LightMetadata::new(DeviceArchetype::SpotBulb, "Light 1".to_string()),
             owner,
             powerup: None,
             signaling: None,
@@ -118,69 +118,15 @@ pub struct LightTimedEffects {
     pub effect_values: Value,
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "snake_case")]
-pub enum LightArchetype {
-    UnknownArchetype,
-    ClassicBulb,
-    SultanBulb,
-    FloodBulb,
-    SpotBulb,
-    CandleBulb,
-    LusterBulb,
-    PendantRound,
-    PendantLong,
-    CeilingRound,
-    CeilingSquare,
-    FloorShade,
-    FloorLantern,
-    TableShade,
-    RecessedCeiling,
-    RecessedFloor,
-    SingleSpot,
-    DoubleSpot,
-    TableWash,
-    WallLantern,
-    WallShade,
-    FlexibleLamp,
-    GroundSpot,
-    WallSpot,
-    Plug,
-    HueGo,
-    HueLightstrip,
-    HueIris,
-    HueBloom,
-    Bollard,
-    WallWasher,
-    HuePlay,
-    VintageBulb,
-    VintageCandleBulb,
-    EllipseBulb,
-    TriangleBulb,
-    SmallGlobeBulb,
-    LargeGlobeBulb,
-    EdisonBulb,
-    ChristmasTree,
-    StringLight,
-    HueCentris,
-    HueLightstripTv,
-    HueLightstripPc,
-    HueTube,
-    HueSigne,
-    PendantSpot,
-    CeilingHorizontal,
-    CeilingTube,
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightMetadata {
     pub name: String,
-    pub archetype: LightArchetype,
+    pub archetype: DeviceArchetype,
 }
 
 impl LightMetadata {
     #[must_use]
-    pub const fn new(archetype: LightArchetype, name: String) -> Self {
+    pub const fn new(archetype: DeviceArchetype, name: String) -> Self {
         Self { name, archetype }
     }
 }

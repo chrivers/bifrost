@@ -7,7 +7,7 @@ mod scene;
 mod stubs;
 mod update;
 
-pub use device::{Device, DeviceProductData};
+pub use device::{Device, DeviceArchetype, DeviceProductData};
 pub use grouped_light::{GroupedLight, GroupedLightUpdate};
 pub use light::{
     ColorGamut, ColorTemperature, ColorTemperatureUpdate, ColorUpdate, Delta, Dimming,
