@@ -389,8 +389,19 @@ pub struct ExposeBinary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-/* #[serde(deny_unknown_fields)] */
-pub struct ExposeComposite {}
+pub struct ExposeComposite {
+    pub access: u8,
+    pub property: String,
+
+    pub name: String,
+    pub label: String,
+    pub description: Option<String>,
+
+    pub category: Option<String>,
+
+    #[serde(default)]
+    pub features: Vec<Expose>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExposeEnum {
