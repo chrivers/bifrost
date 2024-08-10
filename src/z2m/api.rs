@@ -5,6 +5,8 @@ use std::{collections::HashMap, fmt::Debug};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
+use crate::hue::api::MirekSchema;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 #[serde(tag = "topic", content = "payload")]
@@ -445,6 +447,22 @@ pub struct ExposeNumeric {
 
     #[serde(default)]
     pub presets: Vec<Preset>,
+}
+
+impl ExposeNumeric {
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    pub fn extract_mirek_schema(&self) -> Option<MirekSchema> {
+        if self.unit.as_deref() == Some("mired") {
+            if let (Some(min), Some(max)) = (self.value_min, self.value_max) {
+                return Some(MirekSchema {
+                    mirek_minimum: min as u32,
+                    mirek_maximum: max as u32,
+                });
+            }
+        }
+        None
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
