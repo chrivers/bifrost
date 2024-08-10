@@ -19,16 +19,16 @@ use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
     ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
-    Light, Metadata, MirekSchema, On, RType, Resource, ResourceLink, Room, RoomArchetype,
-    RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    Light, LightColor, Metadata, MirekSchema, On, RType, Resource, ResourceLink, Room,
+    RoomArchetype, RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata,
+    SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;
 use crate::resource::AuxData;
 use crate::resource::Resources;
-use crate::z2m::api::{Message, Other};
+use crate::z2m::api::{ExposeLight, Message, Other};
 use crate::z2m::update::DeviceUpdate;
 
 #[derive(Debug)]
@@ -113,7 +113,7 @@ impl Client {
         })
     }
 
-    pub async fn add_light(&mut self, dev: &api::Device) -> ApiResult<()> {
+    pub async fn add_light(&mut self, dev: &api::Device, expose: &ExposeLight) -> ApiResult<()> {
         let name = &dev.friendly_name;
 
         let link_device = RType::Device.deterministic(&dev.ieee_address);
@@ -130,6 +130,14 @@ impl Client {
         let mut res = self.state.lock().await;
         let mut light = Light::new(link_device, dev.metadata.clone());
         light.metadata.name = name.to_string();
+        light.color_temperature = expose
+            .feature("color_temp")
+            .and_then(ColorTemperature::extract_from_expose);
+        log::trace!("Detected color temperature: {:?}", &light.color_temperature);
+        light.color = expose
+            .feature("color_xy")
+            .and_then(LightColor::extract_from_expose);
+        log::trace!("Detected color: {:?}", &light.color);
 
         res.aux_set(&link_light, AuxData::new().with_topic(name));
         res.add(&link_device, Resource::Device(dev))?;
@@ -420,7 +428,7 @@ impl Client {
 
             Message::BridgeDevices(ref obj) => {
                 for dev in obj {
-                    if dev.expose_light().is_some() {
+                    if let Some(exp) = dev.expose_light() {
                         log::info!(
                             "[{}] Adding light {:?}: [{}] ({})",
                             self.name,
@@ -428,7 +436,7 @@ impl Client {
                             dev.friendly_name,
                             dev.model_id.as_deref().unwrap_or("<unknown model>")
                         );
-                        self.add_light(dev).await?;
+                        self.add_light(dev, exp).await?;
                     }
                     /*
                     if dev.expose_action() {
