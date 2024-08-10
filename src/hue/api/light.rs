@@ -250,11 +250,11 @@ pub struct LightColor {
 
 impl LightColor {
     #[must_use]
-    pub const fn dummy() -> Self {
+    pub const fn new(xy: XY) -> Self {
         Self {
-            gamut: Some(ColorGamut::IKEA_ESTIMATE),
+            gamut: None,
             gamut_type: GamutType::Other,
-            xy: XY { x: 0.4573, y: 0.41 },
+            xy,
         }
     }
 }
