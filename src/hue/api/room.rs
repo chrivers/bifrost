@@ -10,15 +10,6 @@ pub struct Room {
     pub services: Vec<ResourceLink>,
 }
 
-impl Room {
-    #[must_use]
-    pub fn group(&self) -> Option<&ResourceLink> {
-        self.services
-            .iter()
-            .find(|rl| rl.rtype == RType::GroupedLight)
-    }
-}
-
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum RoomArchetypes {

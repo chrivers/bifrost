@@ -12,7 +12,7 @@ pub struct Device {
 
 impl Device {
     #[must_use]
-    pub fn light(&self) -> Option<&ResourceLink> {
+    pub fn light_service(&self) -> Option<&ResourceLink> {
         self.services.iter().find(|rl| rl.rtype == RType::Light)
     }
 }

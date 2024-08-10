@@ -520,9 +520,8 @@ impl Client {
                 .collect();
 
             let lights: Vec<Uuid> = devices
-                .iter()
-                .copied()
-                .filter_map(Device::light)
+                .into_iter()
+                .filter_map(Device::light_service)
                 .map(|rl| rl.rid)
                 .collect();
 
