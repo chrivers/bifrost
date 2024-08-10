@@ -279,17 +279,6 @@ pub struct ColorTemperature {
     pub mirek_valid: bool,
 }
 
-impl ColorTemperature {
-    #[must_use]
-    pub const fn dummy() -> Self {
-        Self {
-            mirek_schema: MirekSchema::DEFAULT,
-            mirek_valid: true,
-            mirek: 366,
-        }
-    }
-}
-
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 pub struct Dimming {
     pub brightness: f64,
