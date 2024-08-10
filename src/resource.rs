@@ -311,15 +311,14 @@ impl Resources {
         Err(ApiError::Full(RType::Scene))
     }
 
-    pub fn get<T>(&self, link: &ResourceLink) -> ApiResult<T>
+    pub fn get<T>(&self, link: &ResourceLink) -> ApiResult<&T>
     where
-        T: TryFrom<Resource, Error = ApiError>,
+        for<'a> &'a T: TryFrom<&'a Resource, Error = ApiError>,
     {
         self.res
             .get(&link.rid)
             .filter(|id| id.rtype() == link.rtype)
             .ok_or_else(|| ApiError::NotFound(link.rid))?
-            .clone()
             .try_into()
     }
 

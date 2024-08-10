@@ -508,12 +508,12 @@ impl Client {
     async fn learn_scene_recall(&mut self, lscene: &ResourceLink) -> ApiResult<()> {
         log::info!("[{}] Recall scene: {lscene:?}", self.name);
         let lock = self.state.lock().await;
-        let scene: Scene = lock.get(lscene)?;
+        let scene: &Scene = lock.get(lscene)?;
 
         if scene.actions.is_empty() {
-            let room: Room = lock.get(&scene.group)?;
+            let room: &Room = lock.get(&scene.group)?;
 
-            let devices: Vec<Device> = room
+            let devices: Vec<&Device> = room
                 .children
                 .iter()
                 .filter_map(|rl| lock.get(rl).ok())
@@ -521,6 +521,7 @@ impl Client {
 
             let lights: Vec<Uuid> = devices
                 .iter()
+                .copied()
                 .filter_map(Device::light)
                 .map(|rl| rl.rid)
                 .collect();
@@ -584,7 +585,7 @@ impl Client {
         match &*req {
             ClientRequest::LightUpdate { device, upd } => {
                 let dev = lock.get::<Light>(device)?;
-                let topic = dev.metadata.name;
+                let topic = dev.metadata.name.clone();
                 drop(lock);
 
                 self.websocket_send(socket, &topic, &upd).await
@@ -592,14 +593,14 @@ impl Client {
             ClientRequest::GroupUpdate { device, upd } => {
                 let group = lock.get::<GroupedLight>(device)?;
                 let room = lock.get::<Room>(&group.owner)?;
-                let topic = room.metadata.name;
+                let topic = room.metadata.name.clone();
                 drop(lock);
 
                 self.websocket_send(socket, &topic, &upd).await
             }
             ClientRequest::SceneStore { room, id, name } => {
                 let room = lock.get::<Room>(room)?;
-                let topic = room.metadata.name;
+                let topic = room.metadata.name.clone();
                 drop(lock);
 
                 let payload = json!({
@@ -613,7 +614,7 @@ impl Client {
             ClientRequest::SceneRecall { scene } => {
                 let scn = lock.get::<Scene>(scene)?;
                 let room = lock.get::<Room>(&scn.group)?;
-                let topic = room.metadata.name;
+                let topic = room.metadata.name.clone();
                 let index = lock.aux_get(scene)?.index;
                 drop(lock);
 
@@ -627,7 +628,7 @@ impl Client {
             ClientRequest::SceneRemove { scene } => {
                 let scn = lock.get::<Scene>(scene)?;
                 let room = lock.get::<Room>(&scn.group)?;
-                let topic = room.metadata.name;
+                let topic = room.metadata.name.clone();
                 let index = lock.aux_get(scene)?.index;
                 drop(lock);
 
