@@ -259,10 +259,17 @@ impl LightColor {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
 pub struct MirekSchema {
     pub mirek_minimum: u32,
     pub mirek_maximum: u32,
+}
+
+impl MirekSchema {
+    pub const DEFAULT: Self = Self {
+        mirek_minimum: 153,
+        mirek_maximum: 500,
+    };
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -276,10 +283,7 @@ impl ColorTemperature {
     #[must_use]
     pub const fn dummy() -> Self {
         Self {
-            mirek_schema: MirekSchema {
-                mirek_maximum: 454,
-                mirek_minimum: 250,
-            },
+            mirek_schema: MirekSchema::DEFAULT,
             mirek_valid: true,
             mirek: 366,
         }
