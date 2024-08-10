@@ -142,8 +142,6 @@ pub struct BridgeConfigSchema {
     pub properties: Value,
     #[serde(rename = "type")]
     pub config_type: Value,
-    #[serde(flatten)]
-    pub bad: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -378,7 +376,6 @@ impl Expose {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExposeBinary {
     pub access: u8,
     pub property: String,
@@ -397,7 +394,6 @@ pub struct ExposeBinary {
 pub struct ExposeComposite {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExposeEnum {
     pub access: u8,
     pub property: String,
@@ -411,7 +407,6 @@ pub struct ExposeEnum {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExposeLight {
     pub features: Vec<Expose>,
 }
@@ -423,14 +418,10 @@ impl ExposeLight {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExposeList {
-    #[serde(flatten)]
-    __unknown: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExposeNumeric {
     pub access: u8,
     pub property: String,
@@ -449,13 +440,11 @@ pub struct ExposeNumeric {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExposeSwitch {
     pub features: Vec<Expose>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Endpoint {
     pub bindings: Vec<Binding>,
     pub clusters: Clusters,
