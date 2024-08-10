@@ -31,18 +31,6 @@ impl DeviceProductData {
     const SIGNIFY_MANUFACTURER_NAME: &'static str = "Signify Netherlands B.V.";
 
     #[must_use]
-    pub fn hue_color_spot() -> Self {
-        Self {
-            model_id: "LCG002".to_string(),
-            manufacturer_name: Self::SIGNIFY_MANUFACTURER_NAME.to_string(),
-            product_name: "Hue color spot".to_string(),
-            product_archetype: DeviceArchetype::SpotBulb,
-            certified: true,
-            software_version: "1.104.2".to_string(),
-        }
-    }
-
-    #[must_use]
     pub fn hue_bridge_v2() -> Self {
         Self {
             certified: true,
