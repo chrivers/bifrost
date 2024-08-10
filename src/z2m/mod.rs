@@ -422,7 +422,7 @@ impl Client {
             Message::BridgeDevices(ref obj) => {
                 //println!("{obj:#?}");
                 for dev in obj {
-                    if dev.expose_light() {
+                    if dev.expose_light().is_some() {
                         log::info!(
                             "[{}] Adding light {:?}: [{}] ({})",
                             self.name,

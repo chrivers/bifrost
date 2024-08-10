@@ -315,10 +315,16 @@ impl Device {
     }
 
     #[must_use]
-    pub fn expose_light(&self) -> bool {
+    pub fn expose_light(&self) -> Option<&ExposeLight> {
         self.exposes()
             .iter()
-            .any(|exp| matches!(exp, Expose::Light(_)))
+            .find_map(|exp| {
+                if let Expose::Light(light) = exp {
+                    Some(light)
+                } else {
+                    None
+                }
+            })
     }
 
     #[must_use]
@@ -355,6 +361,20 @@ pub enum Expose {
     List(Value),
     Numeric(ExposeNumeric),
     Switch(ExposeSwitch),
+}
+
+impl Expose {
+    pub fn name(&self) -> Option<&str> {
+        match self {
+            Expose::Binary(obj) => Some(obj.name.as_str()),
+            Expose::Composite(_) => None,
+            Expose::Enum(obj) => Some(obj.name.as_str()),
+            Expose::Light(_) => None,
+            Expose::List(_) => None,
+            Expose::Numeric(obj) => Some(obj.name.as_str()),
+            Expose::Switch(_) => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -394,6 +414,12 @@ pub struct ExposeEnum {
 #[serde(deny_unknown_fields)]
 pub struct ExposeLight {
     pub features: Vec<Expose>,
+}
+
+impl ExposeLight {
+    pub fn feature(&self, name: &str) -> Option<&Expose> {
+        self.features.iter().find(|exp| exp.name() == Some(name))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
