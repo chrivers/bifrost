@@ -27,11 +27,13 @@ pub struct DeviceProductData {
 }
 
 impl DeviceProductData {
+    const SIGNIFY_MANUFACTURER_NAME: &'static str = "Signify Netherlands B.V.";
+
     #[must_use]
     pub fn hue_color_spot() -> Self {
         Self {
             model_id: "LCG002".to_string(),
-            manufacturer_name: "Signify Netherlands B.V.".to_string(),
+            manufacturer_name: Self::SIGNIFY_MANUFACTURER_NAME.to_string(),
             product_name: "Hue color spot".to_string(),
             product_archetype: DeviceArchetype::SpotBulb,
             certified: true,
@@ -43,7 +45,7 @@ impl DeviceProductData {
     pub fn hue_bridge_v2() -> Self {
         Self {
             certified: true,
-            manufacturer_name: "Signify Netherlands B.V.".to_string(),
+            manufacturer_name: Self::SIGNIFY_MANUFACTURER_NAME.to_string(),
             model_id: "BSB002".to_string(),
             product_archetype: DeviceArchetype::BridgeV2,
             product_name: "Hue Bridge".to_string(),
