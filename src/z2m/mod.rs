@@ -17,10 +17,11 @@ use uuid::Uuid;
 
 use crate::hue;
 use crate::hue::api::{
-    Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperatureUpdate, ColorUpdate, Device,
-    DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight, Light, Metadata, On,
-    RType, Resource, ResourceLink, Room, RoomArchetype, RoomMetadata, Scene, SceneAction,
-    SceneActionElement, SceneMetadata, SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
+    ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
+    Light, Metadata, MirekSchema, On, RType, Resource, ResourceLink, Room, RoomArchetype,
+    RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
+    ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -320,12 +321,24 @@ impl Client {
             light.color_mode = upd.color_mode;
 
             if let Some(ct) = upd.color_temp {
-                light.color_temperature.mirek = ct;
+                match &mut light.color_temperature {
+                    Some(lct) => lct.mirek = ct,
+                    None => {
+                        light.color_temperature = Some(ColorTemperature {
+                            mirek: ct,
+                            mirek_schema: MirekSchema::DEFAULT,
+                            mirek_valid: true,
+                        });
+                    }
+                }
                 /* light.color_temperature.mirek_valid = true; */
             }
 
             if let Some(col) = upd.color {
-                light.color.xy = col.xy;
+                match &mut light.color {
+                    Some(lcol) => lcol.xy = col.xy,
+                    None => {}
+                }
                 /* light.color_temperature.mirek_valid = false; */
             }
         })?;

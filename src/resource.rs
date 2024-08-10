@@ -104,10 +104,14 @@ impl Resources {
 
                 match light.color_mode {
                     Some(DeviceColorMode::ColorTemp) => {
-                        upd = upd.with_color_temperature(light.color_temperature.mirek);
+                        if let Some(ct) = &light.color_temperature {
+                            upd = upd.with_color_temperature(ct.mirek);
+                        }
                     }
                     Some(DeviceColorMode::Xy) => {
-                        upd = upd.with_color_xy(light.color.xy);
+                        if let Some(col) = &light.color {
+                            upd = upd.with_color_xy(col.xy);
+                        }
                     }
                     None => {}
                 }
