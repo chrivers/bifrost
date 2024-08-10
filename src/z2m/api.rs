@@ -282,7 +282,7 @@ pub enum PowerSource {
     EmergencyMainsAndTransferSwitch = 6,
 }
 
-type BridgeDevices = Vec<Device>;
+pub type BridgeDevices = Vec<Device>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -314,15 +314,13 @@ impl Device {
 
     #[must_use]
     pub fn expose_light(&self) -> Option<&ExposeLight> {
-        self.exposes()
-            .iter()
-            .find_map(|exp| {
-                if let Expose::Light(light) = exp {
-                    Some(light)
-                } else {
-                    None
-                }
-            })
+        self.exposes().iter().find_map(|exp| {
+            if let Expose::Light(light) = exp {
+                Some(light)
+            } else {
+                None
+            }
+        })
     }
 
     #[must_use]
@@ -362,6 +360,7 @@ pub enum Expose {
 }
 
 impl Expose {
+    #[must_use]
     pub fn name(&self) -> Option<&str> {
         match self {
             Expose::Binary(obj) => Some(obj.name.as_str()),
@@ -412,14 +411,14 @@ pub struct ExposeLight {
 }
 
 impl ExposeLight {
+    #[must_use]
     pub fn feature(&self, name: &str) -> Option<&Expose> {
         self.features.iter().find(|exp| exp.name() == Some(name))
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExposeList {
-}
+pub struct ExposeList {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExposeNumeric {
