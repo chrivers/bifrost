@@ -11,7 +11,6 @@ use axum::{response::Response, Router};
 use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
 
-use bifrost::resource::Resources;
 use hyper::body::Incoming;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
@@ -23,6 +22,7 @@ use tracing::{info_span, Span};
 use bifrost::config;
 use bifrost::error::ApiResult;
 use bifrost::mdns;
+use bifrost::resource::Resources;
 use bifrost::routes;
 use bifrost::state::AppState;
 use bifrost::z2m;
