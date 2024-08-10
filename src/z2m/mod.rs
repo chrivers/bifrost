@@ -409,18 +409,16 @@ impl Client {
     }
 
     async fn handle_message(&mut self, msg: Message) -> ApiResult<()> {
+        #[allow(unused_variables)]
         match msg {
-            /* Message::BridgeInfo(ref obj) => { */
-            /*     println!("{obj:#?}"); */
-            /* } */
-            /* Message::BridgeLogging(ref obj) => { */
-            /*     println!("{obj:#?}"); */
-            /* } */
-            /* Message::BridgeExtensions(ref obj) => { */
-            /*     println!("{obj:#?}"); */
-            /* } */
+            Message::BridgeInfo(ref obj) => { /* println!("{obj:#?}"); */ }
+            Message::BridgeLogging(ref obj) => { /* println!("{obj:#?}"); */ }
+            Message::BridgeExtensions(ref obj) => { /* println!("{obj:#?}"); */ }
+            Message::BridgeEvent(ref obj) => { /* println!("{obj:#?}"); */ }
+            Message::BridgeDefinitions(ref obj) => { /* println!("{obj:#?}"); */ }
+            Message::BridgeState(ref obj) => { /* println!("{obj:#?}"); */ }
+
             Message::BridgeDevices(ref obj) => {
-                //println!("{obj:#?}");
                 for dev in obj {
                     if dev.expose_light().is_some() {
                         log::info!(
@@ -453,14 +451,6 @@ impl Client {
                     self.add_group(grp).await?;
                 }
             }
-
-            /* Message::BridgeDefinitions(ref obj) => { */
-            /*     /\* println!("{obj:#?}"); *\/ */
-            /* } */
-
-            /* Message::BridgeState(ref obj) => { */
-            /*     /\* println!("{obj:#?}"); *\/ */
-            /* } */
             Message::Other(obj) => {
                 if obj.topic.contains('/') {
                     return Ok(());
@@ -477,7 +467,6 @@ impl Client {
 
                 self.handle_update(val, obj.payload).await?;
             }
-            _ => {}
         }
         Ok(())
     }
