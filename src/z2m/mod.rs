@@ -513,14 +513,10 @@ impl Client {
         if scene.actions.is_empty() {
             let room: &Room = lock.get(&scene.group)?;
 
-            let devices: Vec<&Device> = room
+            let lights: Vec<Uuid> = room
                 .children
                 .iter()
                 .filter_map(|rl| lock.get(rl).ok())
-                .collect();
-
-            let lights: Vec<Uuid> = devices
-                .into_iter()
                 .filter_map(Device::light_service)
                 .map(|rl| rl.rid)
                 .collect();
