@@ -128,6 +128,18 @@ macro_rules! resource_conversion_impl {
             }
         }
 
+        impl<'a> TryFrom<&'a Resource> for &'a $name {
+            type Error = ApiError;
+
+            fn try_from(value: &'a Resource) -> Result<Self, Self::Error> {
+                if let Resource::$name(obj) = value {
+                    Ok(obj)
+                } else {
+                    Err(ApiError::WrongType(RType::Light, value.rtype()))
+                }
+            }
+        }
+
         impl TryFrom<Resource> for $name {
             type Error = ApiError;
 
