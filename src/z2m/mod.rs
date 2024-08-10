@@ -119,7 +119,7 @@ impl Client {
         let link_light = RType::Light.deterministic(&dev.ieee_address);
 
         let dev = hue::api::Device {
-            product_data: DeviceProductData::hue_color_spot(),
+            product_data: DeviceProductData::guess_from_device(dev),
             metadata: Metadata::spot_bulb(name),
             services: vec![link_light],
         };
@@ -146,7 +146,7 @@ impl Client {
         let link_zbc = RType::ZigbeeConnectivity.deterministic(&dev.ieee_address);
 
         let dev = hue::api::Device {
-            product_data: DeviceProductData::hue_color_spot(),
+            product_data: DeviceProductData::guess_from_device(dev),
             metadata: Metadata::spot_bulb("foo"),
             services: vec![link_button, link_zbc],
         };
