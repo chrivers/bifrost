@@ -128,7 +128,7 @@ impl Client {
         self.map.insert(name.to_string(), link_light.rid);
 
         let mut res = self.state.lock().await;
-        let mut light = Light::new(link_device, Metadata::new(DeviceArchetype::SpotBulb, name));
+        let mut light = Light::new(link_device, dev.metadata.clone());
         light.metadata.name = name.to_string();
 
         res.aux_set(&link_light, AuxData::new().with_topic(name));
