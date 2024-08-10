@@ -311,9 +311,9 @@ impl Resources {
         Err(ApiError::Full(RType::Scene))
     }
 
-    pub fn get<T>(&self, link: &ResourceLink) -> ApiResult<&T>
+    pub fn get<'a, T>(&'a self, link: &ResourceLink) -> ApiResult<&'a T>
     where
-        for<'a> &'a T: TryFrom<&'a Resource, Error = ApiError>,
+        &'a T: TryFrom<&'a Resource, Error = ApiError>,
     {
         self.res
             .get(&link.rid)
