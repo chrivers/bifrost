@@ -2,16 +2,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::hue::api::{Metadata, ResourceLink};
+use crate::types::XY;
 use crate::z2m::api::Expose;
-use crate::{types::XY, z2m::update::DeviceColorMode};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
-    /* This field does not exist in the hue api, but we need it to keep track of
-     * last-used color mode for a light. */
-    #[serde(skip, default)]
-    pub color_mode: Option<DeviceColorMode>,
-
     pub owner: ResourceLink,
     pub metadata: Metadata,
 
@@ -33,7 +28,6 @@ impl Light {
     pub const fn new(owner: ResourceLink, metadata: Metadata) -> Self {
         Self {
             alert: None,
-            color_mode: None,
             color: None,
             color_temperature: None,
             dimming: None,
@@ -156,9 +150,9 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub const fn with_color_temperature(self, mirek: u32) -> Self {
+    pub fn with_color_temperature(self, mirek: Option<u32>) -> Self {
         Self {
-            color_temperature: Some(ColorTemperatureUpdate { mirek }),
+            color_temperature: mirek.map(|mirek| ColorTemperatureUpdate { mirek }),
             ..self
         }
     }
@@ -289,7 +283,7 @@ impl MirekSchema {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperature {
-    pub mirek: u32,
+    pub mirek: Option<u32>,
     pub mirek_schema: MirekSchema,
     pub mirek_valid: bool,
 }
@@ -304,7 +298,7 @@ impl ColorTemperature {
         let schema_opt = num.extract_mirek_schema();
         let mirek_valid = schema_opt.is_some();
         let mirek_schema = schema_opt.unwrap_or(MirekSchema::DEFAULT);
-        let mirek = (mirek_schema.mirek_maximum - mirek_schema.mirek_minimum) / 2;
+        let mirek = None;
 
         Some(Self {
             mirek,

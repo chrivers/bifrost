@@ -17,7 +17,6 @@ use crate::hue::api::{
 use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
 use crate::z2m::request::ClientRequest;
-use crate::z2m::update::DeviceColorMode;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct AuxData {
@@ -102,18 +101,12 @@ impl Resources {
                     .with_brightness(light.dimming)
                     .with_on(light.on.on);
 
-                match light.color_mode {
-                    Some(DeviceColorMode::ColorTemp) => {
-                        if let Some(ct) = &light.color_temperature {
-                            upd = upd.with_color_temperature(ct.mirek);
-                        }
-                    }
-                    Some(DeviceColorMode::Xy) => {
-                        if let Some(col) = &light.color {
-                            upd = upd.with_color_xy(col.xy);
-                        }
-                    }
-                    None => {}
+                if let Some(ct) = &light.color_temperature {
+                    upd = upd.with_color_temperature(ct.mirek);
+                }
+
+                if let Some(col) = &light.color {
+                    upd = upd.with_color_xy(col.xy);
                 }
 
                 Ok(Some(Update::Light(upd)))
