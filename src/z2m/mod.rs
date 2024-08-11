@@ -564,7 +564,7 @@ impl Client {
             ClientRequest::LightUpdate { device, upd } => {
                 drop(lock);
                 if let Some(topic) = self.rmap.get(&device.rid) {
-                    self.websocket_send(socket, &topic, &upd).await?;
+                    self.websocket_send(socket, topic, &upd).await?;
                 };
             }
             ClientRequest::GroupUpdate { device, upd } => {
@@ -572,7 +572,7 @@ impl Client {
                 drop(lock);
 
                 if let Some(topic) = self.rmap.get(&room) {
-                    self.websocket_send(socket, &topic, &upd).await?;
+                    self.websocket_send(socket, topic, &upd).await?;
                 }
             }
             ClientRequest::SceneStore { room, id, name } => {
@@ -584,7 +584,7 @@ impl Client {
                             "name": name,
                         }
                     });
-                    self.websocket_send(socket, &topic, payload).await?;
+                    self.websocket_send(socket, topic, payload).await?;
                 }
             }
             ClientRequest::SceneRecall { scene } => {
