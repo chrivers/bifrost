@@ -16,8 +16,8 @@ use crate::hue::api::{
 };
 use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
+use crate::z2m::request::ClientRequest;
 use crate::z2m::update::DeviceColorMode;
-use crate::z2m::ClientRequest;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct AuxData {

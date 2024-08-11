@@ -1,4 +1,5 @@
 pub mod api;
+pub mod request;
 pub mod update;
 
 use std::collections::{HashMap, HashSet};
@@ -6,7 +7,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Duration, Utc};
 use futures::{SinkExt, StreamExt};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
 use tokio::select;
@@ -30,6 +31,7 @@ use crate::hue::scene_icons;
 use crate::resource::AuxData;
 use crate::resource::Resources;
 use crate::z2m::api::{ExposeLight, Message, Other};
+use crate::z2m::request::ClientRequest;
 use crate::z2m::update::DeviceUpdate;
 
 #[derive(Debug)]
@@ -47,60 +49,6 @@ pub struct Client {
     map: HashMap<String, Uuid>,
     rmap: HashMap<Uuid, String>,
     learn: HashMap<Uuid, LearnScene>,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub enum ClientRequest {
-    LightUpdate {
-        device: ResourceLink,
-        upd: DeviceUpdate,
-    },
-
-    GroupUpdate {
-        device: ResourceLink,
-        upd: DeviceUpdate,
-    },
-
-    SceneStore {
-        room: ResourceLink,
-        id: u32,
-        name: String,
-    },
-
-    SceneRecall {
-        scene: ResourceLink,
-    },
-
-    SceneRemove {
-        scene: ResourceLink,
-    },
-}
-
-impl ClientRequest {
-    #[must_use]
-    pub const fn light_update(device: ResourceLink, upd: DeviceUpdate) -> Self {
-        Self::LightUpdate { device, upd }
-    }
-
-    #[must_use]
-    pub const fn group_update(device: ResourceLink, upd: DeviceUpdate) -> Self {
-        Self::GroupUpdate { device, upd }
-    }
-
-    #[must_use]
-    pub const fn scene_remove(scene: ResourceLink) -> Self {
-        Self::SceneRemove { scene }
-    }
-
-    #[must_use]
-    pub const fn scene_recall(scene: ResourceLink) -> Self {
-        Self::SceneRecall { scene }
-    }
-
-    #[must_use]
-    pub const fn scene_store(room: ResourceLink, id: u32, name: String) -> Self {
-        Self::SceneStore { room, id, name }
-    }
 }
 
 impl Client {

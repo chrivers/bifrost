@@ -18,7 +18,7 @@ use crate::state::AppState;
 use crate::z2m::update::DeviceUpdate;
 use crate::{
     error::{ApiError, ApiResult},
-    z2m::ClientRequest,
+    z2m::request::ClientRequest,
 };
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;

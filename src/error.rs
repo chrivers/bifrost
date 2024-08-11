@@ -9,7 +9,7 @@ use crate::{
         api::{RType, ResourceLink},
         event::EventBlock,
     },
-    z2m::ClientRequest,
+    z2m::request::ClientRequest,
 };
 
 #[derive(Error, Debug)]
