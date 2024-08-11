@@ -11,7 +11,7 @@ pub use device::{Device, DeviceArchetype, DeviceProductData};
 pub use grouped_light::{GroupedLight, GroupedLightUpdate};
 pub use light::{
     ColorGamut, ColorTemperature, ColorTemperatureUpdate, ColorUpdate, Delta, Dimming,
-    DimmingUpdate, Light, LightColor, LightUpdate, MirekSchema, On,
+    DimmingUpdate, GamutType, Light, LightColor, LightUpdate, MirekSchema, On,
 };
 pub use resource::{RType, ResourceLink, ResourceRecord};
 pub use room::{Room, RoomArchetype, RoomMetadata};
