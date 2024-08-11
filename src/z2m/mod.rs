@@ -15,6 +15,7 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
+use crate::config::AppConfig;
 use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
@@ -41,8 +42,10 @@ struct LearnScene {
 pub struct Client {
     name: String,
     conn: String,
+    config: Arc<AppConfig>,
     state: Arc<Mutex<Resources>>,
     map: HashMap<String, Uuid>,
+    rmap: HashMap<Uuid, String>,
     learn: HashMap<Uuid, LearnScene>,
 }
 
@@ -101,14 +104,22 @@ impl ClientRequest {
 }
 
 impl Client {
-    pub fn new(name: String, conn: String, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
+    pub fn new(
+        name: String,
+        conn: String,
+        config: Arc<AppConfig>,
+        state: Arc<Mutex<Resources>>,
+    ) -> ApiResult<Self> {
         let map = HashMap::new();
+        let rmap = HashMap::new();
         let learn = HashMap::new();
         Ok(Self {
             name,
             conn,
+            config,
             state,
             map,
+            rmap,
             learn,
         })
     }
@@ -126,6 +137,7 @@ impl Client {
         };
 
         self.map.insert(name.to_string(), link_light.rid);
+        self.rmap.insert(link_light.rid, name.to_string());
 
         let mut res = self.state.lock().await;
         let mut light = Light::new(link_device, dev.metadata.clone());
@@ -161,6 +173,7 @@ impl Client {
         };
 
         self.map.insert(name.to_string(), link_button.rid);
+        self.rmap.insert(link_button.rid, name.to_string());
 
         let mut res = self.state.lock().await;
         let button = Button {
@@ -267,13 +280,25 @@ impl Client {
             log::debug!("[{}] {link_room:?} is new, adding..", self.name);
         }
 
+        let mut metadata = RoomMetadata::new(RoomArchetype::Home, &topic);
+        if let Some(room_conf) = self.config.rooms.get(&topic) {
+            if let Some(name) = &room_conf.name {
+                metadata.name = name.to_string();
+            }
+            if let Some(icon) = &room_conf.icon {
+                metadata.archetype = *icon;
+            }
+        };
+
         let room = Room {
             children,
-            metadata: RoomMetadata::new(RoomArchetype::Computer, &topic),
+            metadata,
             services: vec![link_glight],
         };
 
         self.map.insert(topic.clone(), link_glight.rid);
+        self.rmap.insert(link_glight.rid, topic.clone());
+        self.rmap.insert(link_room.rid, topic.clone());
 
         res.add(&link_room, Resource::Room(room))?;
 
@@ -589,61 +614,60 @@ impl Client {
 
         match &*req {
             ClientRequest::LightUpdate { device, upd } => {
-                let dev = lock.get::<Light>(device)?;
-                let topic = dev.metadata.name.clone();
                 drop(lock);
-
-                self.websocket_send(socket, &topic, &upd).await
+                if let Some(topic) = self.rmap.get(&device.rid) {
+                    self.websocket_send(socket, &topic, &upd).await?;
+                };
             }
             ClientRequest::GroupUpdate { device, upd } => {
-                let group = lock.get::<GroupedLight>(device)?;
-                let room = lock.get::<Room>(&group.owner)?;
-                let topic = room.metadata.name.clone();
+                let room = lock.get::<GroupedLight>(device)?.owner.rid;
                 drop(lock);
 
-                self.websocket_send(socket, &topic, &upd).await
+                if let Some(topic) = self.rmap.get(&room) {
+                    self.websocket_send(socket, &topic, &upd).await?;
+                }
             }
             ClientRequest::SceneStore { room, id, name } => {
-                let room = lock.get::<Room>(room)?;
-                let topic = room.metadata.name.clone();
                 drop(lock);
-
-                let payload = json!({
-                    "scene_store": {
-                        "ID": id,
-                        "name": name,
-                    }
-                });
-                self.websocket_send(socket, &topic, payload).await
+                if let Some(topic) = self.rmap.get(&room.rid) {
+                    let payload = json!({
+                        "scene_store": {
+                            "ID": id,
+                            "name": name,
+                        }
+                    });
+                    self.websocket_send(socket, &topic, payload).await?;
+                }
             }
             ClientRequest::SceneRecall { scene } => {
-                let scn = lock.get::<Scene>(scene)?;
-                let room = lock.get::<Room>(&scn.group)?;
-                let topic = room.metadata.name.clone();
+                let room = lock.get::<Scene>(scene)?.group.rid;
                 let index = lock.aux_get(scene)?.index;
                 drop(lock);
-
-                if self.map.contains_key(&topic) {
+                if let Some(topic) = self.rmap.get(&room).cloned() {
                     self.learn_scene_recall(scene).await?;
-                }
 
-                let payload = json!({"scene_recall": index});
-                self.websocket_send(socket, &topic, payload).await
+                    let payload = json!({"scene_recall": index});
+                    self.websocket_send(socket, &topic, payload).await?;
+                }
             }
             ClientRequest::SceneRemove { scene } => {
-                let scn = lock.get::<Scene>(scene)?;
-                let room = lock.get::<Room>(&scn.group)?;
-                let topic = room.metadata.name.clone();
+                let room = lock.get::<Scene>(scene)?.group.rid;
                 let index = lock.aux_get(scene)?.index;
                 drop(lock);
 
-                let payload = json!({
-                    "scene_remove": index,
-                });
+                if let Some(topic) = self.rmap.get(&room).cloned() {
+                    self.learn_scene_recall(scene).await?;
 
-                self.websocket_send(socket, &topic, payload).await
+                    let payload = json!({
+                        "scene_remove": index,
+                    });
+
+                    self.websocket_send(socket, &topic, payload).await?;
+                }
             }
         }
+
+        Ok(())
     }
 
     pub async fn event_loop(

@@ -138,7 +138,7 @@ async fn main() -> ApiResult<()> {
     tasks.spawn(config_writer(appstate.res.clone()));
 
     for (name, server) in &appstate.z2m_config().servers {
-        let client = z2m::Client::new(name.clone(), server.url.clone(), appstate.res.clone())?;
+        let client = z2m::Client::new(name.clone(), server.url.clone(), appstate.config(), appstate.res.clone())?;
         tasks.spawn(client.run_forever());
     }
 
