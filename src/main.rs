@@ -147,9 +147,11 @@ async fn main() -> ApiResult<()> {
         tasks.spawn(client.run_forever());
     }
 
-    while let Some(res) = tasks.join_next().await {
-        let _ = res?;
+    loop {
+        match tasks.join_next().await {
+            None => break Ok(()),
+            Some(Ok(res)) => log::info!("Worker returned: {res:?}"),
+            Some(Err(err)) => log::error!("Error from worker: {err:?}"),
+        }
     }
-
-    Ok(())
 }
