@@ -142,11 +142,8 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub const fn with_on(self, on: bool) -> Self {
-        Self {
-            on: Some(On { on }),
-            ..self
-        }
+    pub const fn with_on(self, on: Option<On>) -> Self {
+        Self { on, ..self }
     }
 
     #[must_use]

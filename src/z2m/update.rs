@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::types::XY;
+use crate::{hue::api::On, types::XY};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(deny_unknown_fields)]
@@ -197,5 +197,11 @@ impl From<DeviceState> for bool {
             DeviceState::On => true,
             DeviceState::Off => false,
         }
+    }
+}
+
+impl From<DeviceState> for On {
+    fn from(value: DeviceState) -> Self {
+        Self { on: value.into() }
     }
 }

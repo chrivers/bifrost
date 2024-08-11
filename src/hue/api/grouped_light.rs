@@ -8,7 +8,7 @@ use crate::types::XY;
 pub struct GroupedLight {
     pub alert: Value,
     pub dimming: Option<DimmingUpdate>,
-    pub on: On,
+    pub on: Option<On>,
     pub owner: ResourceLink,
     pub signaling: Value,
 }
@@ -40,11 +40,8 @@ impl GroupedLightUpdate {
     }
 
     #[must_use]
-    pub const fn with_on(self, on: bool) -> Self {
-        Self {
-            on: Some(On { on }),
-            ..self
-        }
+    pub const fn with_on(self, on: Option<On>) -> Self {
+        Self { on, ..self }
     }
 
     #[must_use]

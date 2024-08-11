@@ -99,7 +99,7 @@ impl Resources {
             Resource::Light(light) => {
                 let mut upd = LightUpdate::new()
                     .with_brightness(light.dimming)
-                    .with_on(light.on.on);
+                    .with_on(Some(light.on));
 
                 if let Some(ct) = &light.color_temperature {
                     upd = upd.with_color_temperature(ct.mirek);
@@ -112,7 +112,7 @@ impl Resources {
                 Ok(Some(Update::Light(upd)))
             }
             Resource::GroupedLight(glight) => {
-                let mut upd = GroupedLightUpdate::new().with_on(glight.on.on);
+                let mut upd = GroupedLightUpdate::new().with_on(glight.on);
 
                 if let Some(b) = &glight.dimming {
                     upd = upd.with_brightness(b.brightness);

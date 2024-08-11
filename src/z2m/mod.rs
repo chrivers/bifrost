@@ -20,9 +20,9 @@ use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
     ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
-    Light, LightColor, Metadata, On, RType, Resource, ResourceLink, Room, RoomArchetype,
-    RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    Light, LightColor, Metadata, RType, Resource, ResourceLink, Room, RoomArchetype, RoomMetadata,
+    Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus, ZigbeeConnectivity,
+    ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -255,7 +255,7 @@ impl Client {
         let glight = GroupedLight {
             alert: Value::Null,
             dimming: None,
-            on: On { on: true },
+            on: None,
             owner: link_room,
             signaling: Value::Null,
         };
@@ -370,7 +370,7 @@ impl Client {
         let mut res = self.state.lock().await;
         res.update::<GroupedLight>(uuid, move |glight| {
             if let Some(state) = &upd.state {
-                glight.on.on = (*state).into();
+                glight.on = Some((*state).into());
             }
 
             if let Some(b) = upd.brightness {
