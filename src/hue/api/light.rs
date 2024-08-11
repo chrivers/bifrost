@@ -244,6 +244,7 @@ pub enum GamutType {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightColor {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub gamut: Option<ColorGamut>,
     pub gamut_type: GamutType,
     pub xy: XY,
