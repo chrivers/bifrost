@@ -7,7 +7,6 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Duration, Utc};
 use futures::{SinkExt, StreamExt};
-use serde::Serialize;
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
 use tokio::select;
@@ -31,7 +30,7 @@ use crate::hue::scene_icons;
 use crate::resource::AuxData;
 use crate::resource::Resources;
 use crate::z2m::api::{ExposeLight, Message, Other};
-use crate::z2m::request::ClientRequest;
+use crate::z2m::request::{ClientRequest, Z2mRequest};
 use crate::z2m::update::DeviceUpdate;
 
 #[derive(Debug)]
@@ -519,11 +518,11 @@ impl Client {
     }
 
     #[allow(clippy::single_match_else)]
-    async fn websocket_send<T: Serialize + Send>(
+    async fn websocket_send<'a>(
         &self,
         socket: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
         topic: &str,
-        payload: T,
+        payload: Z2mRequest<'a>,
     ) -> ApiResult<()> {
         match self.map.get(topic) {
             Some(uuid) => {
@@ -564,53 +563,54 @@ impl Client {
             ClientRequest::LightUpdate { device, upd } => {
                 drop(lock);
                 if let Some(topic) = self.rmap.get(&device.rid) {
-                    self.websocket_send(socket, topic, &upd).await?;
+                    let z2mreq = Z2mRequest::Update(upd);
+                    self.websocket_send(socket, topic, z2mreq).await?;
                 };
             }
+
             ClientRequest::GroupUpdate { device, upd } => {
                 let room = lock.get::<GroupedLight>(device)?.owner.rid;
                 drop(lock);
 
                 if let Some(topic) = self.rmap.get(&room) {
-                    self.websocket_send(socket, topic, &upd).await?;
+                    let z2mreq = Z2mRequest::Update(upd);
+                    self.websocket_send(socket, topic, z2mreq).await?;
                 }
             }
+
             ClientRequest::SceneStore { room, id, name } => {
                 drop(lock);
                 if let Some(topic) = self.rmap.get(&room.rid) {
-                    let payload = json!({
-                        "scene_store": {
-                            "ID": id,
-                            "name": name,
-                        }
-                    });
-                    self.websocket_send(socket, topic, payload).await?;
+                    let z2mreq = Z2mRequest::SceneStore { name, id: *id };
+                    self.websocket_send(socket, topic, z2mreq).await?;
                 }
             }
+
             ClientRequest::SceneRecall { scene } => {
                 let room = lock.get::<Scene>(scene)?.group.rid;
-                let index = lock.aux_get(scene)?.index;
+                let index = lock
+                    .aux_get(scene)?
+                    .index
+                    .ok_or(ApiError::NotFound(scene.rid))?;
                 drop(lock);
                 if let Some(topic) = self.rmap.get(&room).cloned() {
                     self.learn_scene_recall(scene).await?;
-
-                    let payload = json!({"scene_recall": index});
-                    self.websocket_send(socket, &topic, payload).await?;
+                    let z2mreq = Z2mRequest::SceneRecall(index);
+                    self.websocket_send(socket, &topic, z2mreq).await?;
                 }
             }
+
             ClientRequest::SceneRemove { scene } => {
                 let room = lock.get::<Scene>(scene)?.group.rid;
-                let index = lock.aux_get(scene)?.index;
+                let index = lock
+                    .aux_get(scene)?
+                    .index
+                    .ok_or(ApiError::NotFound(scene.rid))?;
                 drop(lock);
 
                 if let Some(topic) = self.rmap.get(&room).cloned() {
-                    self.learn_scene_recall(scene).await?;
-
-                    let payload = json!({
-                        "scene_remove": index,
-                    });
-
-                    self.websocket_send(socket, &topic, payload).await?;
+                    let z2mreq = Z2mRequest::SceneRemove(index);
+                    self.websocket_send(socket, &topic, z2mreq).await?;
                 }
             }
         }
