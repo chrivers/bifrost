@@ -655,11 +655,25 @@ impl Client {
     }
 }
 
+#[allow(clippy::match_same_arms)]
 fn guess_scene_icon(name: &str) -> Option<ResourceLink> {
     let icon = match name {
+        /* Built-in names */
         "Bright" => scene_icons::BRIGHT,
         "Relax" => scene_icons::RELAX,
+        "Night Light" => scene_icons::NIGHT_LIGHT,
+        "Rest" => scene_icons::REST,
+        "Concentrate" => scene_icons::CONCENTRATE,
+        "Dimmed" => scene_icons::DIMMED,
+        "Energize" => scene_icons::ENERGIZE,
+        "Read" => scene_icons::READ,
+        "Cool Bright" => scene_icons::COOL_BRIGHT,
+
+        /* Aliasas */
         "Night" => scene_icons::NIGHT_LIGHT,
+        "Cool" => scene_icons::COOL_BRIGHT,
+        "Dim" => scene_icons::DIMMED,
+
         _ => return None,
     };
 
