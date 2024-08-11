@@ -241,7 +241,7 @@ impl Resources {
 
         let bridge_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
-            metadata: Metadata::new(DeviceArchetype::BridgeV2, "bifrost"),
+            metadata: Metadata::new(DeviceArchetype::BridgeV2, "Bifrost"),
             services: vec![link_bridge, link_zbdd, link_zbc],
         };
 
@@ -253,7 +253,7 @@ impl Resources {
 
         let bridge_home_dev = Device {
             product_data: DeviceProductData::hue_bridge_v2(),
-            metadata: Metadata::new(DeviceArchetype::BridgeV2, "bifrost bridge home"),
+            metadata: Metadata::new(DeviceArchetype::BridgeV2, "Bifrost Bridge Home"),
             services: vec![link_bridge],
         };
 
