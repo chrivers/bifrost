@@ -14,30 +14,36 @@ use crate::resource::Resources;
 
 #[derive(Clone)]
 pub struct AppState {
-    conf: AppConfig,
+    conf: Arc<AppConfig>,
     pub res: Arc<Mutex<Resources>>,
 }
 
 impl AppState {
-    pub fn new(conf: AppConfig) -> ApiResult<Self> {
+    pub fn new(config: AppConfig) -> ApiResult<Self> {
+        let conf = Arc::new(config);
         let res = Arc::new(Mutex::new(Resources::new()));
 
         Ok(Self { conf, res })
     }
 
     #[must_use]
-    pub const fn mac(&self) -> MacAddress {
+    pub fn mac(&self) -> MacAddress {
         self.conf.bridge.mac
     }
 
     #[must_use]
-    pub const fn ip(&self) -> Ipv4Addr {
+    pub fn ip(&self) -> Ipv4Addr {
         self.conf.bridge.ipaddress
     }
 
     #[must_use]
-    pub const fn z2m_config(&self) -> &Z2mConfig {
+    pub fn z2m_config(&self) -> &Z2mConfig {
         &self.conf.z2m
+    }
+
+    #[must_use]
+    pub fn config(&self) -> Arc<AppConfig> {
+        self.conf.clone()
     }
 
     #[must_use]
