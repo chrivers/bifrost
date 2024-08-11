@@ -48,10 +48,10 @@ impl DeviceProductData {
             name.clone().unwrap_or_else(|| String::from("<unknown>"))
         }
 
-        let model_id = str_or_unknown(&dev.model_id);
+        let product_name = str_or_unknown(&dev.model_id);
+        let model_id = str_or_unknown(&dev.definition.as_ref().map(|def| def.model.clone()));
         let manufacturer_name = str_or_unknown(&dev.manufacturer);
         let certified = manufacturer_name == Self::SIGNIFY_MANUFACTURER_NAME;
-        let product_name = dev.friendly_name.clone();
         let software_version = str_or_unknown(&dev.software_build_id);
 
         let product_archetype = DeviceArchetype::SpotBulb;

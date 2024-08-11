@@ -77,9 +77,12 @@ impl Client {
         let link_device = RType::Device.deterministic(&dev.ieee_address);
         let link_light = RType::Light.deterministic(&dev.ieee_address);
 
+        let product_data = DeviceProductData::guess_from_device(dev);
+        let metadata = Metadata::new(DeviceArchetype::SpotBulb, name);
+
         let dev = hue::api::Device {
-            product_data: DeviceProductData::guess_from_device(dev),
-            metadata: Metadata::new(DeviceArchetype::SpotBulb, name),
+            product_data,
+            metadata: metadata.clone(),
             services: vec![link_light],
         };
 
@@ -87,8 +90,8 @@ impl Client {
         self.rmap.insert(link_light.rid, name.to_string());
 
         let mut res = self.state.lock().await;
-        let mut light = Light::new(link_device, dev.metadata.clone());
-        light.metadata.name = name.to_string();
+        let mut light = Light::new(link_device, metadata);
+
         light.color_temperature = expose
             .feature("color_temp")
             .and_then(ColorTemperature::extract_from_expose);
