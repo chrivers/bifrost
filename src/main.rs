@@ -150,8 +150,9 @@ async fn main() -> ApiResult<()> {
     loop {
         match tasks.join_next().await {
             None => break Ok(()),
-            Some(Ok(res)) => log::info!("Worker returned: {res:?}"),
-            Some(Err(err)) => log::error!("Error from worker: {err:?}"),
+            Some(Ok(Ok(res))) => log::info!("Worker returned: {res:?}"),
+            Some(Ok(Err(res))) => log::error!("Worked task failed: {res:?}"),
+            Some(Err(err)) => log::error!("Error spawning from worker: {err:?}"),
         }
     }
 }
