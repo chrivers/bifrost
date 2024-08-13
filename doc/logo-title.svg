@@ -13,16 +13,90 @@
    inkscape:export-ydpi="60"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs10">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3045">
+      <stop
+         style="stop-color:#060667;stop-opacity:1;"
+         offset="0"
+         id="stop3041" />
+      <stop
+         style="stop-color:#2020e2;stop-opacity:1;"
+         offset="0.78752887"
+         id="stop3043" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2984">
+      <stop
+         style="stop-color:#f8ffff;stop-opacity:1;"
+         offset="0"
+         id="stop2980" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="1"
+         id="stop2982" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2900">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop2896" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop2898" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient2884"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop2882" />
+    </linearGradient>
     <rect
        x="145.39399"
        y="28.545941"
        width="231.60111"
        height="70.066312"
        id="rect289" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2900"
+       id="linearGradient2902"
+       x1="150.29653"
+       y1="58.880343"
+       x2="329.76849"
+       y2="58.880343"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2984"
+       id="radialGradient2968"
+       cx="74"
+       cy="74"
+       fx="74"
+       fy="74"
+       r="63.999989"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3045"
+       id="radialGradient3049"
+       cx="74"
+       cy="74"
+       fx="74"
+       fy="74"
+       r="63.999989"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="namedview8"
@@ -34,21 +108,22 @@
      inkscape:pagecheckerboard="true"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="1.4375172"
-     inkscape:cx="-694.94821"
-     inkscape:cy="194.78028"
-     inkscape:window-width="5120"
-     inkscape:window-height="1361"
+     inkscape:zoom="2.8750344"
+     inkscape:cx="228.34509"
+     inkscape:cy="95.129297"
+     inkscape:window-width="2391"
+     inkscape:window-height="1394"
      inkscape:window-x="0"
      inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg6"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g954"
      showborder="true"
      shape-rendering="auto" />
   <g
-     id="g954">
+     id="g954"
+     style="stroke:url(#radialGradient2968)">
     <circle
-       style="fill:#0044aa;stroke:#000000;stroke-width:13.3838;stroke-dasharray:none;paint-order:stroke fill markers;stop-color:#000000"
+       style="fill:url(#radialGradient3049);stroke:url(#radialGradient2968);stroke-width:13.3838;stroke-dasharray:none;paint-order:stroke fill markers;stop-color:#000000;fill-opacity:1"
        id="path345"
        cx="74"
        cy="74"
@@ -56,20 +131,20 @@
     <g
        fill="#ffffff"
        id="g4"
-       style="fill:#ffffff"
+       style="fill:#ffffff;stroke:url(#radialGradient2968)"
        transform="matrix(0.72365752,0,0,0.72365752,23.817124,23.817124)">
       <path
          d="M 69.346173,18.146169 18.146169,69.346173 69.346173,120.54618 120.54618,69.346173 Z M 30.21273,69.346173 69.346173,30.21273 85.896575,46.763131 79.862654,52.797052 69.346173,42.283131 42.283131,69.346173 52.795772,79.862654 46.761851,85.896575 Z m 54.133765,0 L 69.346173,84.350335 54.349692,69.346173 69.346173,54.349692 Z m -31.550723,22.584322 6.03392,-6.03392 10.516481,10.512641 27.066883,-27.063043 -10.516481,-10.516481 6.03392,-6.03392 16.549125,16.550401 -39.133447,39.133447 z"
          id="path2"
-         style="fill:#ffffff;stroke-width:1.28" />
+         style="fill:#ffffff;stroke-width:1.28;stroke:url(#radialGradient2968)" />
     </g>
   </g>
   <text
      xml:space="preserve"
      transform="matrix(1.7297511,0,0,1.7297511,-98.188589,-27.848338)"
      id="text287"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:56px;line-height:125%;font-family:MaxTF-SemiBold;-inkscape-font-specification:MaxTF-SemiBold;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect289);shape-padding:0.250766;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:56px;line-height:125%;font-family:MaxTF-SemiBold;-inkscape-font-specification:MaxTF-SemiBold;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect289);shape-padding:0.250766;display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:0.578118;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"><tspan
        x="145.64453"
        y="79.572343"
-       id="tspan987">Bifrost</tspan></text>
+       id="tspan3079">Bifrost</tspan></text>
 </svg>
