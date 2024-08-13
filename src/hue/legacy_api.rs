@@ -146,6 +146,28 @@ pub struct DeviceTypes {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SwUpdate {
+    #[serde(with = "date_format::utc")]
+    lastinstall: DateTime<Utc>,
+    state: SwUpdateState,
+}
+
+impl Default for SwUpdate {
+    fn default() -> Self {
+        Self {
+            lastinstall: Utc::now(),
+            state: SwUpdateState::NoUpdates,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SwUpdateState {
+    NoUpdates,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SoftwareUpdate2 {
     autoinstall: Value,
     bridge: Value,
