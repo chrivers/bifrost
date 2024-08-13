@@ -8,6 +8,7 @@ use crate::{
     hue::{
         api::{RType, ResourceLink},
         event::EventBlock,
+        legacy_api::ApiResourceType,
     },
     z2m::request::ClientRequest,
 };
@@ -58,6 +59,9 @@ pub enum ApiError {
 
     #[error("State changes not supported for: {0:?}")]
     UpdateUnsupported(RType),
+
+    #[error("Cannot create resources of type: {0:?}")]
+    V1CreateUnsupported(ApiResourceType),
 
     #[error("Request failed: {0}")]
     Fail(&'static str),
