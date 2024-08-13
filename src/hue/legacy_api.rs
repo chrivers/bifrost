@@ -232,15 +232,27 @@ pub struct ApiConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ApiEffect {
+    None,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ApiAlert {
+    None,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ApiGroupAction {
     on: bool,
     bri: u32,
     hue: u32,
     sat: u32,
-    effect: String,
+    effect: ApiEffect,
     xy: [f64; 2],
     ct: u32,
-    alert: String,
+    alert: ApiAlert,
     colormode: LightColorMode,
 }
 
@@ -280,10 +292,10 @@ impl ApiGroup {
                     .unwrap_or_default(),
                 hue: 0,
                 sat: 0,
-                effect: String::from("none"),
+                effect: ApiEffect::None,
                 xy: [0.0, 0.0],
                 ct: 0,
-                alert: String::from("none"),
+                alert: ApiAlert::None,
                 colormode: LightColorMode::Xy,
             },
             class: "Bedroom".to_string(),
