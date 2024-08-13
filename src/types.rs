@@ -17,3 +17,18 @@ impl XY {
         Self { x, y }
     }
 }
+
+impl From<[f64; 2]> for XY {
+    fn from(value: [f64; 2]) -> Self {
+        Self {
+            x: value[0],
+            y: value[1],
+        }
+    }
+}
+
+impl From<XY> for [f64; 2] {
+    fn from(value: XY) -> Self {
+        [value.x, value.y]
+    }
+}
