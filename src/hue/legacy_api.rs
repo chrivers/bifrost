@@ -311,7 +311,142 @@ pub struct ApiGroupState {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ApiLight {}
+#[serde(rename_all = "lowercase")]
+pub enum LightColorMode {
+    Ct,
+    Xy,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiLightState {
+    on: bool,
+    bri: u32,
+    hue: u32,
+    sat: u32,
+    effect: String,
+    xy: [f64; 2],
+    ct: u32,
+    alert: String,
+    colormode: LightColorMode,
+    mode: String,
+    reachable: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiLightStateUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub on: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bri: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub xy: Option<[f64; 2]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ct: Option<u32>,
+}
+
+impl From<api::SceneAction> for ApiLightStateUpdate {
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    fn from(action: api::SceneAction) -> Self {
+        Self {
+            on: action.on.map(|on| on.on),
+            bri: action.dimming.map(|dim| (dim.brightness * 2.54) as u32),
+            xy: action.color.map(|col| col.xy.into()),
+            ct: action.color_temperature.map(|ct| ct.mirek),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiLight {
+    state: ApiLightState,
+    swupdate: SwUpdate,
+    #[serde(rename = "type")]
+    light_type: String,
+    name: String,
+    modelid: String,
+    manufacturername: String,
+    productname: String,
+    capabilities: Value,
+    config: Value,
+    uniqueid: String,
+    swversion: String,
+    swconfigid: String,
+    productid: String,
+}
+
+impl ApiLight {
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    #[must_use]
+    pub fn from_dev_and_light(uuid: &Uuid, dev: api::Device, light: api::Light) -> Self {
+        let colormode = if light.color.is_some() {
+            LightColorMode::Xy
+        } else {
+            LightColorMode::Ct
+        };
+
+        Self {
+            state: ApiLightState {
+                on: light.on.on,
+                bri: light
+                    .dimming
+                    .map(|dim| (dim.brightness * 2.54) as u32)
+                    .unwrap_or_default(),
+                hue: 0,
+                sat: 0,
+                effect: String::new(),
+                xy: light.color.map(|col| col.xy.into()).unwrap_or_default(),
+                ct: light
+                    .color_temperature
+                    .and_then(|ct| ct.mirek)
+                    .unwrap_or_default(),
+                alert: String::new(),
+                colormode,
+                mode: "homeautomation".to_string(),
+                reachable: true,
+            },
+            swupdate: SwUpdate::default(),
+            name: light.metadata.name,
+            modelid: dev.product_data.product_name,
+            manufacturername: dev.product_data.manufacturer_name,
+            productname: "Hue color spot".to_string(),
+            productid: dev.product_data.model_id,
+            capabilities: json!({
+                "certified": true,
+                "control": {
+                    "colorgamut": [
+                        [0.6915, 0.3083 ],
+                        [0.17,   0.7    ],
+                        [0.1532, 0.0475 ],
+                    ],
+                    "colorgamuttype": "C",
+                    "ct": {
+                        "max": 500,
+                        "min": 153
+                    },
+                    "maxlumen": 300,
+                    "mindimlevel": 200
+                },
+                "streaming": {
+                    "proxy": true,
+                    "renderer": true
+                }
+            }),
+            config: json!({
+                "archetype": "spotbulb",
+                "function": "mixed",
+                "direction": "downwards",
+                "startup": {
+                    "mode": "safety",
+                    "configured": true
+                }
+            }),
+            light_type: "Extended color light".to_string(),
+            uniqueid: uuid.as_simple().to_string(),
+            swversion: dev.product_data.software_version,
+            swconfigid: String::new(),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiResourceLink {}
