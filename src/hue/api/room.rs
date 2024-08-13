@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::hue::api::ResourceLink;
+use crate::hue::api::{RType, ResourceLink};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RoomMetadata {
@@ -14,6 +14,15 @@ pub struct Room {
     pub metadata: RoomMetadata,
     #[serde(default)]
     pub services: Vec<ResourceLink>,
+}
+
+impl Room {
+    #[must_use]
+    pub fn grouped_light_service(&self) -> Option<&ResourceLink> {
+        self.services
+            .iter()
+            .find(|rl| rl.rtype == RType::GroupedLight)
+    }
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]
