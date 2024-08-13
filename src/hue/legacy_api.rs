@@ -532,11 +532,11 @@ pub struct ApiSensor {}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiUserConfig {
     pub config: ApiConfig,
-    pub groups: HashMap<u32, ApiGroup>,
-    pub lights: HashMap<u32, ApiLight>,
+    pub groups: HashMap<String, ApiGroup>,
+    pub lights: HashMap<String, ApiLight>,
     pub resourcelinks: HashMap<u32, ApiResourceLink>,
     pub rules: HashMap<u32, ApiRule>,
-    pub scenes: HashMap<u32, ApiScene>,
+    pub scenes: HashMap<String, ApiScene>,
     pub schedules: HashMap<u32, ApiSchedule>,
     pub sensors: HashMap<u32, ApiSensor>,
 }

@@ -22,6 +22,8 @@ use crate::hue::legacy_api::{
 };
 use crate::resource::Resources;
 use crate::state::AppState;
+use crate::z2m::request::ClientRequest;
+use crate::z2m::update::DeviceUpdate;
 
 async fn get_api() -> impl IntoResponse {
     "yep"
@@ -100,34 +102,39 @@ fn get_scenes(owner: &Uuid, res: &MutexGuard<Resources>) -> ApiResult<HashMap<St
 }
 
 #[allow(clippy::zero_sized_map_values)]
-async fn get_api_user(state: State<AppState>, Path(username): Path<Uuid>) -> impl IntoResponse {
-    Json(ApiUserConfig {
+async fn get_api_user(
+    state: State<AppState>,
+    Path(username): Path<Uuid>,
+) -> ApiResult<impl IntoResponse> {
+    let lock = state.res.lock().await;
+
+    Ok(Json(ApiUserConfig {
         config: state.api_config(username),
-        groups: HashMap::new(),
-        lights: HashMap::new(),
+        groups: get_groups(&lock)?,
+        lights: get_lights(&lock)?,
         resourcelinks: HashMap::new(),
         rules: HashMap::new(),
-        scenes: HashMap::new(),
+        scenes: get_scenes(&username, &lock)?,
         schedules: HashMap::new(),
         sensors: HashMap::new(),
-    })
+    }))
 }
 
 async fn get_api_user_resource(
     State(state): State<AppState>,
     Path((username, resource)): Path<(Uuid, ApiResourceType)>,
-) -> Json<Value> {
-    /* info!("user {username} resource {resource:?}"); */
+) -> ApiResult<Json<Value>> {
+    let lock = &state.res.lock().await;
     match resource {
-        ApiResourceType::Config => Json(json!(state.api_config(username))),
-        ApiResourceType::Groups
-        | ApiResourceType::Lights
-        | ApiResourceType::Resourcelinks
+        ApiResourceType::Config => Ok(Json(json!(state.api_config(username)))),
+        ApiResourceType::Lights => Ok(Json(json!(get_lights(lock)?))),
+        ApiResourceType::Groups => Ok(Json(json!(get_groups(lock)?))),
+        ApiResourceType::Scenes => Ok(Json(json!(get_scenes(&username, lock)?))),
+        ApiResourceType::Resourcelinks
         | ApiResourceType::Rules
-        | ApiResourceType::Scenes
         | ApiResourceType::Schedules
-        | ApiResourceType::Sensors => Json(json!({})),
-        ApiResourceType::Capabilities => Json(json!(Capabilities::new())),
+        | ApiResourceType::Sensors => Ok(Json(json!({}))),
+        ApiResourceType::Capabilities => Ok(Json(json!(Capabilities::new()))),
     }
 }
 
@@ -140,11 +147,34 @@ async fn put_api_user_resource(
     Json(vec![HueResult::Success(req)])
 }
 
+#[allow(clippy::significant_drop_tightening)]
 async fn get_api_user_resource_id(
-    Path((username, resource, id)): Path<(String, String, String)>,
-) -> impl IntoResponse {
+    State(state): State<AppState>,
+    Path((username, resource, id)): Path<(Uuid, ApiResourceType, Uuid)>,
+) -> ApiResult<impl IntoResponse> {
     warn!("GET v1 user resource id");
-    format!("user {username} resource {resource} id {id}")
+    match resource {
+        ApiResourceType::Lights => {
+            let lock = state.res.lock().await;
+            let link = ResourceLink::new(id, RType::Light);
+            let light = lock.get::<Light>(&link)?;
+            let dev = lock.get::<Device>(&light.owner)?.clone();
+            Ok(Json(serde_json::to_value(ApiLight::from_dev_and_light(
+                &id,
+                dev,
+                light.clone(),
+            ))?))
+        }
+        ApiResourceType::Scenes => {
+            let lock = state.res.lock().await;
+            let link = ResourceLink::new(id, RType::Scene);
+            let scene = lock.get::<Scene>(&link)?.clone();
+            Ok(Json(serde_json::to_value(ApiScene::from_scene(
+                username, scene,
+            ))?))
+        }
+        _ => Err(ApiError::NotFound(id)),
+    }
 }
 
 pub fn router() -> Router<AppState> {
