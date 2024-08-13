@@ -170,10 +170,11 @@ pub enum SwUpdateState {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SoftwareUpdate2 {
     autoinstall: Value,
-    bridge: Value,
+    bridge: SwUpdate,
     checkforupdate: bool,
-    lastchange: String,
-    state: String,
+    #[serde(with = "date_format::utc")]
+    lastchange: DateTime<Utc>,
+    state: SwUpdateState,
 }
 
 impl SoftwareUpdate2 {
@@ -182,13 +183,13 @@ impl SoftwareUpdate2 {
     pub fn new() -> Self {
         Self {
             autoinstall: json!({ "on": true, "updatetime": "T14:00:00" }),
-            bridge: json!({
-                "lastinstall": "2020-01-01T01:01:01",
-                "state": "noupdates",
-            }),
+            bridge: SwUpdate {
+                lastinstall: Utc::now(),
+                state: SwUpdateState::NoUpdates,
+            },
             checkforupdate: false,
-            lastchange: "2020-01-01T01:01:01".to_string(),
-            state: "noupdates".to_string(),
+            lastchange: Utc::now(),
+            state: SwUpdateState::NoUpdates,
         }
     }
 }
