@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::hue::best_guess_timezone;
+use crate::hue::{api, best_guess_timezone};
 
 use super::date_format;
 
@@ -232,7 +232,71 @@ pub struct ApiConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ApiGroup {}
+pub struct ApiGroupAction {
+    on: bool,
+    bri: u32,
+    hue: u32,
+    sat: u32,
+    effect: String,
+    xy: [f64; 2],
+    ct: u32,
+    alert: String,
+    colormode: LightColorMode,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ApiGroupType {
+    Room,
+    LightGroup,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiGroup {
+    name: String,
+    lights: Vec<String>,
+    action: ApiGroupAction,
+
+    #[serde(rename = "type")]
+    group_type: ApiGroupType,
+    class: String,
+}
+
+impl ApiGroup {
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    #[must_use]
+    pub fn from_lights_and_room(
+        glight: api::GroupedLight,
+        lights: &[(Uuid, api::Light)],
+        room: api::Room,
+    ) -> Self {
+        Self {
+            name: room.metadata.name,
+            lights: lights.iter().map(|l| format!("{}", l.0.simple())).collect(),
+            action: ApiGroupAction {
+                on: glight.on.is_some_and(|on| on.on),
+                bri: glight
+                    .dimming
+                    .map(|dim| (dim.brightness * 2.54) as u32)
+                    .unwrap_or_default(),
+                hue: 0,
+                sat: 0,
+                effect: String::from("none"),
+                xy: [0.0, 0.0],
+                ct: 0,
+                alert: String::from("none"),
+                colormode: LightColorMode::Xy,
+            },
+            class: "Bedroom".to_string(),
+            group_type: ApiGroupType::Room,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiGroupState {
+    pub all_on: bool,
+    pub any_on: bool,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiLight {}
