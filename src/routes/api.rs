@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::{
     extract::{Path, State},
     response::IntoResponse,
-    routing::get,
+    routing::{get, put},
     Json, Router,
 };
 
@@ -177,6 +177,78 @@ async fn get_api_user_resource_id(
     }
 }
 
+async fn put_api_user_resource_id_state(
+    State(state): State<AppState>,
+    Path((_username, resource, id, path)): Path<(String, ApiResourceType, Uuid, String)>,
+    Json(req): Json<Value>,
+) -> ApiResult<Json<Value>> {
+    match resource {
+        ApiResourceType::Lights => {
+            println!("req: {req:#?}");
+            match path.as_str() {
+                "state" => {
+                    let lock = state.res.lock().await;
+                    let link = ResourceLink::new(id, RType::Light);
+                    let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+
+                    let payload = DeviceUpdate::default()
+                        .with_state(upd.on)
+                        .with_brightness(upd.bri.map(f64::from))
+                        .with_color_xy(upd.xy.map(Into::into))
+                        .with_color_temp(upd.ct);
+
+                    lock.z2m_request(ClientRequest::light_update(link, payload))?;
+                    drop(lock);
+
+                    let reply = V1ReplyBuilder::new(format!("/lights/{}/{path}", id.as_simple()))
+                        .add_option("on", upd.on)?
+                        .add_option("bri", upd.bri)?
+                        .add_option("xy", upd.xy)?
+                        .add_option("ct", upd.ct)?;
+
+                    Ok(Json(reply.json()))
+                }
+                _ => Err(ApiError::NotFound(id)),
+            }
+        }
+        ApiResourceType::Groups => match path.as_str() {
+            "action" => {
+                let lock = state.res.lock().await;
+                let link = ResourceLink::new(id, RType::Room);
+                let room: &Room = lock.get(&link)?;
+                let glight = room.grouped_light_service().unwrap();
+
+                let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+
+                let payload = DeviceUpdate::default()
+                    .with_state(upd.on)
+                    .with_brightness(upd.bri.map(f64::from))
+                    .with_color_xy(upd.xy.map(Into::into))
+                    .with_color_temp(upd.ct);
+
+                lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
+                drop(lock);
+
+                let reply = V1ReplyBuilder::new(format!("/groups/{}/{path}", id.as_simple()))
+                    .add_option("on", upd.on)?
+                    .add_option("bri", upd.bri)?
+                    .add_option("xy", upd.xy)?
+                    .add_option("ct", upd.ct)?;
+
+                Ok(Json(reply.json()))
+            }
+            _ => Err(ApiError::NotFound(id)),
+        },
+        ApiResourceType::Config
+        | ApiResourceType::Resourcelinks
+        | ApiResourceType::Rules
+        | ApiResourceType::Scenes
+        | ApiResourceType::Schedules
+        | ApiResourceType::Sensors
+        | ApiResourceType::Capabilities => Err(ApiError::V1CreateUnsupported(resource)),
+    }
+}
+
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(get_api).post(post_api))
@@ -187,4 +259,8 @@ pub fn router() -> Router<AppState> {
             get(get_api_user_resource).put(put_api_user_resource),
         )
         .route("/:username/:resource/:id", get(get_api_user_resource_id))
+        .route(
+            "/:username/:resource/:id/:state",
+            put(put_api_user_resource_id_state),
+        )
 }
