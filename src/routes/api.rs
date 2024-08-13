@@ -6,14 +6,21 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use log::warn;
+
+use log::{info, warn};
 use serde_json::{json, Value};
-use tracing::info;
+use tokio::sync::MutexGuard;
 use uuid::Uuid;
 
-use crate::hue::legacy_api::{
-    ApiResourceType, ApiUserConfig, Capabilities, HueResult, NewUser, NewUserReply,
+use crate::error::{ApiError, ApiResult};
+use crate::hue::api::{
+    Device, GroupedLight, Light, RType, ResourceLink, Room, Scene, V1ReplyBuilder,
 };
+use crate::hue::legacy_api::{
+    ApiGroup, ApiLight, ApiLightStateUpdate, ApiResourceType, ApiScene, ApiUserConfig,
+    Capabilities, HueResult, NewUser, NewUserReply,
+};
+use crate::resource::Resources;
 use crate::state::AppState;
 
 async fn get_api() -> impl IntoResponse {
@@ -31,6 +38,65 @@ async fn post_api(Json(j): Json<NewUser>) -> impl IntoResponse {
         username: Uuid::new_v4(),
     };
     Json(vec![HueResult::Success(res)])
+}
+
+fn get_lights(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiLight>> {
+    let mut lights = HashMap::new();
+
+    for rr in res.get_resources_by_type(RType::Light) {
+        let light: Light = rr.obj.try_into()?;
+        let dev = res.get::<Device>(&light.owner)?.clone();
+        lights.insert(
+            rr.id.simple().to_string(),
+            ApiLight::from_dev_and_light(&rr.id, dev, light),
+        );
+    }
+
+    Ok(lights)
+}
+
+fn get_groups(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiGroup>> {
+    let mut rooms = HashMap::new();
+
+    for rr in res.get_resources_by_type(RType::Room) {
+        let room: Room = rr.obj.try_into()?;
+        let uuid = room
+            .services
+            .iter()
+            .find(|rl| rl.rtype == RType::GroupedLight)
+            .ok_or(ApiError::NotFound(rr.id))?;
+
+        let glight = res.get::<GroupedLight>(uuid)?.clone();
+        let lights: Vec<(Uuid, Light)> = room
+            .children
+            .iter()
+            .filter_map(|rl| res.get(rl).ok())
+            .filter_map(Device::light_service)
+            .filter_map(|rl| Some((rl.rid, res.get::<Light>(rl).ok()?.clone())))
+            .collect();
+
+        rooms.insert(
+            rr.id.simple().to_string(),
+            ApiGroup::from_lights_and_room(glight, &lights, room),
+        );
+    }
+
+    Ok(rooms)
+}
+
+fn get_scenes(owner: &Uuid, res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiScene>> {
+    let mut rooms = HashMap::new();
+
+    for rr in res.get_resources_by_type(RType::Scene) {
+        let scene: Scene = rr.obj.try_into()?;
+
+        rooms.insert(
+            rr.id.simple().to_string(),
+            ApiScene::from_scene(*owner, scene),
+        );
+    }
+
+    Ok(rooms)
 }
 
 #[allow(clippy::zero_sized_map_values)]
