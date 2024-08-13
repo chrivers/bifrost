@@ -455,7 +455,72 @@ pub struct ApiResourceLink {}
 pub struct ApiRule {}
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ApiScene {}
+pub enum ApiSceneType {
+    LightScene,
+    GroupScene,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ApiSceneVersion {
+    V2 = 2,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiScene {
+    name: String,
+    #[serde(rename = "type")]
+    scene_type: ApiSceneType,
+    lights: Vec<String>,
+    lightstates: HashMap<String, ApiLightStateUpdate>,
+    owner: Uuid,
+    recycle: bool,
+    locked: bool,
+    appdata: Value,
+    picture: String,
+    #[serde(with = "date_format::utc")]
+    lastupdated: DateTime<Utc>,
+    version: u32,
+    image: Option<Uuid>,
+    group: String,
+}
+
+impl ApiScene {
+    #[must_use]
+    pub fn from_scene(owner: Uuid, scene: api::Scene) -> Self {
+        let lights = scene
+            .actions
+            .iter()
+            .map(|sae| sae.target.rid.as_simple().to_string())
+            .collect();
+
+        let lightstates = scene
+            .actions
+            .iter()
+            .map(|sae| {
+                (
+                    sae.target.rid.as_simple().to_string(),
+                    ApiLightStateUpdate::from(sae.action.clone()),
+                )
+            })
+            .collect();
+
+        Self {
+            name: scene.metadata.name,
+            scene_type: ApiSceneType::GroupScene,
+            lights,
+            lightstates,
+            owner,
+            recycle: false,
+            locked: false,
+            appdata: json!({}),
+            picture: String::new(),
+            lastupdated: Utc::now(),
+            version: ApiSceneVersion::V2 as u32,
+            image: scene.metadata.image.map(|rl| rl.rid),
+            group: scene.group.rid.as_simple().to_string(),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiSchedule {}
