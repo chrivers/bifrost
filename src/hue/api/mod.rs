@@ -30,7 +30,7 @@ pub use update::{Update, UpdateRecord};
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{from_value, Value};
+use serde_json::{from_value, json, Value};
 
 use crate::error::{ApiError, ApiResult};
 
@@ -185,4 +185,42 @@ resource_conversion_impl!(Zone);
 pub struct V2Reply<T> {
     pub data: Vec<T>,
     pub errors: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct V1ReplyBuilder<'a> {
+    prefix: String,
+    success: Vec<(&'a str, Value)>,
+}
+
+impl<'a> V1ReplyBuilder<'a> {
+    #[must_use]
+    pub fn new(prefix: String) -> Self {
+        Self {
+            prefix,
+            success: vec![],
+        }
+    }
+
+    pub fn add<T: Serialize>(mut self, name: &'a str, value: T) -> ApiResult<Self> {
+        self.success.push((name, serde_json::to_value(value)?));
+        Ok(self)
+    }
+
+    pub fn add_option<T: Serialize>(mut self, name: &'a str, value: Option<T>) -> ApiResult<Self> {
+        if let Some(val) = value {
+            self.success.push((name, serde_json::to_value(val)?));
+        }
+        Ok(self)
+    }
+
+    #[must_use]
+    pub fn json(self) -> Value {
+        let mut json = vec![];
+        let prefix = self.prefix;
+        for (name, value) in self.success {
+            json.push(json!({"success": {format!("{prefix}/{name}"): value}}));
+        }
+        json!(json)
+    }
 }
