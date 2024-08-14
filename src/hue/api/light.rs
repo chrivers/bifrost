@@ -165,9 +165,9 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub const fn with_color_xy(self, xy: XY) -> Self {
+    pub fn with_color_xy(self, xy: Option<XY>) -> Self {
         Self {
-            color: Some(ColorUpdate { xy }),
+            color: xy.map(|xy| ColorUpdate { xy }),
             ..self
         }
     }

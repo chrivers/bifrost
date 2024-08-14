@@ -97,26 +97,18 @@ impl Resources {
     fn generate_update(obj: &Resource) -> ApiResult<Option<Update>> {
         match obj {
             Resource::Light(light) => {
-                let mut upd = LightUpdate::new()
+                let upd = LightUpdate::new()
                     .with_brightness(light.dimming)
-                    .with_on(Some(light.on));
-
-                if let Some(ct) = &light.color_temperature {
-                    upd = upd.with_color_temperature(ct.mirek);
-                }
-
-                if let Some(col) = &light.color {
-                    upd = upd.with_color_xy(col.xy);
-                }
+                    .with_on(Some(light.on))
+                    .with_color_temperature(light.as_mirek_opt())
+                    .with_color_xy(light.as_color_opt());
 
                 Ok(Some(Update::Light(upd)))
             }
             Resource::GroupedLight(glight) => {
-                let mut upd = GroupedLightUpdate::new().with_on(glight.on);
-
-                if let Some(b) = &glight.dimming {
-                    upd = upd.with_brightness(b.brightness);
-                }
+                let upd = GroupedLightUpdate::new()
+                    .with_on(glight.on)
+                    .with_brightness(glight.as_brightness_opt());
 
                 Ok(Some(Update::GroupedLight(upd)))
             }

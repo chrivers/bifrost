@@ -39,9 +39,9 @@ impl GroupedLightUpdate {
     }
 
     #[must_use]
-    pub const fn with_brightness(self, brightness: f64) -> Self {
+    pub fn with_brightness(self, brightness: Option<f64>) -> Self {
         Self {
-            dimming: Some(DimmingUpdate { brightness }),
+            dimming: brightness.map(|brightness| DimmingUpdate { brightness }),
             ..self
         }
     }
