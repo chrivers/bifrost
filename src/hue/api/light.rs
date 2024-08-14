@@ -42,6 +42,16 @@ impl Light {
             signaling: None,
         }
     }
+
+    #[must_use]
+    pub fn as_mirek_opt(&self) -> Option<u32> {
+        self.color_temperature.as_ref().and_then(|ct| ct.mirek)
+    }
+
+    #[must_use]
+    pub fn as_color_opt(&self) -> Option<XY> {
+        self.color.as_ref().map(|col| col.xy)
+    }
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, Default)]

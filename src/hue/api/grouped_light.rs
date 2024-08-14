@@ -13,6 +13,13 @@ pub struct GroupedLight {
     pub signaling: Value,
 }
 
+impl GroupedLight {
+    #[must_use]
+    pub fn as_brightness_opt(&self) -> Option<f64> {
+        self.dimming.as_ref().map(|br| br.brightness)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct GroupedLightUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
