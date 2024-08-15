@@ -16,8 +16,8 @@ pub fn register_mdns(appstate: &AppState) -> ServiceDaemon {
 
     /* With `enable_addr_auto()`, we can give empty addrs and let the lib find them. */
     /* If the caller knows specific addrs to use, then assign the addrs here. */
-    let my_addrs = "";
-    let service_hostname = format!("{instance_name}{service_type}");
+    let my_addrs = appstate.ip().to_string();
+    let service_hostname = format!("{instance_name}.{service_type}");
     let port = 80;
 
     let properties = [
@@ -33,8 +33,7 @@ pub fn register_mdns(appstate: &AppState) -> ServiceDaemon {
         port,
         &properties[..],
     )
-    .expect("valid service info")
-    .enable_addr_auto();
+    .expect("valid service info");
 
     mdns.register(service_info)
         .expect("Failed to register mDNS service");
