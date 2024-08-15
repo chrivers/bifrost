@@ -21,7 +21,7 @@ pub mod z2m;
 
 pub mod config;
 pub mod mdns;
+pub mod model;
 pub mod resource;
 pub mod routes;
 pub mod state;
-pub mod types;

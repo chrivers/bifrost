@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::hue::api::{Metadata, ResourceLink};
-use crate::types::XY;
+use crate::model::types::XY;
 use crate::z2m::api::Expose;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

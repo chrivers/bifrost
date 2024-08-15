@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{hue::api::On, types::XY};
+use crate::hue::api::On;
+use crate::model::types::XY;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(deny_unknown_fields)]
