@@ -19,10 +19,10 @@ use crate::config::AppConfig;
 use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
-    ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
-    Light, LightColor, Metadata, RType, Resource, ResourceLink, Room, RoomArchetype, RoomMetadata,
-    Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus, ZigbeeConnectivity,
-    ZigbeeConnectivityStatus,
+    ColorUpdate, Device, DeviceArchetype, DeviceProductData, DimmingUpdate, GroupedLight, Light,
+    LightColor, LightUpdate, Metadata, RType, Resource, ResourceLink, Room, RoomArchetype,
+    RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
+    ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -287,37 +287,21 @@ impl Client {
         Ok(())
     }
 
-    async fn handle_update_light(&mut self, uuid: &Uuid, upd: &DeviceUpdate) -> ApiResult<()> {
+    async fn handle_update_light(&mut self, uuid: &Uuid, devupd: &DeviceUpdate) -> ApiResult<()> {
         let mut res = self.state.lock().await;
         res.update::<Light>(uuid, move |light| {
-            if let Some(state) = &upd.state {
-                light.on.on = (*state).into();
-            }
+            let upd = LightUpdate::new()
+                .with_on(devupd.state.map(Into::into))
+                .with_brightness(devupd.brightness.map(|b| b / 254.0 * 100.0))
+                .with_color_temperature(devupd.color_temp)
+                .with_color_xy(devupd.color.map(|col| col.xy));
 
-            if let Some(b) = upd.brightness {
-                light.dimming = Some(Dimming {
-                    brightness: b / 254.0 * 100.0,
-                    min_dim_level: None,
-                });
-            }
-
-            if let Some(ct) = &mut light.color_temperature {
-                ct.mirek = upd.color_temp;
-            }
-
-            if let Some(col) = upd.color {
-                match &mut light.color {
-                    Some(lcol) => lcol.xy = col.xy,
-                    None => {}
-                }
-                if let Some(ct) = &mut light.color_temperature {
-                    ct.mirek = None;
-                }
-            }
+            *light += upd;
         })?;
 
         for learn in self.learn.values_mut() {
             if learn.missing.remove(uuid) {
+                let upd = devupd;
                 let rlink = RType::Light.link_to(*uuid);
                 let light = res.get::<Light>(&rlink)?;
                 let mut color_temperature = None;

@@ -1,3 +1,5 @@
+use std::ops::AddAssign;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -51,6 +53,35 @@ impl Light {
     #[must_use]
     pub fn as_color_opt(&self) -> Option<XY> {
         self.color.as_ref().map(|col| col.xy)
+    }
+}
+
+impl AddAssign<LightUpdate> for Light {
+    fn add_assign(&mut self, upd: LightUpdate) {
+        if let Some(state) = &upd.on {
+            self.on.on = state.on;
+        }
+
+        if let Some(b) = upd.dimming {
+            self.dimming = Some(Dimming {
+                brightness: b.brightness / 254.0 * 100.0,
+                min_dim_level: None,
+            });
+        }
+
+        if let Some(ct) = &mut self.color_temperature {
+            ct.mirek = upd.color_temperature.map(|c| c.mirek);
+        }
+
+        if let Some(col) = upd.color {
+            match &mut self.color {
+                Some(lcol) => lcol.xy = col.xy,
+                None => {}
+            }
+            if let Some(ct) = &mut self.color_temperature {
+                ct.mirek = None;
+            }
+        }
     }
 }
 
@@ -142,18 +173,19 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub fn with_brightness(self, dim: Option<Dimming>) -> Self {
+    pub fn with_brightness(self, dim: Option<f64>) -> Self {
         Self {
-            dimming: dim.map(|d| DimmingUpdate {
-                brightness: d.brightness,
-            }),
+            dimming: dim.map(|d| DimmingUpdate { brightness: d }),
             ..self
         }
     }
 
     #[must_use]
-    pub const fn with_on(self, on: Option<On>) -> Self {
-        Self { on, ..self }
+    pub fn with_on(self, on: Option<bool>) -> Self {
+        Self {
+            on: on.map(|on| On { on }),
+            ..self
+        }
     }
 
     #[must_use]
