@@ -159,19 +159,17 @@ async fn get_api_user_resource_id(
             let link = ResourceLink::new(id, RType::Light);
             let light = lock.get::<Light>(&link)?;
             let dev = lock.get::<Device>(&light.owner)?.clone();
-            Ok(Json(serde_json::to_value(ApiLight::from_dev_and_light(
+            Ok(Json(json!(ApiLight::from_dev_and_light(
                 &id,
                 dev,
                 light.clone(),
-            ))?))
+            ))))
         }
         ApiResourceType::Scenes => {
             let lock = state.res.lock().await;
             let link = ResourceLink::new(id, RType::Scene);
             let scene = lock.get::<Scene>(&link)?.clone();
-            Ok(Json(serde_json::to_value(ApiScene::from_scene(
-                username, scene,
-            ))?))
+            Ok(Json(json!(ApiScene::from_scene(username, scene))))
         }
         _ => Err(ApiError::NotFound(id)),
     }
