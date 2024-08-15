@@ -213,7 +213,7 @@ pub struct DimmingUpdate {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Delta {}
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct On {
     pub on: bool,
 }
@@ -347,7 +347,7 @@ impl ColorTemperature {
     }
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Dimming {
     pub brightness: f64,
     pub min_dim_level: Option<f64>,
