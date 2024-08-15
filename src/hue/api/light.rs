@@ -210,6 +210,14 @@ pub struct DimmingUpdate {
     pub brightness: f64,
 }
 
+impl From<Dimming> for DimmingUpdate {
+    fn from(value: Dimming) -> Self {
+        Self {
+            brightness: value.brightness,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Delta {}
 
@@ -325,6 +333,12 @@ pub struct ColorTemperature {
     pub mirek: Option<u32>,
     pub mirek_schema: MirekSchema,
     pub mirek_valid: bool,
+}
+
+impl From<ColorTemperature> for Option<ColorTemperatureUpdate> {
+    fn from(value: ColorTemperature) -> Self {
+        value.mirek.map(|mirek| ColorTemperatureUpdate { mirek })
+    }
 }
 
 impl ColorTemperature {
