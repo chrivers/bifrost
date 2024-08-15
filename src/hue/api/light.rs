@@ -1,4 +1,4 @@
-use std::ops::AddAssign;
+use std::ops::{AddAssign, Sub};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -82,6 +82,37 @@ impl AddAssign<LightUpdate> for Light {
                 ct.mirek = None;
             }
         }
+    }
+}
+
+impl Sub<&Light> for &Light {
+    type Output = LightUpdate;
+
+    fn sub(self, rhs: &Light) -> Self::Output {
+        let mut upd = Self::Output {
+            on: None,
+            dimming: None,
+            color: None,
+            color_temperature: None,
+        };
+
+        if self.on != rhs.on {
+            upd.on = Some(rhs.on);
+        }
+
+        if self.dimming != rhs.dimming {
+            upd.dimming = rhs.dimming.map(Into::into);
+        }
+
+        if self.as_mirek_opt() != rhs.as_mirek_opt() {
+            upd = upd.with_color_temperature(rhs.as_mirek_opt());
+        }
+
+        if self.as_color_opt() != rhs.as_color_opt() {
+            upd = upd.with_color_xy(rhs.as_color_opt());
+        }
+
+        upd
     }
 }
 
