@@ -209,30 +209,33 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub fn with_brightness(self, dim: Option<f64>) -> Self {
+    pub fn with_brightness(self, dim: Option<impl Into<f64>>) -> Self {
         Self {
-            dimming: dim.map(DimmingUpdate::new),
+            dimming: dim.map(Into::into).map(DimmingUpdate::new),
             ..self
         }
     }
 
     #[must_use]
-    pub const fn with_on(self, on: Option<On>) -> Self {
-        Self { on, ..self }
-    }
-
-    #[must_use]
-    pub fn with_color_temperature(self, mirek: Option<u32>) -> Self {
+    pub fn with_on(self, on: impl Into<Option<On>>) -> Self {
         Self {
-            color_temperature: mirek.map(ColorTemperatureUpdate::new),
+            on: on.into(),
             ..self
         }
     }
 
     #[must_use]
-    pub fn with_color_xy(self, xy: Option<XY>) -> Self {
+    pub fn with_color_temperature(self, mirek: impl Into<Option<u32>>) -> Self {
         Self {
-            color: xy.map(ColorUpdate::new),
+            color_temperature: mirek.into().map(ColorTemperatureUpdate::new),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn with_color_xy(self, xy: impl Into<Option<XY>>) -> Self {
+        Self {
+            color: xy.into().map(ColorUpdate::new),
             ..self
         }
     }
@@ -426,4 +429,10 @@ impl ColorTemperature {
 pub struct Dimming {
     pub brightness: f64,
     pub min_dim_level: Option<f64>,
+}
+
+impl From<Dimming> for f64 {
+    fn from(value: Dimming) -> Self {
+        value.brightness
+    }
 }
