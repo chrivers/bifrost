@@ -52,7 +52,7 @@ impl GroupedLightUpdate {
     #[must_use]
     pub fn with_brightness(self, brightness: Option<f64>) -> Self {
         Self {
-            dimming: brightness.map(|brightness| DimmingUpdate { brightness }),
+            dimming: brightness.map(DimmingUpdate::new),
             ..self
         }
     }
@@ -65,7 +65,7 @@ impl GroupedLightUpdate {
     #[must_use]
     pub const fn with_color_temperature(self, mirek: u32) -> Self {
         Self {
-            color_temperature: Some(ColorTemperatureUpdate { mirek }),
+            color_temperature: Some(ColorTemperatureUpdate::new(mirek)),
             ..self
         }
     }

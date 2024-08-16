@@ -217,11 +217,8 @@ impl LightUpdate {
     }
 
     #[must_use]
-    pub fn with_on(self, on: Option<bool>) -> Self {
-        Self {
-            on: on.map(On::new),
-            ..self
-        }
+    pub const fn with_on(self, on: Option<On>) -> Self {
+        Self { on, ..self }
     }
 
     #[must_use]
@@ -401,7 +398,7 @@ pub struct ColorTemperature {
 
 impl From<ColorTemperature> for Option<ColorTemperatureUpdate> {
     fn from(value: ColorTemperature) -> Self {
-        value.mirek.map(|mirek| ColorTemperatureUpdate { mirek })
+        value.mirek.map(ColorTemperatureUpdate::new)
     }
 }
 

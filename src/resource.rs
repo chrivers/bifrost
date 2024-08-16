@@ -99,7 +99,7 @@ impl Resources {
             Resource::Light(light) => {
                 let upd = LightUpdate::new()
                     .with_brightness(light.dimming.map(|d| d.brightness))
-                    .with_on(Some(light.on.on))
+                    .with_on(Some(light.on))
                     .with_color_temperature(light.as_mirek_opt())
                     .with_color_xy(light.as_color_opt());
 
