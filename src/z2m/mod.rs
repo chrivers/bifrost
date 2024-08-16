@@ -12,6 +12,7 @@ use tokio::net::TcpStream;
 use tokio::select;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
+use tokio::time::sleep;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
@@ -620,13 +621,12 @@ impl Client {
                 Ok((socket, _)) => {
                     let res = self.event_loop(&mut chan, socket).await;
                     log::error!("[{}] Event loop broke: {res:?}", self.name);
-                    tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
                 }
                 Err(err) => {
                     log::error!("[{}] Connect failed: {err:?}", self.name);
-                    tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
                 }
             }
+            sleep(std::time::Duration::from_millis(2000)).await;
         }
     }
 }
