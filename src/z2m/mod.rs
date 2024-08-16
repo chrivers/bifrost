@@ -333,7 +333,7 @@ impl Client {
                         target: RType::Light.link_to(uuid),
                     })
                     .collect();
-                res.update(uuid, move |scene: &mut Scene| {
+                res.update(uuid, |scene: &mut Scene| {
                     scene.actions = actions;
                 })?;
             }
@@ -345,7 +345,7 @@ impl Client {
 
     async fn handle_update_grouped_light(&self, uuid: &Uuid, upd: &DeviceUpdate) -> ApiResult<()> {
         let mut res = self.state.lock().await;
-        res.update::<GroupedLight>(uuid, move |glight| {
+        res.update::<GroupedLight>(uuid, |glight| {
             if let Some(state) = &upd.state {
                 glight.on = Some((*state).into());
             }
