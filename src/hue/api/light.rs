@@ -46,6 +46,13 @@ impl Light {
     }
 
     #[must_use]
+    pub fn as_dimming_opt(&self) -> Option<DimmingUpdate> {
+        self.dimming.as_ref().map(|dim| DimmingUpdate {
+            brightness: dim.brightness,
+        })
+    }
+
+    #[must_use]
     pub fn as_mirek_opt(&self) -> Option<u32> {
         self.color_temperature.as_ref().and_then(|ct| ct.mirek)
     }

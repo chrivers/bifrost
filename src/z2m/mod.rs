@@ -311,9 +311,7 @@ impl Client {
                     SceneAction {
                         color,
                         color_temperature,
-                        dimming: light.dimming.map(|b| DimmingUpdate {
-                            brightness: b.brightness,
-                        }),
+                        dimming: light.as_dimming_opt(),
                         on: Some(light.on),
                     },
                 );
