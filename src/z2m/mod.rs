@@ -487,7 +487,6 @@ impl Client {
         Ok(())
     }
 
-    #[allow(clippy::single_match_else)]
     async fn websocket_send<'a>(
         &self,
         socket: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
@@ -519,7 +518,6 @@ impl Client {
         }
     }
 
-    #[allow(clippy::single_match_else)]
     async fn websocket_write(
         &mut self,
         socket: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
