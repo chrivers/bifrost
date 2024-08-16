@@ -1,3 +1,4 @@
+pub mod grouped_light;
 pub mod light;
 pub mod scene;
 
@@ -13,10 +14,8 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
-use crate::hue::api::{GroupedLightUpdate, RType, Resource, ResourceLink, V2Reply};
+use crate::hue::api::{RType, Resource, ResourceLink, V2Reply};
 use crate::state::AppState;
-use crate::z2m::request::ClientRequest;
-use crate::z2m::update::DeviceUpdate;
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 
@@ -100,39 +99,15 @@ async fn get_resource_id(
 }
 
 async fn put_resource_id(
-    State(state): State<AppState>,
     Path((rtype, id)): Path<(RType, Uuid)>,
     Json(put): Json<Value>,
 ) -> ApiV2Result {
     log::info!("PUT {rtype:?}/{id}");
     log::debug!("json data\n{}", serde_json::to_string_pretty(&put)?);
 
-    let rlink = rtype.link_to(id);
-    let lock = state.res.lock().await;
-    let res = lock.get_resource(rtype, &id);
+    log::warn!("PUT {rtype:?}/{id}: state update not supported");
 
-    match res?.obj {
-        Resource::GroupedLight(_) => {
-            log::info!("PUT {rtype:?}/{id}: updating");
-
-            let upd: GroupedLightUpdate = serde_json::from_value(put)?;
-
-            let payload = DeviceUpdate::default()
-                .with_state(upd.on.map(|on| on.on))
-                .with_brightness(upd.dimming.map(|dim| dim.brightness / 100.0 * 255.0))
-                .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
-                .with_color_xy(upd.color.map(|col| col.xy));
-
-            lock.z2m_request(ClientRequest::group_update(rlink, payload))?;
-        }
-        resource => {
-            log::warn!("PUT {rtype:?}/{id}: state update not supported: {resource:?}");
-        }
-    }
-
-    drop(lock);
-
-    V2Reply::ok(rlink)
+    Err(ApiError::UpdateUnsupported(rtype))
 }
 
 async fn delete_resource_id(
@@ -150,6 +125,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .nest("/scene", scene::router())
         .nest("/light", light::router())
+        .nest("/grouped_light", grouped_light::router())
         .route("/", get(get_root))
         .route("/:resource", get(get_resource))
         .route("/:resource", post(post_resource))
