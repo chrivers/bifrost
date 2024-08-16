@@ -69,11 +69,10 @@ impl AddAssign<LightUpdate> for Light {
             self.on.on = state.on;
         }
 
-        if let Some(b) = upd.dimming {
-            self.dimming = Some(Dimming {
-                brightness: b.brightness,
-                min_dim_level: None,
-            });
+        if let Some(dim) = &mut self.dimming {
+            if let Some(b) = upd.dimming {
+                dim.brightness = b.brightness;
+            }
         }
 
         if let Some(ct) = &mut self.color_temperature {
