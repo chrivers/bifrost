@@ -24,38 +24,33 @@ async fn post_scene(
 ) -> ApiResult<impl IntoResponse> {
     log::info!("POST: scene {}", serde_json::to_string(&req)?);
 
-    let obj = Resource::from_value(RType::Scene, req)?;
+    let scene: Scene = serde_json::from_value(req)?;
 
     let mut lock = state.res.lock().await;
 
-    match obj {
-        Resource::Scene(scn) => {
-            let sid = lock.get_next_scene_id(&scn.group)?;
+    let sid = lock.get_next_scene_id(&scene.group)?;
 
-            let link_scene = RType::Scene.deterministic((scn.group.rid, sid));
+    let link_scene = RType::Scene.deterministic((scene.group.rid, sid));
 
-            log::info!("New scene: {link_scene:?} ({})", scn.metadata.name);
+    log::info!("New scene: {link_scene:?} ({})", scene.metadata.name);
 
-            lock.aux_set(
-                &link_scene,
-                AuxData::new()
-                    .with_topic(&scn.metadata.name)
-                    .with_index(sid),
-            );
+    lock.aux_set(
+        &link_scene,
+        AuxData::new()
+            .with_topic(&scene.metadata.name)
+            .with_index(sid),
+    );
 
-            lock.z2m_request(ClientRequest::scene_store(
-                scn.group,
-                sid,
-                scn.metadata.name.clone(),
-            ))?;
+    lock.z2m_request(ClientRequest::scene_store(
+        scene.group,
+        sid,
+        scene.metadata.name.clone(),
+    ))?;
 
-            lock.add(&link_scene, Resource::Scene(scn))?;
-            drop(lock);
+    lock.add(&link_scene, Resource::Scene(scene))?;
+    drop(lock);
 
-            V2Reply::ok(link_scene)
-        }
-        _ => Err(ApiError::Fail("nope")),
-    }
+    V2Reply::ok(link_scene)
 }
 
 async fn put_scene(
@@ -115,10 +110,7 @@ async fn put_scene(
     V2Reply::ok(rlink)
 }
 
-async fn delete_scene(
-    State(state): State<AppState>,
-    Path(id): Path<Uuid>,
-) -> ApiV2Result {
+async fn delete_scene(State(state): State<AppState>, Path(id): Path<Uuid>) -> ApiV2Result {
     log::info!("DELETE scene/{id}");
     let link = RType::Scene.link_to(id);
 
