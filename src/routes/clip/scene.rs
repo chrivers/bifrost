@@ -7,16 +7,14 @@ use axum::{
 use serde_json::Value;
 use uuid::Uuid;
 
+use crate::error::{ApiError, ApiResult};
+use crate::hue::api::{
+    RType, Resource, Scene, SceneRecall, SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
+};
 use crate::resource::AuxData;
+use crate::routes::clip::ApiV2Result;
 use crate::state::AppState;
 use crate::z2m::request::ClientRequest;
-use crate::{error::ApiError, routes::clip::ApiV2Result};
-use crate::{
-    error::ApiResult,
-    hue::api::{
-        RType, Resource, Scene, SceneRecall, SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
-    },
-};
 
 async fn post_scene(
     State(state): State<AppState>,
