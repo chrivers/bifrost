@@ -493,29 +493,26 @@ impl Client {
         topic: &str,
         payload: Z2mRequest<'a>,
     ) -> ApiResult<()> {
-        match self.map.get(topic) {
-            Some(uuid) => {
-                log::trace!(
-                    "[{}] Topic [{topic}] known as {uuid} on this z2m connection, sending event..",
-                    self.name
-                );
-                let api_req = Other {
-                    payload: serde_json::to_value(payload)?,
-                    topic: format!("{topic}/set"),
-                };
-                let json = serde_json::to_string(&api_req)?;
-                log::debug!("[{}] Sending {json}", self.name);
-                let msg = tungstenite::Message::Text(json);
-                Ok(socket.send(msg).await?)
-            }
-            None => {
-                log::trace!(
-                    "[{}] Topic [{topic}] unknown on this z2m connection",
-                    self.name
-                );
-                Ok(())
-            }
-        }
+        let Some(uuid) = self.map.get(topic) else {
+            log::trace!(
+                "[{}] Topic [{topic}] unknown on this z2m connection",
+                self.name
+            );
+            return Ok(());
+        };
+
+        log::trace!(
+            "[{}] Topic [{topic}] known as {uuid} on this z2m connection, sending event..",
+            self.name
+        );
+        let api_req = Other {
+            payload: serde_json::to_value(payload)?,
+            topic: format!("{topic}/set"),
+        };
+        let json = serde_json::to_string(&api_req)?;
+        log::debug!("[{}] Sending {json}", self.name);
+        let msg = tungstenite::Message::Text(json);
+        Ok(socket.send(msg).await?)
     }
 
     async fn websocket_write(
