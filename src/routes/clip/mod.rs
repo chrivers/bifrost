@@ -62,10 +62,7 @@ impl IntoResponse for ApiError {
 }
 
 async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
-    Json(V2Reply {
-        data: state.res.lock().await.get_resources(),
-        errors: vec![],
-    })
+    V2Reply::list(state.res.lock().await.get_resources())
 }
 
 async fn get_resource(State(state): State<AppState>, Path(rtype): Path<RType>) -> ApiV2Result {
