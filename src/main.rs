@@ -108,7 +108,13 @@ async fn main() -> ApiResult<()> {
     if let Ok(s) = ::std::env::var("RUST_LOG") {
         builder.parse_filters(&s);
     } else {
-        builder.parse_filters("debug,mdns_sd=off,tower_http::trace::on_request=info,axum::rejection=trace");
+        let filters = [
+            "debug",
+            "mdns_sd=off",
+            "tower_http::trace::on_request=info",
+            "axum::rejection=trace",
+        ];
+        builder.parse_filters(&filters.join(","));
     }
 
     builder.try_init()?;
