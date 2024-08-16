@@ -81,9 +81,8 @@ impl AddAssign<LightUpdate> for Light {
         }
 
         if let Some(col) = upd.color {
-            match &mut self.color {
-                Some(lcol) => lcol.xy = col.xy,
-                None => {}
+            if let Some(lcol) = &mut self.color {
+                lcol.xy = col.xy;
             }
             if let Some(ct) = &mut self.color_temperature {
                 ct.mirek = None;
