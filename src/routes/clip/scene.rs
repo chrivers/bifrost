@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::api::{
-    RType, Resource, Scene, SceneRecall, SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
+    RType, Resource, Scene, SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
 };
 use crate::resource::AuxData;
 use crate::routes::clip::ApiV2Result;
@@ -80,11 +80,8 @@ async fn put_scene(
 
     let scene = lock.get::<Scene>(&rlink)?;
 
-    match upd.recall {
-        Some(SceneRecall {
-            action: Some(SceneStatusUpdate::Active),
-            ..
-        }) => {
+    if let Some(recall) = upd.recall {
+        if recall.action == Some(SceneStatusUpdate::Active) {
             let scenes = lock.get_scenes_for_room(&scene.group.rid);
             for rid in scenes {
                 lock.update(&rid, |scn: &mut Scene| {
@@ -98,11 +95,9 @@ async fn put_scene(
 
             lock.z2m_request(ClientRequest::scene_recall(rlink))?;
             drop(lock);
-        }
-        Some(recall) => {
+        } else {
             log::error!("Scene recall type not supported: {recall:?}");
         }
-        None => {}
     }
 
     V2Reply::ok(rlink)
