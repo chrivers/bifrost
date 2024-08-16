@@ -29,7 +29,7 @@ async fn put_light(
 
     let payload = DeviceUpdate::default()
         .with_state(upd.on.map(|on| on.on))
-        .with_brightness(upd.dimming.map(|dim| dim.brightness / 100.0 * 255.0))
+        .with_brightness(upd.dimming.map(|dim| dim.brightness / 100.0 * 254.0))
         .with_color_temp(upd.color_temperature.map(|ct| ct.mirek))
         .with_color_xy(upd.color.map(|col| col.xy));
 
