@@ -60,7 +60,10 @@ impl DeviceUpdate {
 
     #[must_use]
     pub fn with_brightness(self, brightness: Option<f64>) -> Self {
-        Self { brightness, ..self }
+        Self {
+            brightness: brightness.map(|b| b.clamp(1.0, 254.0)),
+            ..self
+        }
     }
 
     #[must_use]
