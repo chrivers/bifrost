@@ -15,6 +15,17 @@ pub struct GroupedLight {
 
 impl GroupedLight {
     #[must_use]
+    pub const fn new(room: ResourceLink) -> Self {
+        Self {
+            alert: Value::Null,
+            dimming: None,
+            on: None,
+            owner: room,
+            signaling: Value::Null,
+        }
+    }
+
+    #[must_use]
     pub fn as_brightness_opt(&self) -> Option<f64> {
         self.dimming.as_ref().map(|br| br.brightness)
     }

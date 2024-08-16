@@ -252,13 +252,7 @@ impl Client {
 
         res.add(&link_room, Resource::Room(room))?;
 
-        let glight = GroupedLight {
-            alert: Value::Null,
-            dimming: None,
-            on: None,
-            owner: link_room,
-            signaling: Value::Null,
-        };
+        let glight = GroupedLight::new(link_room);
 
         res.add(&link_glight, Resource::GroupedLight(glight))?;
         drop(res);
