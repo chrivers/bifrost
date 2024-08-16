@@ -213,7 +213,7 @@ impl LightUpdate {
     #[must_use]
     pub fn with_brightness(self, dim: Option<f64>) -> Self {
         Self {
-            dimming: dim.map(|d| DimmingUpdate { brightness: d }),
+            dimming: dim.map(DimmingUpdate::new),
             ..self
         }
     }
@@ -221,7 +221,7 @@ impl LightUpdate {
     #[must_use]
     pub fn with_on(self, on: Option<bool>) -> Self {
         Self {
-            on: on.map(|on| On { on }),
+            on: on.map(On::new),
             ..self
         }
     }
@@ -229,7 +229,7 @@ impl LightUpdate {
     #[must_use]
     pub fn with_color_temperature(self, mirek: Option<u32>) -> Self {
         Self {
-            color_temperature: mirek.map(|mirek| ColorTemperatureUpdate { mirek }),
+            color_temperature: mirek.map(ColorTemperatureUpdate::new),
             ..self
         }
     }
@@ -237,7 +237,7 @@ impl LightUpdate {
     #[must_use]
     pub fn with_color_xy(self, xy: Option<XY>) -> Self {
         Self {
-            color: xy.map(|xy| ColorUpdate { xy }),
+            color: xy.map(ColorUpdate::new),
             ..self
         }
     }
@@ -246,6 +246,13 @@ impl LightUpdate {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DimmingUpdate {
     pub brightness: f64,
+}
+
+impl DimmingUpdate {
+    #[must_use]
+    pub const fn new(brightness: f64) -> Self {
+        Self { brightness }
+    }
 }
 
 impl From<Dimming> for DimmingUpdate {
@@ -264,14 +271,35 @@ pub struct On {
     pub on: bool,
 }
 
+impl On {
+    #[must_use]
+    pub const fn new(on: bool) -> Self {
+        Self { on }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorUpdate {
     pub xy: XY,
 }
 
+impl ColorUpdate {
+    #[must_use]
+    pub const fn new(xy: XY) -> Self {
+        Self { xy }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ColorTemperatureUpdate {
     pub mirek: u32,
+}
+
+impl ColorTemperatureUpdate {
+    #[must_use]
+    pub const fn new(mirek: u32) -> Self {
+        Self { mirek }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
