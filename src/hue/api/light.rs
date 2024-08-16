@@ -64,7 +64,7 @@ impl AddAssign<LightUpdate> for Light {
 
         if let Some(b) = upd.dimming {
             self.dimming = Some(Dimming {
-                brightness: b.brightness / 254.0 * 100.0,
+                brightness: b.brightness,
                 min_dim_level: None,
             });
         }
