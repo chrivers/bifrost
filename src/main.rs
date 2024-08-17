@@ -35,14 +35,18 @@ async fn load_state(
     certfile: Utf8PathBuf,
 ) -> ApiResult<(RustlsConfig, AppState)> {
     let config = config::parse(conffile)?;
+    log::debug!("Configuration loaded successfully");
 
     let appstate = AppState::new(config)?;
     if let Ok(fd) = File::open(statefile) {
+        log::debug!("Existing state file found, loading..");
         appstate.res.lock().await.read(fd)?;
     } else {
+        log::debug!("No state file found, initializing..");
         appstate.res.lock().await.init(&appstate.bridge_id())?;
     }
 
+    log::debug!("Loading certificate from [{certfile}]");
     let config = RustlsConfig::from_pem_file(&certfile, &certfile)
         .await
         .map_err(|e| ApiError::Certificate(certfile, e))?;
@@ -102,9 +106,9 @@ async fn run() -> ApiResult<()> {
 }
 
 #[tokio::main]
-async fn main() -> ApiResult<()> {
-    run().await.map_err(|err| {
+async fn main() {
+    if let Err(err) = run().await {
         log::error!("Bifrost error: {err}");
-        err
-    })
+        log::error!("Fatal error encountered, cannot continue.");
+    }
 }
