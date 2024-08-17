@@ -1,5 +1,6 @@
-use std::{path::PathBuf, sync::Arc};
+use std::sync::Arc;
 
+use camino::Utf8PathBuf;
 use thiserror::Error;
 use tokio::task::JoinError;
 use uuid::Uuid;
@@ -84,7 +85,7 @@ pub enum ApiError {
     AuxNotFound(ResourceLink),
 
     #[error("Cannot load certificate: {0:?}")]
-    Certificate(PathBuf, std::io::Error),
+    Certificate(Utf8PathBuf, std::io::Error),
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;

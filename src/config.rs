@@ -1,5 +1,6 @@
 use std::{collections::HashMap, net::Ipv4Addr};
 
+use camino::Utf8Path;
 use config::{Config, ConfigError};
 use mac_address::MacAddress;
 use serde::{Deserialize, Serialize};
@@ -41,9 +42,9 @@ pub struct AppConfig {
     pub rooms: HashMap<String, RoomConfig>,
 }
 
-pub fn parse(filename: &str) -> Result<AppConfig, ConfigError> {
+pub fn parse(filename: &Utf8Path) -> Result<AppConfig, ConfigError> {
     let settings = Config::builder()
-        .add_source(config::File::with_name(filename))
+        .add_source(config::File::with_name(filename.as_str()))
         .build()?;
 
     settings.try_deserialize()

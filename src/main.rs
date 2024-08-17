@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::net::Ipv4Addr;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
 
@@ -11,6 +10,7 @@ use axum::{response::Response, Router};
 use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
 
+use camino::Utf8PathBuf;
 use hyper::body::Incoming;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
@@ -76,16 +76,17 @@ async fn https_server(
     Ok(())
 }
 
-async fn config_writer(res: Arc<Mutex<Resources>>) -> ApiResult<()> {
+async fn config_writer(res: Arc<Mutex<Resources>>, filename: Utf8PathBuf) -> ApiResult<()> {
     let rx = res.lock().await.state_channel();
+    let tmp = filename.with_extension("tmp");
     loop {
         rx.notified().await;
 
         log::debug!("Config changed, saving..");
 
-        if let Ok(fd) = File::create("state.yaml.tmp") {
+        if let Ok(fd) = File::create(&tmp) {
             res.lock().await.write(fd)?;
-            std::fs::rename("state.yaml.tmp", "state.yaml")?;
+            std::fs::rename(&tmp, &filename)?;
         }
 
         tokio::time::sleep(Duration::from_millis(1000)).await;
@@ -109,10 +110,14 @@ async fn run() -> ApiResult<()> {
 
     builder.try_init()?;
 
-    let config = config::parse("config.yaml")?;
+    let certfile = Utf8PathBuf::from("cert.pem");
+    let conffile = Utf8PathBuf::from("config.yaml");
+    let statefile = Utf8PathBuf::from("state.yaml");
+
+    let config = config::parse(&conffile)?;
 
     let appstate = AppState::new(config)?;
-    if let Ok(fd) = File::open("state.yaml") {
+    if let Ok(fd) = File::open(&statefile) {
         appstate.res.lock().await.read(fd)?;
     } else {
         appstate.res.lock().await.init(&appstate.bridge_id())?;
@@ -129,14 +134,13 @@ async fn run() -> ApiResult<()> {
 
     let mut tasks = JoinSet::new();
 
-    let path = PathBuf::from("cert.pem");
-    let config = RustlsConfig::from_pem_file(&path, &path)
+    let config = RustlsConfig::from_pem_file(&certfile, &certfile)
         .await
-        .map_err(|e| ApiError::Certificate(path, e))?;
+        .map_err(|e| ApiError::Certificate(certfile, e))?;
 
     tasks.spawn(http_server(ip, svc.clone()));
     tasks.spawn(https_server(ip, svc, config));
-    tasks.spawn(config_writer(appstate.res.clone()));
+    tasks.spawn(config_writer(appstate.res.clone(), statefile));
 
     for (name, server) in &appstate.z2m_config().servers {
         let client = z2m::Client::new(

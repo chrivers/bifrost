@@ -32,3 +32,4 @@ tower-http = { version = "0.5.2", features = ["normalize-path", "trace"] }
 tracing = "0.1.40"
 uuid = { version = "1.10.0", features = ["serde", "v4", "v5"] }
 pretty_env_logger = "0.5.0"
+camino = "1.1.8"
