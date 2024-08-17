@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::io::Write;
 
 use axum_server::tls_rustls::RustlsConfig;
 use camino::{Utf8Path, Utf8PathBuf};
@@ -11,22 +12,51 @@ use bifrost::server;
 use bifrost::state::AppState;
 use bifrost::z2m;
 
+/*
+ * Formatter function to output in syslog format. This makes sense when running
+ * as a service (where output might go to a log file, or the system journal)
+ */
+fn syslog_format(
+    buf: &mut pretty_env_logger::env_logger::fmt::Formatter,
+    record: &log::Record,
+) -> std::io::Result<()> {
+    writeln!(
+        buf,
+        "<{}>{}: {}",
+        match record.level() {
+            log::Level::Error => 3,
+            log::Level::Warn => 4,
+            log::Level::Info => 6,
+            log::Level::Debug => 7,
+            log::Level::Trace => 7,
+        },
+        record.target(),
+        record.args()
+    )
+}
+
 fn init_logging() -> ApiResult<()> {
-    let mut builder = pretty_env_logger::formatted_timed_builder();
+    /* Try to provide reasonable default filters, when RUST_LOG is not specified */
+    const DEFAULT_LOG_FILTERS: &[&str] = &[
+        "debug",
+        "mdns_sd=off",
+        "tower_http::trace::on_request=info",
+        "axum::rejection=trace",
+    ];
 
-    if let Ok(s) = ::std::env::var("RUST_LOG") {
-        builder.parse_filters(&s);
+    let log_filters = std::env::var("RUST_LOG").unwrap_or_else(|_| DEFAULT_LOG_FILTERS.join(","));
+
+    /* Detect if we need syslog or human-readable formatting */
+    if std::env::var("SYSTEMD_EXEC_PID").is_ok_and(|pid| pid == std::process::id().to_string()) {
+        Ok(pretty_env_logger::env_logger::builder()
+            .format(syslog_format)
+            .parse_filters(&log_filters)
+            .try_init()?)
     } else {
-        let filters = [
-            "debug",
-            "mdns_sd=off",
-            "tower_http::trace::on_request=info",
-            "axum::rejection=trace",
-        ];
-        builder.parse_filters(&filters.join(","));
+        Ok(pretty_env_logger::formatted_timed_builder()
+            .parse_filters(&log_filters)
+            .try_init()?)
     }
-
-    Ok(builder.try_init()?)
 }
 
 async fn load_state(
