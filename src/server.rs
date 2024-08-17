@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::io::Write;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
@@ -84,14 +85,22 @@ where
 pub async fn config_writer(res: Arc<Mutex<Resources>>, filename: Utf8PathBuf) -> ApiResult<()> {
     let rx = res.lock().await.state_channel();
     let tmp = filename.with_extension("tmp");
+
+    let mut old_state = res.lock().await.serialize()?;
+
     loop {
         rx.notified().await;
 
-        log::debug!("Config changed, saving..");
+        let new_state = res.lock().await.serialize()?;
 
-        if let Ok(fd) = File::create(&tmp) {
-            res.lock().await.write(fd)?;
+        if old_state != new_state {
+            log::debug!("Config changed, saving..");
+
+            let mut fd = File::create(&tmp)?;
+            fd.write_all(new_state.as_bytes())?;
             std::fs::rename(&tmp, &filename)?;
+
+            old_state = new_state;
         }
 
         tokio::time::sleep(Duration::from_millis(1000)).await;

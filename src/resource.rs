@@ -80,6 +80,10 @@ impl Resources {
         Ok(serde_yaml::to_writer(wr, &(&self.res, &self.aux))?)
     }
 
+    pub fn serialize(&self) -> ApiResult<String> {
+        Ok(serde_yaml::to_string(&(&self.res, &self.aux))?)
+    }
+
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
         self.add_bridge(bridge_id.to_owned())
     }
