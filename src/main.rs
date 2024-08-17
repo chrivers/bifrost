@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::net::Ipv4Addr;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
 
@@ -19,7 +20,7 @@ use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
 
 use bifrost::config;
-use bifrost::error::ApiResult;
+use bifrost::error::{ApiError, ApiResult};
 use bifrost::mdns;
 use bifrost::resource::Resources;
 use bifrost::routes;
@@ -65,9 +66,8 @@ async fn http_server(
 async fn https_server(
     listen_addr: Ipv4Addr,
     svc: impl MakeService<SocketAddr, Request<Incoming>>,
+    config: RustlsConfig,
 ) -> ApiResult<()> {
-    let config = RustlsConfig::from_pem_file("cert.pem", "cert.pem").await?;
-
     let addr = SocketAddr::from((listen_addr, 443));
     log::info!("https listening on {}", addr);
 
@@ -92,8 +92,7 @@ async fn config_writer(res: Arc<Mutex<Resources>>) -> ApiResult<()> {
     }
 }
 
-#[tokio::main]
-async fn main() -> ApiResult<()> {
+async fn run() -> ApiResult<()> {
     let mut builder = pretty_env_logger::formatted_timed_builder();
 
     if let Ok(s) = ::std::env::var("RUST_LOG") {
@@ -130,8 +129,13 @@ async fn main() -> ApiResult<()> {
 
     let mut tasks = JoinSet::new();
 
+    let path = PathBuf::from("cert.pem");
+    let config = RustlsConfig::from_pem_file(&path, &path)
+        .await
+        .map_err(|e| ApiError::Certificate(path, e))?;
+
     tasks.spawn(http_server(ip, svc.clone()));
-    tasks.spawn(https_server(ip, svc));
+    tasks.spawn(https_server(ip, svc, config));
     tasks.spawn(config_writer(appstate.res.clone()));
 
     for (name, server) in &appstate.z2m_config().servers {
@@ -150,6 +154,16 @@ async fn main() -> ApiResult<()> {
             Some(Ok(Ok(res))) => log::info!("Worker returned: {res:?}"),
             Some(Ok(Err(res))) => log::error!("Worked task failed: {res:?}"),
             Some(Err(err)) => log::error!("Error spawning from worker: {err:?}"),
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    match run().await {
+        Ok(()) => {}
+        Err(e) => {
+            log::error!("Bifrost error: {e}");
         }
     }
 }
