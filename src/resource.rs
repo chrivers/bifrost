@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::{Read, Write};
 use std::sync::Arc;
 
@@ -76,12 +76,16 @@ impl Resources {
         Ok(())
     }
 
+    fn ordered_state(&self) -> (BTreeMap<&Uuid, &Resource>, BTreeMap<&Uuid, &AuxData>) {
+        (self.res.iter().collect(), self.aux.iter().collect())
+    }
+
     pub fn write(&self, wr: impl Write) -> ApiResult<()> {
-        Ok(serde_yaml::to_writer(wr, &(&self.res, &self.aux))?)
+        Ok(serde_yaml::to_writer(wr, &self.ordered_state())?)
     }
 
     pub fn serialize(&self) -> ApiResult<String> {
-        Ok(serde_yaml::to_string(&(&self.res, &self.aux))?)
+        Ok(serde_yaml::to_string(&self.ordered_state())?)
     }
 
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
