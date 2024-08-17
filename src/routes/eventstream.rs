@@ -1,5 +1,7 @@
 use axum::extract::State;
 use axum::response::sse::{Event, Sse};
+use axum::routing::get;
+use axum::Router;
 use chrono::Utc;
 use futures::stream::Stream;
 use futures::StreamExt;
@@ -35,4 +37,8 @@ pub async fn get_clip_v2(
     });
 
     Sse::new(hello.chain(stream))
+}
+
+pub fn router() -> Router<AppState> {
+    Router::new().route("/clip/v2", get(get_clip_v2))
 }

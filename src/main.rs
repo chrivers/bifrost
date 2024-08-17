@@ -5,7 +5,6 @@ use std::{net::SocketAddr, time::Duration};
 
 use axum::body::Body;
 use axum::extract::Request;
-use axum::routing::get;
 use axum::ServiceExt;
 use axum::{response::Response, Router};
 use axum_server::service::MakeService;
@@ -36,27 +35,19 @@ fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &
 }
 
 fn router(appstate: AppState) -> Router<()> {
-    Router::new()
-        .nest("/api", routes::api::router())
-        .nest("/clip/v2/resource", routes::clip::router())
-        .route(
-            "/eventstream/clip/v2",
-            get(routes::eventstream::get_clip_v2),
-        )
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(|request: &Request| {
-                    info_span!(
-                        "http",
-                        method = ?request.method(),
-                        uri = ?request.uri(),
-                        status = tracing::field::Empty,
-                        /* latency = tracing::field::Empty, */
-                    )
-                })
-                .on_response(trace_layer_on_response),
-        )
-        .with_state(appstate)
+    routes::router(appstate).layer(
+        TraceLayer::new_for_http()
+            .make_span_with(|request: &Request| {
+                info_span!(
+                    "http",
+                    method = ?request.method(),
+                    uri = ?request.uri(),
+                    status = tracing::field::Empty,
+                    /* latency = tracing::field::Empty, */
+                )
+            })
+            .on_response(trace_layer_on_response),
+    )
 }
 
 async fn http_server(
