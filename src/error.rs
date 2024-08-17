@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use thiserror::Error;
 use tokio::task::JoinError;
@@ -82,6 +82,9 @@ pub enum ApiError {
     /* bifrost errors */
     #[error("Missing auxiliary data resource {0:?}")]
     AuxNotFound(ResourceLink),
+
+    #[error("Cannot load certificate: {0:?}")]
+    Certificate(PathBuf, std::io::Error),
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
