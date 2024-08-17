@@ -15,13 +15,13 @@
     clippy::module_name_repetitions
 )]
 
+pub mod config;
 pub mod error;
 pub mod hue;
-pub mod z2m;
-
-pub mod config;
 pub mod mdns;
 pub mod model;
 pub mod resource;
 pub mod routes;
+pub mod server;
 pub mod state;
+pub mod z2m;

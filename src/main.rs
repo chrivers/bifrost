@@ -1,99 +1,17 @@
 use std::fs::File;
-use std::net::Ipv4Addr;
-use std::sync::Arc;
-use std::{net::SocketAddr, time::Duration};
 
-use axum::body::Body;
-use axum::extract::Request;
-use axum::ServiceExt;
-use axum::{response::Response, Router};
-use axum_server::service::MakeService;
 use axum_server::tls_rustls::RustlsConfig;
-
-use camino::Utf8PathBuf;
-use hyper::body::Incoming;
-use tokio::sync::Mutex;
+use camino::{Utf8Path, Utf8PathBuf};
 use tokio::task::JoinSet;
-use tower::Layer;
-use tower_http::normalize_path::NormalizePathLayer;
-use tower_http::trace::TraceLayer;
-use tracing::{info_span, Span};
 
 use bifrost::config;
 use bifrost::error::{ApiError, ApiResult};
 use bifrost::mdns;
-use bifrost::resource::Resources;
-use bifrost::routes;
+use bifrost::server;
 use bifrost::state::AppState;
 use bifrost::z2m;
 
-fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &Span) {
-    span.record(
-        "latency",
-        tracing::field::display(format!("{}μs", latency.as_micros())),
-    );
-    span.record("status", tracing::field::display(response.status()));
-}
-
-fn router(appstate: AppState) -> Router<()> {
-    routes::router(appstate).layer(
-        TraceLayer::new_for_http()
-            .make_span_with(|request: &Request| {
-                info_span!(
-                    "http",
-                    method = ?request.method(),
-                    uri = ?request.uri(),
-                    status = tracing::field::Empty,
-                    /* latency = tracing::field::Empty, */
-                )
-            })
-            .on_response(trace_layer_on_response),
-    )
-}
-
-async fn http_server(
-    listen_addr: Ipv4Addr,
-    svc: impl MakeService<SocketAddr, Request<Incoming>>,
-) -> ApiResult<()> {
-    let addr = SocketAddr::from((listen_addr, 80));
-    log::info!("http listening on {}", addr);
-
-    axum_server::bind(addr).serve(svc).await?;
-
-    Ok(())
-}
-
-async fn https_server(
-    listen_addr: Ipv4Addr,
-    svc: impl MakeService<SocketAddr, Request<Incoming>>,
-    config: RustlsConfig,
-) -> ApiResult<()> {
-    let addr = SocketAddr::from((listen_addr, 443));
-    log::info!("https listening on {}", addr);
-
-    axum_server::bind_rustls(addr, config).serve(svc).await?;
-
-    Ok(())
-}
-
-async fn config_writer(res: Arc<Mutex<Resources>>, filename: Utf8PathBuf) -> ApiResult<()> {
-    let rx = res.lock().await.state_channel();
-    let tmp = filename.with_extension("tmp");
-    loop {
-        rx.notified().await;
-
-        log::debug!("Config changed, saving..");
-
-        if let Ok(fd) = File::create(&tmp) {
-            res.lock().await.write(fd)?;
-            std::fs::rename(&tmp, &filename)?;
-        }
-
-        tokio::time::sleep(Duration::from_millis(1000)).await;
-    }
-}
-
-async fn run() -> ApiResult<()> {
+fn init_logging() -> ApiResult<()> {
     let mut builder = pretty_env_logger::formatted_timed_builder();
 
     if let Ok(s) = ::std::env::var("RUST_LOG") {
@@ -108,39 +26,46 @@ async fn run() -> ApiResult<()> {
         builder.parse_filters(&filters.join(","));
     }
 
-    builder.try_init()?;
+    Ok(builder.try_init()?)
+}
 
-    let certfile = Utf8PathBuf::from("cert.pem");
-    let conffile = Utf8PathBuf::from("config.yaml");
-    let statefile = Utf8PathBuf::from("state.yaml");
-
-    let config = config::parse(&conffile)?;
+async fn load_state(
+    conffile: &Utf8Path,
+    statefile: &Utf8Path,
+    certfile: Utf8PathBuf,
+) -> ApiResult<(RustlsConfig, AppState)> {
+    let config = config::parse(conffile)?;
 
     let appstate = AppState::new(config)?;
-    if let Ok(fd) = File::open(&statefile) {
+    if let Ok(fd) = File::open(statefile) {
         appstate.res.lock().await.read(fd)?;
     } else {
         appstate.res.lock().await.init(&appstate.bridge_id())?;
     }
 
-    log::info!("Serving mac [{}]", appstate.mac());
-
-    let _mdns = mdns::register_mdns(&appstate);
-
-    let ip = appstate.ip();
-
-    let normalized = NormalizePathLayer::trim_trailing_slash().layer(router(appstate.clone()));
-    let svc = ServiceExt::<Request>::into_make_service(normalized);
-
-    let mut tasks = JoinSet::new();
-
     let config = RustlsConfig::from_pem_file(&certfile, &certfile)
         .await
         .map_err(|e| ApiError::Certificate(certfile, e))?;
 
-    tasks.spawn(http_server(ip, svc.clone()));
-    tasks.spawn(https_server(ip, svc, config));
-    tasks.spawn(config_writer(appstate.res.clone(), statefile));
+    Ok((config, appstate))
+}
+
+async fn build_tasks(
+    appstate: AppState,
+    config: RustlsConfig,
+    statefile: Utf8PathBuf,
+) -> ApiResult<JoinSet<ApiResult<()>>> {
+    let _mdns = mdns::register_mdns(&appstate);
+
+    let mut tasks = JoinSet::new();
+
+    let svc = server::build_service(appstate.clone());
+
+    log::info!("Serving mac [{}]", appstate.mac());
+
+    tasks.spawn(server::http_server(appstate.ip(), svc.clone()));
+    tasks.spawn(server::https_server(appstate.ip(), svc, config));
+    tasks.spawn(server::config_writer(appstate.res.clone(), statefile));
 
     for (name, server) in &appstate.z2m_config().servers {
         let client = z2m::Client::new(
@@ -151,6 +76,20 @@ async fn run() -> ApiResult<()> {
         )?;
         tasks.spawn(client.run_forever());
     }
+
+    Ok(tasks)
+}
+
+async fn run() -> ApiResult<()> {
+    init_logging()?;
+
+    let certfile = Utf8PathBuf::from("cert.pem");
+    let conffile = Utf8PathBuf::from("config.yaml");
+    let statefile = Utf8PathBuf::from("state.yaml");
+
+    let (config, appstate) = load_state(&conffile, &statefile, certfile).await?;
+
+    let mut tasks = build_tasks(appstate, config, statefile).await?;
 
     loop {
         match tasks.join_next().await {
@@ -163,11 +102,9 @@ async fn run() -> ApiResult<()> {
 }
 
 #[tokio::main]
-async fn main() {
-    match run().await {
-        Ok(()) => {}
-        Err(e) => {
-            log::error!("Bifrost error: {e}");
-        }
-    }
+async fn main() -> ApiResult<()> {
+    run().await.map_err(|err| {
+        log::error!("Bifrost error: {err}");
+        err
+    })
 }
