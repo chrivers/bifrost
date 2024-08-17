@@ -63,9 +63,6 @@ pub enum ApiError {
     #[error("Cannot create resources of type: {0:?}")]
     V1CreateUnsupported(ApiResourceType),
 
-    #[error("Request failed: {0}")]
-    Fail(&'static str),
-
     #[error("Resource {0} could not be deleted")]
     DeleteDenied(Uuid),
 
