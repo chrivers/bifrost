@@ -49,6 +49,7 @@ pub struct Client {
     map: HashMap<String, Uuid>,
     rmap: HashMap<Uuid, String>,
     learn: HashMap<Uuid, LearnScene>,
+    ignore: HashSet<String>,
 }
 
 impl Client {
@@ -61,6 +62,7 @@ impl Client {
         let map = HashMap::new();
         let rmap = HashMap::new();
         let learn = HashMap::new();
+        let ignore = HashSet::new();
         Ok(Self {
             name,
             conn,
@@ -69,6 +71,7 @@ impl Client {
             map,
             rmap,
             learn,
+            ignore,
         })
     }
 
@@ -379,6 +382,9 @@ impl Client {
                             dev.model_id.as_deref().unwrap_or("<unknown model>")
                         );
                         self.add_light(dev, exp).await?;
+                    } else {
+                        log::debug!("[{}] Ignoring unsupported device {}", self.name, dev.friendly_name);
+                        self.ignore.insert(dev.friendly_name.to_string());
                     }
                     /*
                     if dev.expose_action() {
@@ -407,11 +413,13 @@ impl Client {
                 }
 
                 let Some(ref val) = self.map.get(&obj.topic).copied() else {
-                    log::warn!(
-                        "[{}] Notification on unknown topic {}",
-                        self.name,
-                        &obj.topic
-                    );
+                    if !self.ignore.contains(&obj.topic) {
+                        log::warn!(
+                            "[{}] Notification on unknown topic {}",
+                            self.name,
+                            &obj.topic
+                        );
+                    }
                     return Ok(());
                 };
 
