@@ -383,7 +383,11 @@ impl Client {
                         );
                         self.add_light(dev, exp).await?;
                     } else {
-                        log::debug!("[{}] Ignoring unsupported device {}", self.name, dev.friendly_name);
+                        log::debug!(
+                            "[{}] Ignoring unsupported device {}",
+                            self.name,
+                            dev.friendly_name
+                        );
                         self.ignore.insert(dev.friendly_name.to_string());
                     }
                     /*
