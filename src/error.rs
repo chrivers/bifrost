@@ -15,6 +15,7 @@ use crate::{
 
 #[derive(Error, Debug)]
 pub enum ApiError {
+    /* mapped errors */
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
@@ -51,23 +52,23 @@ pub enum ApiError {
     #[error(transparent)]
     TungsteniteError(#[from] tokio_tungstenite::tungstenite::Error),
 
+    /* zigbee2mqtt errors */
     #[error("Unexpected eof on z2m socket")]
     UnexpectedZ2mEof,
 
     #[error("Unexpected z2m message: {0:?}")]
     UnexpectedZ2mReply(tokio_tungstenite::tungstenite::Message),
 
-    #[error("State changes not supported for: {0:?}")]
-    UpdateUnsupported(RType),
-
+    /* hue api v1 errors */
     #[error("Cannot create resources of type: {0:?}")]
     V1CreateUnsupported(ApiResourceType),
 
+    /* hue api v2 errors */
+    #[error("State changes not supported for: {0:?}")]
+    UpdateUnsupported(RType),
+
     #[error("Resource {0} could not be deleted")]
     DeleteDenied(Uuid),
-
-    #[error("Missing auxiliary data resource {0:?}")]
-    AuxNotFound(ResourceLink),
 
     #[error("Resource {0} not found")]
     NotFound(Uuid),
@@ -77,6 +78,10 @@ pub enum ApiError {
 
     #[error("Cannot allocate any more {0:?}")]
     Full(RType),
+
+    /* bifrost errors */
+    #[error("Missing auxiliary data resource {0:?}")]
+    AuxNotFound(ResourceLink),
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
