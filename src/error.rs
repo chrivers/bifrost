@@ -53,6 +53,21 @@ pub enum ApiError {
     #[error(transparent)]
     TungsteniteError(#[from] tokio_tungstenite::tungstenite::Error),
 
+    #[error(transparent)]
+    X509DerError(#[from] x509_cert::der::Error),
+
+    #[error(transparent)]
+    X509SpkiError(#[from] x509_cert::spki::Error),
+
+    #[error(transparent)]
+    X509BuilderError(#[from] x509_cert::builder::Error),
+
+    #[error(transparent)]
+    X509DerConstOidError(#[from] der::oid::Error),
+
+    #[error(transparent)]
+    P256Pkcs8Error(#[from] p256::pkcs8::Error),
+
     /* zigbee2mqtt errors */
     #[error("Unexpected eof on z2m socket")]
     UnexpectedZ2mEof,
