@@ -14,7 +14,9 @@ use axum_server::tls_rustls::RustlsConfig;
 
 use camino::Utf8PathBuf;
 use hyper::body::Incoming;
+use tokio::select;
 use tokio::sync::Mutex;
+use tokio::time::sleep_until;
 use tower::Layer;
 use tower_http::normalize_path::{NormalizePath, NormalizePathLayer};
 use tower_http::trace::TraceLayer;
@@ -83,26 +85,42 @@ where
 }
 
 pub async fn config_writer(res: Arc<Mutex<Resources>>, filename: Utf8PathBuf) -> ApiResult<()> {
+    const STABILIZE_TIME: Duration = Duration::from_secs(1);
+
     let rx = res.lock().await.state_channel();
     let tmp = filename.with_extension("tmp");
 
     let mut old_state = res.lock().await.serialize()?;
 
     loop {
+        /* Wait for change notification */
         rx.notified().await;
 
-        let new_state = res.lock().await.serialize()?;
-
-        if old_state != new_state {
-            log::debug!("Config changed, saving..");
-
-            let mut fd = File::create(&tmp)?;
-            fd.write_all(new_state.as_bytes())?;
-            std::fs::rename(&tmp, &filename)?;
-
-            old_state = new_state;
+        /* Updates often happen in burst, and we don't want to write the state
+         * file over and over, so ignore repeated update notifications within
+         * STABILIZE_TIME */
+        let deadline = tokio::time::Instant::now() + STABILIZE_TIME;
+        loop {
+            select! {
+                () = rx.notified() => {},
+                () = sleep_until(deadline) => break,
+            }
         }
 
-        tokio::time::sleep(Duration::from_millis(1000)).await;
+        /* Now that the state is likely stabilized, serialize the new state */
+        let new_state = res.lock().await.serialize()?;
+
+        /* If state is not actually changed, try again */
+        if old_state == new_state {
+            continue;
+        }
+
+        log::debug!("Config changed, saving..");
+
+        let mut fd = File::create(&tmp)?;
+        fd.write_all(new_state.as_bytes())?;
+        std::fs::rename(&tmp, &filename)?;
+
+        old_state = new_state;
     }
 }
