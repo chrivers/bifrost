@@ -117,6 +117,17 @@ async fn build_tasks(
 async fn run() -> ApiResult<()> {
     init_logging()?;
 
+    log::info!(r"");
+    log::info!(r" ███████████   ███     ██████                              █████   ");
+    log::info!(r"░░███░░░░░███ ░░░     ███░░███                            ░░███    ");
+    log::info!(r" ░███    ░███ ████   ░███ ░░░  ████████   ██████   █████  ███████  ");
+    log::info!(r" ░██████████ ░░███  ███████   ░░███░░███ ███░░███ ███░░  ░░░███░   ");
+    log::info!(r" ░███░░░░░███ ░███ ░░░███░     ░███ ░░░ ░███ ░███░░█████   ░███    ");
+    log::info!(r" ░███    ░███ ░███   ░███      ░███     ░███ ░███ ░░░░███  ░███ ███");
+    log::info!(r" ███████████  █████  █████     █████    ░░██████  ██████   ░░█████ ");
+    log::info!(r"░░░░░░░░░░░  ░░░░░  ░░░░░     ░░░░░      ░░░░░░  ░░░░░░     ░░░░░  ");
+    log::info!(r"");
+
     let certfile = Utf8PathBuf::from("cert.pem");
     let conffile = Utf8PathBuf::from("config.yaml");
     let statefile = Utf8PathBuf::from("state.yaml");
