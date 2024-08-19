@@ -1,3 +1,5 @@
+pub mod certificate;
+
 use std::fs::File;
 use std::io::Write;
 use std::net::{Ipv4Addr, SocketAddr};
