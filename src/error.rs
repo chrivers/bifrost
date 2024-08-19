@@ -18,6 +18,9 @@ use crate::{
 pub enum ApiError {
     /* mapped errors */
     #[error(transparent)]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
+
+    #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 
     #[error(transparent)]

@@ -1,6 +1,8 @@
+use std::io::{BufReader, Read};
 use std::str::FromStr;
 
 use der::asn1::{GeneralizedTime, OctetString};
+use der::oid::db::rfc4519::COMMON_NAME;
 use der::oid::db::rfc5280::ID_KP_SERVER_AUTH;
 use der::DateTime;
 use mac_address::MacAddress;
@@ -8,6 +10,7 @@ use p256::ecdsa::DerSignature;
 use rsa::pkcs8::SubjectPublicKeyInfoRef;
 use sha1::Sha1;
 use sha2::Digest;
+use x509_cert::attr::AttributeTypeAndValue;
 use x509_cert::builder::{Builder, CertificateBuilder, Profile};
 use x509_cert::certificate::CertificateInner;
 use x509_cert::der::{Decode, Encode};
@@ -16,6 +19,7 @@ use x509_cert::name::Name;
 use x509_cert::serial_number::SerialNumber;
 use x509_cert::spki::SubjectPublicKeyInfoOwned;
 use x509_cert::time::Validity;
+use x509_cert::Certificate;
 
 use crate::error::ApiResult;
 
@@ -126,4 +130,24 @@ pub fn generate(secret_key: &p256::SecretKey, mac: MacAddress) -> ApiResult<Cert
 
     /* Finally ready to build the certificate */
     Ok(builder.build::<DerSignature>()?)
+}
+
+pub fn extract_common_name(rdr: impl Read) -> ApiResult<Option<String>> {
+    let bufread = &mut BufReader::new(rdr);
+
+    for chunk in rustls_pemfile::certs(bufread) {
+        let cert = Certificate::from_der(&chunk?)?;
+
+        for name in cert.tbs_certificate.subject.0 {
+            if let [AttributeTypeAndValue {
+                oid: COMMON_NAME,
+                value,
+            }] = name.0.as_slice()
+            {
+                return Ok(Some(String::from_utf8(value.value().to_vec())?));
+            }
+        }
+    }
+
+    Ok(None)
 }

@@ -41,3 +41,4 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 ecdsa = { version = "0.16.9", features = ["der"] }
 der = { version = "0.7.9", features = ["oid"] }
 sha1 = "0.10.6"
+rustls-pemfile = "2.1.3"
