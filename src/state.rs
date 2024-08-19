@@ -11,6 +11,7 @@ use crate::config::{AppConfig, Z2mConfig};
 use crate::error::ApiResult;
 use crate::hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::resource::Resources;
+use crate::server;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -48,11 +49,7 @@ impl AppState {
 
     #[must_use]
     pub fn bridge_id(&self) -> String {
-        let mac = self.mac().bytes();
-        format!(
-            "{:02X}{:02X}{:02X}FFFE{:02X}{:02X}{:02X}",
-            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
-        )
+        server::certificate::hue_bridge_id(self.mac())
     }
 
     #[must_use]
