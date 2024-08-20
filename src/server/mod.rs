@@ -1,3 +1,4 @@
+pub mod banner;
 pub mod certificate;
 
 use std::fs::File;

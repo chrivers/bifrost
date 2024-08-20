@@ -8,7 +8,7 @@ use tokio::task::JoinSet;
 use bifrost::config;
 use bifrost::error::{ApiError, ApiResult};
 use bifrost::mdns;
-use bifrost::server;
+use bifrost::server::{self, banner};
 use bifrost::state::AppState;
 use bifrost::z2m;
 
@@ -117,16 +117,8 @@ async fn build_tasks(
 async fn run() -> ApiResult<()> {
     init_logging()?;
 
-    log::info!(r"");
-    log::info!(r" ███████████   ███     ██████                              █████   ");
-    log::info!(r"░░███░░░░░███ ░░░     ███░░███                            ░░███    ");
-    log::info!(r" ░███    ░███ ████   ░███ ░░░  ████████   ██████   █████  ███████  ");
-    log::info!(r" ░██████████ ░░███  ███████   ░░███░░███ ███░░███ ███░░  ░░░███░   ");
-    log::info!(r" ░███░░░░░███ ░███ ░░░███░     ░███ ░░░ ░███ ░███░░█████   ░███    ");
-    log::info!(r" ░███    ░███ ░███   ░███      ░███     ░███ ░███ ░░░░███  ░███ ███");
-    log::info!(r" ███████████  █████  █████     █████    ░░██████  ██████   ░░█████ ");
-    log::info!(r"░░░░░░░░░░░  ░░░░░  ░░░░░     ░░░░░      ░░░░░░  ░░░░░░     ░░░░░  ");
-    log::info!(r"");
+    #[cfg(feature = "server-banner")]
+    banner::print()?;
 
     let certfile = Utf8PathBuf::from("cert.pem");
     let conffile = Utf8PathBuf::from("config.yaml");
