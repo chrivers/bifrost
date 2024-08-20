@@ -7,7 +7,7 @@ use bifrost::{error::ApiResult, z2m::api::Message};
 #[tokio::main]
 #[rustfmt::skip]
 async fn main() -> ApiResult<()> {
-    colog::init();
+    pretty_env_logger::init();
 
     for line in stdin().lines() {
         let data = serde_json::from_str(&line?);
