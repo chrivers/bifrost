@@ -33,6 +33,9 @@ pub enum ApiError {
     JoinError(#[from] JoinError),
 
     #[error(transparent)]
+    MdnsSdError(#[from] mdns_sd::Error),
+
+    #[error(transparent)]
     ConfigError(#[from] config::ConfigError),
 
     #[error(transparent)]

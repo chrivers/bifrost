@@ -3,12 +3,13 @@ use std::net::Ipv4Addr;
 use mac_address::MacAddress;
 use mdns_sd::{ServiceDaemon, ServiceInfo};
 
-use crate::{hue, server::certificate};
+use crate::error::ApiResult;
+use crate::hue;
+use crate::server::certificate;
 
-#[must_use]
-pub fn register_mdns(mac: MacAddress, ip: Ipv4Addr) -> ServiceDaemon {
+pub fn register_mdns(mac: MacAddress, ip: Ipv4Addr) -> ApiResult<ServiceDaemon> {
     /* Create a new mDNS daemon. */
-    let mdns = ServiceDaemon::new().expect("Could not create service daemon");
+    let mdns = ServiceDaemon::new()?;
     let service_type = "_hue._tcp.local.";
 
     let m = mac.bytes();
@@ -33,13 +34,11 @@ pub fn register_mdns(mac: MacAddress, ip: Ipv4Addr) -> ServiceDaemon {
         service_addr,
         service_port,
         &properties[..],
-    )
-    .expect("valid service info");
+    )?;
 
-    mdns.register(service_info)
-        .expect("Failed to register mDNS service");
+    mdns.register(service_info)?;
 
     log::info!("Registered service {}.{}", &instance_name, &service_type);
 
-    mdns
+    Ok(mdns)
 }
