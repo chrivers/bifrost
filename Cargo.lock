@@ -298,6 +298,7 @@ dependencies = [
  "serde_yaml",
  "sha1",
  "sha2",
+ "termcolor",
  "thiserror",
  "tokio",
  "tokio-stream",
