@@ -171,7 +171,7 @@ async fn get_api_user_resource_id(
     }
 }
 
-async fn put_api_user_resource_id_state(
+async fn put_api_user_resource_id(
     State(state): State<AppState>,
     Path((_username, resource, id, path)): Path<(String, ApiResourceType, Uuid, String)>,
     Json(req): Json<Value>,
@@ -247,14 +247,9 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", post(post_api))
         .route("/config", get(get_api_config))
-        .route("/:username", get(get_api_user))
-        .route(
-            "/:username/:resource",
-            get(get_api_user_resource).put(put_api_user_resource),
-        )
-        .route("/:username/:resource/:id", get(get_api_user_resource_id))
-        .route(
-            "/:username/:resource/:id/:state",
-            put(put_api_user_resource_id_state),
-        )
+        .route("/:user", get(get_api_user))
+        .route("/:user/:rtype", get(get_api_user_resource))
+        .route("/:user/:rtype", put(put_api_user_resource))
+        .route("/:user/:rtype/:id", get(get_api_user_resource_id))
+        .route("/:user/:rtype/:id/:key", put(put_api_user_resource_id))
 }
