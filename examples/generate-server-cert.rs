@@ -3,7 +3,6 @@ use std::io::{stdout, Write};
 use clap::Parser;
 use der::{pem::LineEnding, EncodePem};
 use mac_address::MacAddress;
-use p256;
 use p256::pkcs8::EncodePrivateKey;
 use rand_core::OsRng;
 
