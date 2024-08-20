@@ -1,17 +1,18 @@
 use std::collections::HashMap;
-use std::net::Ipv4Addr;
+use std::fs::File;
 use std::sync::Arc;
 
+use axum_server::tls_rustls::RustlsConfig;
+use camino::Utf8Path;
 use chrono::Utc;
-use mac_address::MacAddress;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::config::{AppConfig, Z2mConfig};
-use crate::error::ApiResult;
+use crate::config::AppConfig;
+use crate::error::{ApiError, ApiResult};
 use crate::hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
 use crate::resource::Resources;
-use crate::server;
+use crate::server::{self, certificate};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -20,26 +21,40 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(config: AppConfig) -> ApiResult<Self> {
+    pub fn from_config(config: AppConfig) -> ApiResult<Self> {
+        let certfile = &config.bifrost.cert_file;
+
+        let certpath = Utf8Path::new(certfile);
+        if certpath.is_file() {
+            certificate::check_certificate(certpath, config.bridge.mac)?;
+        } else {
+            log::warn!("Missing certificate file [{certfile}], generating..");
+            certificate::generate_and_save(certpath, config.bridge.mac)?;
+        }
+
+        let mut res = Resources::new();
+
+        if let Ok(fd) = File::open(&config.bifrost.state_file) {
+            log::debug!("Existing state file found, loading..");
+            res.read(fd)?;
+        } else {
+            log::debug!("No state file found, initializing..");
+            res.init(&server::certificate::hue_bridge_id(config.bridge.mac))?;
+        }
+
         let conf = Arc::new(config);
-        let res = Arc::new(Mutex::new(Resources::new()));
+        let res = Arc::new(Mutex::new(res));
 
         Ok(Self { conf, res })
     }
 
-    #[must_use]
-    pub fn mac(&self) -> MacAddress {
-        self.conf.bridge.mac
-    }
+    pub async fn tls_config(&self) -> ApiResult<RustlsConfig> {
+        let certfile = &self.conf.bifrost.cert_file;
 
-    #[must_use]
-    pub fn ip(&self) -> Ipv4Addr {
-        self.conf.bridge.ipaddress
-    }
-
-    #[must_use]
-    pub fn z2m_config(&self) -> &Z2mConfig {
-        &self.conf.z2m
+        log::debug!("Loading certificate from [{certfile}]");
+        RustlsConfig::from_pem_file(&certfile, &certfile)
+            .await
+            .map_err(|e| ApiError::Certificate(certfile.to_owned(), e))
     }
 
     #[must_use]
@@ -48,15 +63,11 @@ impl AppState {
     }
 
     #[must_use]
-    pub fn bridge_id(&self) -> String {
-        server::certificate::hue_bridge_id(self.mac())
-    }
-
-    #[must_use]
     pub fn api_short_config(&self) -> ApiShortConfig {
+        let mac = self.conf.bridge.mac;
         ApiShortConfig {
-            bridgeid: self.bridge_id(),
-            mac: self.mac(),
+            bridgeid: certificate::hue_bridge_id(mac),
+            mac,
             ..Default::default()
         }
     }

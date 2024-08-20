@@ -1,36 +1,37 @@
+use std::net::Ipv4Addr;
+
+use mac_address::MacAddress;
 use mdns_sd::{ServiceDaemon, ServiceInfo};
 
-use crate::{hue, state::AppState};
+use crate::{hue, server::certificate};
 
 #[must_use]
-pub fn register_mdns(appstate: &AppState) -> ServiceDaemon {
+pub fn register_mdns(mac: MacAddress, ip: Ipv4Addr) -> ServiceDaemon {
     /* Create a new mDNS daemon. */
     let mdns = ServiceDaemon::new().expect("Could not create service daemon");
     let service_type = "_hue._tcp.local.";
 
-    let mac = appstate.mac().bytes();
+    let m = mac.bytes();
     let instance_name = format!(
         "bifrost-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
+        m[0], m[1], m[2], m[3], m[4], m[5]
     );
 
-    /* With `enable_addr_auto()`, we can give empty addrs and let the lib find them. */
-    /* If the caller knows specific addrs to use, then assign the addrs here. */
-    let my_addrs = appstate.ip().to_string();
     let service_hostname = format!("{instance_name}.{service_type}");
-    let port = 80;
+    let service_addr = ip.to_string();
+    let service_port = 80;
 
     let properties = [
         ("modelid", hue::HUE_BRIDGE_V2_MODEL_ID),
-        ("bridgeid", &appstate.bridge_id()),
+        ("bridgeid", &certificate::hue_bridge_id(mac)),
     ];
 
     let service_info = ServiceInfo::new(
         service_type,
         &instance_name,
         &service_hostname,
-        my_addrs,
-        port,
+        service_addr,
+        service_port,
         &properties[..],
     )
     .expect("valid service info");

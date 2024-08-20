@@ -1,14 +1,11 @@
-use std::fs::File;
 use std::io::Write;
 
-use axum_server::tls_rustls::RustlsConfig;
-use camino::{Utf8Path, Utf8PathBuf};
 use tokio::task::JoinSet;
 
 use bifrost::config;
-use bifrost::error::{ApiError, ApiResult};
+use bifrost::error::ApiResult;
 use bifrost::mdns;
-use bifrost::server::{self, banner, certificate};
+use bifrost::server::{self, banner};
 use bifrost::state::AppState;
 use bifrost::z2m;
 
@@ -59,57 +56,24 @@ fn init_logging() -> ApiResult<()> {
     }
 }
 
-async fn load_state(
-    conffile: &Utf8Path,
-    statefile: &Utf8Path,
-    certfile: Utf8PathBuf,
-) -> ApiResult<(RustlsConfig, AppState)> {
-    let config = config::parse(conffile)?;
-    log::debug!("Configuration loaded successfully");
-
-    let appstate = AppState::new(config)?;
-    if let Ok(fd) = File::open(statefile) {
-        log::debug!("Existing state file found, loading..");
-        appstate.res.lock().await.read(fd)?;
-    } else {
-        log::debug!("No state file found, initializing..");
-        appstate.res.lock().await.init(&appstate.bridge_id())?;
-    }
-
-    let certpath = Utf8Path::new(&certfile);
-    if !certpath.is_file() {
-        log::warn!("Missing certificate file [{certfile}], generating..");
-        certificate::generate_and_save(certpath, appstate.mac())?;
-    } else {
-        certificate::check_certificate(certpath, appstate.mac())?;
-    }
-
-    log::debug!("Loading certificate from [{certfile}]");
-    let config = RustlsConfig::from_pem_file(&certfile, &certfile)
-        .await
-        .map_err(|e| ApiError::Certificate(certfile, e))?;
-
-    Ok((config, appstate))
-}
-
-async fn build_tasks(
-    appstate: AppState,
-    config: RustlsConfig,
-    statefile: Utf8PathBuf,
-) -> ApiResult<JoinSet<ApiResult<()>>> {
-    let _mdns = mdns::register_mdns(&appstate);
+async fn build_tasks(appstate: AppState) -> ApiResult<JoinSet<ApiResult<()>>> {
+    let bconf = &appstate.config().bridge;
+    let _mdns = mdns::register_mdns(bconf.mac, bconf.ipaddress);
 
     let mut tasks = JoinSet::new();
 
     let svc = server::build_service(appstate.clone());
 
-    log::info!("Serving mac [{}]", appstate.mac());
+    log::info!("Serving mac [{}]", bconf.mac);
 
-    tasks.spawn(server::http_server(appstate.ip(), svc.clone()));
-    tasks.spawn(server::https_server(appstate.ip(), svc, config));
-    tasks.spawn(server::config_writer(appstate.res.clone(), statefile));
+    let tls_config = appstate.tls_config().await?;
+    let state_file = appstate.config().bifrost.state_file.clone();
 
-    for (name, server) in &appstate.z2m_config().servers {
+    tasks.spawn(server::http_server(bconf.ipaddress, svc.clone()));
+    tasks.spawn(server::https_server(bconf.ipaddress, svc, tls_config));
+    tasks.spawn(server::config_writer(appstate.res.clone(), state_file));
+
+    for (name, server) in &appstate.config().z2m.servers {
         let client = z2m::Client::new(
             name.clone(),
             server.url.clone(),
@@ -128,13 +92,12 @@ async fn run() -> ApiResult<()> {
     #[cfg(feature = "server-banner")]
     banner::print()?;
 
-    let certfile = Utf8PathBuf::from("cert.pem");
-    let conffile = Utf8PathBuf::from("config.yaml");
-    let statefile = Utf8PathBuf::from("state.yaml");
+    let config = config::parse("config.yaml".into())?;
+    log::debug!("Configuration loaded successfully");
 
-    let (config, appstate) = load_state(&conffile, &statefile, certfile).await?;
+    let appstate = AppState::from_config(config)?;
 
-    let mut tasks = build_tasks(appstate, config, statefile).await?;
+    let mut tasks = build_tasks(appstate).await?;
 
     loop {
         match tasks.join_next().await {
