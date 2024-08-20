@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::{
     extract::{Path, State},
     response::IntoResponse,
-    routing::{get, put},
+    routing::{get, post, put},
     Json, Router,
 };
 
@@ -24,10 +24,6 @@ use crate::resource::Resources;
 use crate::state::AppState;
 use crate::z2m::request::ClientRequest;
 use crate::z2m::update::DeviceUpdate;
-
-async fn get_api() -> impl IntoResponse {
-    "yep"
-}
 
 async fn get_api_config(State(state): State<AppState>) -> impl IntoResponse {
     Json(state.api_short_config())
@@ -249,7 +245,7 @@ async fn put_api_user_resource_id_state(
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/", get(get_api).post(post_api))
+        .route("/", post(post_api))
         .route("/config", get(get_api_config))
         .route("/:username", get(get_api_user))
         .route(
