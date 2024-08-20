@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::Ipv4Addr};
 
-use camino::Utf8Path;
+use camino::{Utf8Path, Utf8PathBuf};
 use config::{Config, ConfigError};
 use mac_address::MacAddress;
 use serde::{Deserialize, Serialize};
@@ -15,6 +15,12 @@ pub struct BridgeConfig {
     pub netmask: Ipv4Addr,
     pub gateway: Ipv4Addr,
     pub timezone: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BifrostConfig {
+    pub state_file: Utf8PathBuf,
+    pub cert_file: Utf8PathBuf,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -38,12 +44,15 @@ pub struct RoomConfig {
 pub struct AppConfig {
     pub bridge: BridgeConfig,
     pub z2m: Z2mConfig,
+    pub bifrost: BifrostConfig,
     #[serde(default)]
     pub rooms: HashMap<String, RoomConfig>,
 }
 
 pub fn parse(filename: &Utf8Path) -> Result<AppConfig, ConfigError> {
     let settings = Config::builder()
+        .set_default("bifrost.state_file", "state.yaml")?
+        .set_default("bifrost.cert_file", "cert.pem")?
         .add_source(config::File::with_name(filename.as_str()))
         .build()?;
 
