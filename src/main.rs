@@ -8,7 +8,7 @@ use tokio::task::JoinSet;
 use bifrost::config;
 use bifrost::error::{ApiError, ApiResult};
 use bifrost::mdns;
-use bifrost::server::{self, banner};
+use bifrost::server::{self, banner, certificate};
 use bifrost::state::AppState;
 use bifrost::z2m;
 
@@ -74,6 +74,14 @@ async fn load_state(
     } else {
         log::debug!("No state file found, initializing..");
         appstate.res.lock().await.init(&appstate.bridge_id())?;
+    }
+
+    let certpath = Utf8Path::new(&certfile);
+    if !certpath.is_file() {
+        log::warn!("Missing certificate file [{certfile}], generating..");
+        certificate::generate_and_save(certpath, appstate.mac())?;
+    } else {
+        certificate::check_certificate(certpath, appstate.mac())?;
     }
 
     log::debug!("Loading certificate from [{certfile}]");

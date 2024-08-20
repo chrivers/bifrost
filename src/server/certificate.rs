@@ -1,12 +1,17 @@
-use std::io::{BufReader, Read};
+use std::fs::File;
+use std::io::{BufReader, Read, Write};
 use std::str::FromStr;
 
+use camino::Utf8Path;
 use der::asn1::{GeneralizedTime, OctetString};
 use der::oid::db::rfc4519::COMMON_NAME;
 use der::oid::db::rfc5280::ID_KP_SERVER_AUTH;
-use der::DateTime;
+use der::pem::LineEnding;
+use der::{DateTime, EncodePem};
 use mac_address::MacAddress;
 use p256::ecdsa::DerSignature;
+use p256::pkcs8::EncodePrivateKey;
+use rand_core::OsRng;
 use rsa::pkcs8::SubjectPublicKeyInfoRef;
 use sha1::Sha1;
 use sha2::Digest;
@@ -21,7 +26,7 @@ use x509_cert::spki::SubjectPublicKeyInfoOwned;
 use x509_cert::time::Validity;
 use x509_cert::Certificate;
 
-use crate::error::ApiResult;
+use crate::error::{ApiError, ApiResult};
 
 #[must_use]
 pub fn hue_bridge_id_raw(mac: MacAddress) -> [u8; 8] {
@@ -150,4 +155,34 @@ pub fn extract_common_name(rdr: impl Read) -> ApiResult<Option<String>> {
     }
 
     Ok(None)
+}
+
+pub fn generate_and_save(certpath: &Utf8Path, mac: MacAddress) -> ApiResult<()> {
+    let secret_key = p256::SecretKey::random(&mut OsRng);
+    let cert = generate(&secret_key, mac)?;
+    let mut fd = File::create(certpath)?;
+    fd.write_all(secret_key.to_pkcs8_pem(LineEnding::LF)?.as_bytes())?;
+    fd.write_all(cert.to_pem(LineEnding::LF)?.as_bytes())?;
+    Ok(())
+}
+
+pub fn check_certificate(certpath: &Utf8Path, mac: MacAddress) -> ApiResult<()> {
+    let cn = extract_common_name(File::open(certpath)?)?;
+    let id = hue_bridge_id(mac);
+    match cn {
+        Some(cn) => {
+            if cn == id {
+                log::debug!("Found existing certficate for bridge id [{id}]");
+            } else {
+                log::error!("Certificate found, but mac address does not match!");
+                log::error!("  [{id}] (expected)");
+                log::error!("  [{cn}] {certpath}");
+                return Err(ApiError::CertificateInvalid(certpath.to_owned()));
+            }
+        }
+        None => {
+            return Err(ApiError::CertificateInvalid(certpath.to_owned()));
+        }
+    }
+    Ok(())
 }

@@ -104,6 +104,9 @@ pub enum ApiError {
 
     #[error("Cannot load certificate: {0:?}")]
     Certificate(Utf8PathBuf, std::io::Error),
+
+    #[error("Cannot parse certificate: {0:?}")]
+    CertificateInvalid(Utf8PathBuf),
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
