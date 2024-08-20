@@ -226,7 +226,7 @@ impl Resources {
 
     pub fn add_bridge(&mut self, bridge_id: String) -> ApiResult<()> {
         let link_bridge = RType::Bridge.deterministic(&bridge_id);
-        let link_bridge_home = RType::BridgeHome.deterministic(&format!("{bridge_id}HOME"));
+        let link_bridge_home = RType::BridgeHome.deterministic(format!("{bridge_id}HOME"));
         let link_bridge_dev = RType::Device.deterministic(link_bridge.rid);
         let link_bridge_home_dev = RType::Device.deterministic(link_bridge_home.rid);
         let link_zbdd = RType::ZigbeeDeviceDiscovery.deterministic(link_bridge.rid);

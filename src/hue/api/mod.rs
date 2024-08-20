@@ -195,7 +195,7 @@ pub struct V1ReplyBuilder<'a> {
 
 impl<'a> V1ReplyBuilder<'a> {
     #[must_use]
-    pub fn new(prefix: String) -> Self {
+    pub const fn new(prefix: String) -> Self {
         Self {
             prefix,
             success: vec![],
