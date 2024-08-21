@@ -25,9 +25,15 @@ temperature, etc) are sometimes just wrong.
 Overall, DieHue can do an impressive number of things, but it seems to have some
 pretty rough edges.
 
-Just to clarify, this is certainly not meant as an attack on DiyHue. I've
-enjoyed using DiyHue,
+Just to clarify, I've enjoyed using DiyHue, and I wish them all the best. It's
+also very useful, both as a home automation service, and a reverse engineering
+resource.
 
+However, if you're also using one or more zigbee2mqtt servers to control Zigbee
+devices, feel free to give Bifrost a try. It might be a better fit for your use
+case.
+
+In any case, feedback always welcome.
 
 
 | Feature                              | DiyHue                                  | Bifrost                                   |
