@@ -59,7 +59,6 @@ In any case, feedback always welcome.
 [^1]: Light state synchronization (i.e. consistency between hue emulator, hue
     app and reality) seems to be, unfortunately, somewhat brittle in DiyHue. See
     for example:
-
- * https://github.com/diyhue/diyHue/issues/883
- * https://github.com/diyhue/diyHue/issues/835
- * https://github.com/diyhue/diyHue/issues/795
+    * https://github.com/diyhue/diyHue/issues/883
+    * https://github.com/diyhue/diyHue/issues/835
+    * https://github.com/diyhue/diyHue/issues/795
