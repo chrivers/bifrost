@@ -9,7 +9,7 @@ Bifrost enables you to emulate a Philips Hue Bridge to control lights, groups an
 | Feature                              | DiyHue                          | Bifrost                         |
 |--------------------------------------|---------------------------------|---------------------------------|
 | Use Hue Bridge as backend            | ✅                              | ❌                              |
-| Usable from Homeassistant            | ✅ (as a Hue Bridge)            | ❌ (missing Hue V1 API)         |
+| Usable from Homeassistant            | ✅ (as a Hue Bridge)            | ✅ (more testing needed)        |
 | Control individual lights            | ✅                              | ✅                              |
 | Good performance for groups of light | ❌                              | ✅                              |
 | Connect to zigbee2mqtt               | (✅) (but only one server)      | ✅ (multiple servers supported) |
@@ -23,7 +23,6 @@ Bifrost enables you to emulate a Philips Hue Bridge to control lights, groups an
 | Multiple type of backends            | ✅                              | ❌ (only zigbee2mqtt)           |
 | Entertainment zones                  | ✅                              | ❌ (planned)                    |
 | Routines / Wake up / Go to sleep     | ✅                              | ❌ (planned)                    |
-|                                      |                                |                                |
 
 [^1]: Light state synchronization (i.e. consistency between hue emulator, hue
     app and reality) seems to be, unfortunately, somewhat brittle in DiyHue. See
@@ -40,10 +39,9 @@ Bifrost enables you to emulate a Philips Hue Bridge to control lights, groups an
 | Feature | Endpoint                             | Status |
 |------------------|--------------------------------------|--------|
 | Minimal API      | `/api/config`, `/api/:userid/config` | ✅     |
-| Lights           | `/api/:user/lights`                  | ❌     |
-| Groups           | `/api/:user/groups`                  | ❌     |
-| Scenes           | `/api/:user/scenes`                  | ❌     |
-| Groups           | `/api/:user/groups`                  | ❌     |
+| Lights           | `/api/:user/lights`                  | ✅     |
+| Groups           | `/api/:user/groups`                  | ✅     |
+| Scenes           | `/api/:user/scenes`                  | ✅     |
 | Sensors          | `/api/:user/sensors`                 | ❌     |
 
 ### Modern (V2 API)
@@ -56,3 +54,9 @@ Bifrost enables you to emulate a Philips Hue Bridge to control lights, groups an
 | Lights          | ✅          | Supports on/off, color temperature, full color                                                           |
 | Groups          | ✅          | Automatically mapped to rooms                                                                            |
 | Scenes          | ✅          | Scenes can be created, recalled, deleted. Scenes found in zigbee2mqtt will be imported, and auto-learned |
+
+| Feature | GET | POST | PUT          | DELETE |
+|---------|-----|------|--------------|--------|
+| Lights  | ✅  | -    | ✅ (patial   | -      |
+| Groups  | ✅  | ❌   | ❌           | ❌     |
+| Scenes  | ✅  | ✅   | ✅ (partial) | ✅     |
