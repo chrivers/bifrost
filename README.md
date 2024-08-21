@@ -98,3 +98,13 @@ The Philips Hue app should be able to find it on your network!
 # Configuration
 
 See [configuration reference](doc/config-reference.md).
+
+# Problems? Questions? Feedback?
+
+Please note: Bifrost is a very young project. Some things are incomplete, and/or
+broken when they shouldn't be.
+
+If you have any problems, questions or suggestions, please [create an
+issue](https://github.com/chrivers/bifrost/issues) on this project.
+
+Also, pull requests are always welcome!
