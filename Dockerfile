@@ -1,6 +1,6 @@
 # Builing Stage
 ARG RUST_VERSION=1.80.1
-FROM rust:${RUST_VERSION}-slim-bullseye AS build
+FROM rust:${RUST_VERSION}-slim-bookworm AS build
 WORKDIR /app
 
 RUN --mount=type=bind,source=src,target=src \
@@ -14,12 +14,9 @@ EOF
 
 
 # Final Stage
-FROM debian:bullseye-slim AS final
+FROM debian:bookworm-slim AS final
 
 COPY --from=build /bifrost /app/bifrost
-
-EXPOSE 80
-EXPOSE 443
 
 WORKDIR /app
 
