@@ -1,0 +1,11 @@
+bridge:
+  name: Bifrost
+  mac: 00:11:22:33:44:55
+  ipaddress: 10.12.0.20
+  netmask: 255.255.255.0
+  gateway: 10.12.0.1
+  timezone: Europe/Copenhagen
+
+z2m:
+  server1:
+    url: ws://10.0.0.100:8080

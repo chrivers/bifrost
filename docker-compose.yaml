@@ -1,0 +1,6 @@
+services:
+  bifrost:
+    build: .
+    volumes:
+      - ./config.yaml:/app/bifrost/config.yaml
+    network_mode: host
