@@ -3,4 +3,5 @@ services:
     build: .
     volumes:
       - ./config.yaml:/app/bifrost/config.yaml
+      - ./certs:/app/bifrost/certs
     network_mode: host
