@@ -72,7 +72,7 @@ At this point, the server should start: (log timestamps omitted for clarity)
   ===================================================================
 
   DEBUG bifrost > Configuration loaded successfully
-  DEBUG bifrost::server::certificate > Found existing certficate for bridge id [001122fffe334455]
+  DEBUG bifrost::server::certificate > Found existing certificate for bridge id [001122fffe334455]
   DEBUG bifrost::state               > Existing state file found, loading..
   INFO  bifrost::mdns                > Registered service bifrost-001122334455._hue._tcp.local.
   INFO  bifrost                      > Serving mac [00:11:22:33:44:55]
