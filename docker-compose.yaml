@@ -1,0 +1,7 @@
+services:
+  bifrost:
+    build: .
+    volumes:
+      - /path/to/app-data/config.yaml:/app/config.yaml
+      - /path/to/app-data/certs:/app/certs
+    network_mode: host
