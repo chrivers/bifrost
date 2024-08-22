@@ -32,7 +32,7 @@ serde_yaml = "0.9.34"
 thiserror = "1.0.63"
 tokio = { version = "1.39.2", features = ["rt-multi-thread"] }
 tokio-stream = { version = "0.1.15", features = ["sync"] }
-tokio-tungstenite = "0.23.1"
+tokio-tungstenite = { version = "0.23.1", features = ["native-tls"] }
 tower = "0.4.13"
 tower-http = { version = "0.5.2", features = ["normalize-path", "trace"] }
 tracing = "0.1.40"
