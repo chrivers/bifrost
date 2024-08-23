@@ -1,5 +1,5 @@
 bifrost:
-  # Optional but needed if using the Docker install method
+  # Override the default path to the one used in the docker image
   cert_file: "certs/cert.pem"
 
 bridge:
