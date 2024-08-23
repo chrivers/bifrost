@@ -182,7 +182,7 @@ pub struct Version {
 #[serde(deny_unknown_fields)]
 pub struct Network {
     pub channel: i64,
-    pub extended_pan_id: f64,
+    pub extended_pan_id: String,
     pub pan_id: i64,
 }
 
