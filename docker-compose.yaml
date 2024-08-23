@@ -1,7 +1,12 @@
 services:
   bifrost:
     build: .
+    container_name: bifrost
+    restart: unless-stopped
+    network_mode: host
     volumes:
+      # If you followed the guide on our readme, you could also use relative paths:
+      # - ./config.yaml:/app/config.yaml
+      # - ./certs:/app/certs
       - /path/to/app-data/config.yaml:/app/config.yaml
       - /path/to/app-data/certs:/app/certs
-    network_mode: host

@@ -1,4 +1,5 @@
 bifrost:
+  # Optional but needed if using the Docker install method
   cert_file: "certs/cert.pem"
 
 bridge:
