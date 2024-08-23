@@ -107,7 +107,8 @@ The Philips Hue app should be able to find it on your network!
 ### Docker
 
 > [!WARNING]
-> Docker support just recently got [merged](https://github.com/chrivers/bifrost/pull/2) to this project. It is not optimal yet and there are no prebuilt images (yet). If you encounter any bugs or have suggestions, feel free to leave your feedback [here](#problems-questions-feedback).
+> Docker support was [merged recently](https://github.com/chrivers/bifrost/pull/2).
+> If you encounter any bugs, or have suggestions, feel free to leave your feedback [here](#problems-questions-feedback).
 
 To install Bifrost with Docker, you will need the following:
 
