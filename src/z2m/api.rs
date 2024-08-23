@@ -245,7 +245,7 @@ pub struct CoordinatorMeta {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigSerial {
-    pub adapter: String,
+    pub adapter: Option<String>,
     pub disable_led: bool,
     pub port: String,
 }
@@ -310,7 +310,7 @@ pub struct Device {
     #[serde(default)]
     pub power_source: PowerSource,
     pub software_build_id: Option<String>,
-    pub supported: bool,
+    pub supported: Option<bool>,
     #[serde(rename = "type")]
     pub device_type: String,
 }
