@@ -156,6 +156,7 @@ pub struct BridgeConfigSchema {
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub advanced: ConfigAdvanced,
+    pub availability: Value,
     pub blocklist: Vec<Option<Value>>,
     pub device_options: ConfigDeviceOptions,
     pub devices: HashMap<String, Value>,
