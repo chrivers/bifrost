@@ -364,6 +364,7 @@ pub enum Expose {
     Enum(ExposeEnum),
     Light(ExposeLight),
     List(Value),
+    Lock(ExposeLock),
     Numeric(ExposeNumeric),
     Switch(ExposeSwitch),
 }
@@ -376,7 +377,7 @@ impl Expose {
             Self::Composite(obj) => Some(obj.name.as_str()),
             Self::Enum(obj) => Some(obj.name.as_str()),
             Self::Numeric(obj) => Some(obj.name.as_str()),
-            Self::Light(_) | Self::List(_) | Self::Switch(_) => None,
+            Self::Light(_) | Self::List(_) | Self::Switch(_) | Self::Lock(_) => None,
         }
     }
 }
@@ -426,6 +427,12 @@ pub struct ExposeEnum {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExposeLight {
     pub features: Vec<Expose>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExposeLock {
+    pub features: Vec<Expose>,
+    pub label: String,
 }
 
 impl ExposeLight {
