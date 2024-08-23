@@ -190,7 +190,9 @@ pub struct Network {
 #[serde(deny_unknown_fields)]
 pub struct Coordinator {
     pub ieee_address: IeeeAddress,
-    pub meta: CoordinatorMeta,
+    /* stict parsing disabled for now, format too volatile between versions */
+    /* pub meta: CoordinatorMeta, */
+    pub meta: Value,
     #[serde(rename = "type")]
     pub coordinator_type: String,
 }
