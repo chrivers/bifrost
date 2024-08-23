@@ -502,7 +502,8 @@ pub struct ConfiguredReporting {
     pub cluster: String,
     pub maximum_report_interval: i32,
     pub minimum_report_interval: i32,
-    pub reportable_change: i32,
+    #[serde(default)]
+    pub reportable_change: Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
