@@ -115,6 +115,12 @@ pub struct EndpointLink {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
+pub struct GroupLink {
+    pub id: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Scene {
     pub id: u32,
     pub name: String,
@@ -506,6 +512,7 @@ pub struct Binding {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum BindingTarget {
+    Group(GroupLink),
     Endpoint(EndpointLink),
 }
 
