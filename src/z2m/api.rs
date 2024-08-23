@@ -458,8 +458,9 @@ pub struct ExposeNumeric {
 
     pub unit: Option<String>,
     pub category: Option<String>,
-    pub value_max: Option<i32>,
-    pub value_min: Option<i32>,
+    pub value_max: Option<f64>,
+    pub value_min: Option<f64>,
+    pub value_step: Option<f64>,
 
     #[serde(default)]
     pub presets: Vec<Preset>,
