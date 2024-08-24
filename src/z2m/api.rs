@@ -374,6 +374,12 @@ pub enum Expose {
     Lock(ExposeLock),
     Numeric(ExposeNumeric),
     Switch(ExposeSwitch),
+
+    /* FIXME: Not modelled yet */
+    Text(Value),
+    Cover(Value),
+    Fan(Value),
+    Climate(Value),
 }
 
 impl Expose {
@@ -384,7 +390,14 @@ impl Expose {
             Self::Composite(obj) => Some(obj.name.as_str()),
             Self::Enum(obj) => Some(obj.name.as_str()),
             Self::Numeric(obj) => Some(obj.name.as_str()),
-            Self::Light(_) | Self::List(_) | Self::Switch(_) | Self::Lock(_) => None,
+            Self::Light(_)
+            | Self::List(_)
+            | Self::Switch(_)
+            | Self::Lock(_)
+            | Self::Text(_)
+            | Self::Cover(_)
+            | Self::Fan(_)
+            | Self::Climate(_) => None,
         }
     }
 }
