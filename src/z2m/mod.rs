@@ -21,8 +21,8 @@ use crate::config::{AppConfig, Z2mServer};
 use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
-    ColorUpdate, Device, DeviceArchetype, DeviceProductData, DimmingUpdate, GroupedLight, Light,
-    LightColor, LightUpdate, Metadata, RType, Resource, ResourceLink, Room, RoomArchetype,
+    ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
+    Light, LightColor, LightUpdate, Metadata, RType, Resource, ResourceLink, Room, RoomArchetype,
     RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
     ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
@@ -97,10 +97,16 @@ impl Client {
         let mut res = self.state.lock().await;
         let mut light = Light::new(link_device, metadata);
 
+        light.dimming = expose
+            .feature("brightness")
+            .and_then(Dimming::extract_from_expose);
+        log::trace!("Detected dimming: {:?}", &light.dimming);
+
         light.color_temperature = expose
             .feature("color_temp")
             .and_then(ColorTemperature::extract_from_expose);
         log::trace!("Detected color temperature: {:?}", &light.color_temperature);
+
         light.color = expose
             .feature("color_xy")
             .and_then(LightColor::extract_from_expose);
