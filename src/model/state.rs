@@ -91,7 +91,7 @@ impl IdMap {
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct State {
     aux: BTreeMap<Uuid, AuxData>,
-    id_v1: BTreeMap<Uuid, u32>,
+    id_v1: IdMap,
     pub res: BTreeMap<Uuid, Resource>,
 }
 
@@ -119,9 +119,19 @@ impl State {
         self.res.get_mut(id).ok_or_else(|| ApiError::NotFound(*id))
     }
 
+    pub fn insert(&mut self, key: Uuid, value: Resource) {
+        self.res.insert(key, value);
+        self.id_v1.add(key);
+    }
+
     pub fn remove(&mut self, id: &Uuid) -> ApiResult<()> {
         self.aux.remove(id);
+        self.id_v1.remove(id);
         self.res.remove(id).ok_or_else(|| ApiError::NotFound(*id))?;
         Ok(())
+    }
+
+    pub fn id_v1(&self, uuid: &Uuid) -> Option<u32> {
+        self.id_v1.id(uuid)
     }
 }
