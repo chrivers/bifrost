@@ -9,6 +9,13 @@ use crate::hue::api::MirekSchema;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
+pub struct RawMessage {
+    pub topic: String,
+    pub payload: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 #[serde(tag = "topic", content = "payload")]
 pub enum Message {
     #[serde(rename = "bridge/info")]
