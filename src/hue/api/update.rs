@@ -36,22 +36,31 @@ impl Update {
             Self::Scene(_) => RType::Scene,
         }
     }
+
+    #[must_use]
+    pub fn v1_id_scope(&self, id: u32) -> String {
+        match self {
+            Self::GroupedLight(_) => format!("/groups/{id}"),
+            Self::Light(_) => format!("/lights/{id}"),
+            Self::Scene(_) => format!("/scenes/{id}"),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateRecord {
     id: Uuid,
-    id_v1: String,
+    id_v1: Option<String>,
     #[serde(flatten)]
     pub upd: Update,
 }
 
 impl UpdateRecord {
     #[must_use]
-    pub fn new(id: &Uuid, upd: Update) -> Self {
+    pub fn new(id: &Uuid, id_v1: Option<u32>, upd: Update) -> Self {
         Self {
             id: *id,
-            id_v1: format!("/legacy/{}", id.as_simple()),
+            id_v1: id_v1.map(|id| upd.v1_id_scope(id)),
             upd,
         }
     }

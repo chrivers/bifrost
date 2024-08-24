@@ -107,7 +107,8 @@ impl Resources {
         func(obj.try_into()?)?;
 
         if let Some(delta) = Self::generate_update(obj)? {
-            self.hue_event(EventBlock::update(id, delta)?);
+            let id_v1 = self.state.id_v1(id);
+            self.hue_event(EventBlock::update(id, id_v1, delta)?);
         }
 
         self.state_updates.notify_one();
@@ -158,7 +159,7 @@ impl Resources {
             return Ok(());
         }
 
-        self.state.res.insert(link.rid, obj);
+        self.state.insert(link.rid, obj);
 
         self.state_updates.notify_one();
 

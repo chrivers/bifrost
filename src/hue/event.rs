@@ -38,12 +38,14 @@ impl EventBlock {
         }
     }
 
-    pub fn update(id: &Uuid, data: api::Update) -> ApiResult<Self> {
+    pub fn update(id: &Uuid, id_v1: Option<u32>, data: api::Update) -> ApiResult<Self> {
         Ok(Self {
             creationtime: Utc::now(),
             id: Uuid::new_v4(),
             event: Event::Update(Update {
-                data: vec![serde_json::to_value(api::UpdateRecord::new(id, data))?],
+                data: vec![serde_json::to_value(api::UpdateRecord::new(
+                    id, id_v1, data,
+                ))?],
             }),
         })
     }
