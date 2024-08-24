@@ -166,15 +166,15 @@ impl Client {
         let room_name;
 
         if let Some(ref prefix) = self.server.group_prefix {
-            if !grp.friendly_name.starts_with(prefix) {
+            if let Some(name) = grp.friendly_name.strip_prefix(prefix) {
+                room_name = name;
+            } else {
                 log::debug!(
                     "[{}] Ignoring room outside our prefix: {}",
                     self.name,
                     grp.friendly_name
                 );
                 return Ok(());
-            } else {
-                room_name = grp.friendly_name.strip_prefix(prefix).unwrap()
             }
         } else {
             room_name = &grp.friendly_name;
