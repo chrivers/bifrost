@@ -163,6 +163,7 @@ pub struct BridgeConfigSchema {
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub advanced: ConfigAdvanced,
+    #[serde(default)]
     pub availability: Value,
     pub blocklist: Vec<Option<Value>>,
     pub device_options: ConfigDeviceOptions,
@@ -189,7 +190,7 @@ pub struct Version {
 #[serde(deny_unknown_fields)]
 pub struct Network {
     pub channel: i64,
-    pub extended_pan_id: String,
+    pub extended_pan_id: Value,
     pub pan_id: i64,
 }
 
