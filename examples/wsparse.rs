@@ -13,7 +13,7 @@ async fn main() -> ApiResult<()> {
         let data = serde_json::from_str(&line?);
 
         let Ok(msg) = data else {
-            log::error!("INVALID: {:#?}", data);
+            log::error!("INVALID LINE: {:#?}", data);
             continue;
         };
 
@@ -44,11 +44,6 @@ async fn main() -> ApiResult<()> {
             Message::BridgeEvent(ref obj) => {
                 println!("{obj:#?}");
             },
-            Message::Other(ref obj) => {
-                if obj.topic.contains('/') {
-                    println!("{:#?}", obj.topic);
-                }
-            }
         }
     }
 

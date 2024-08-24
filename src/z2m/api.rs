@@ -9,6 +9,13 @@ use crate::hue::api::MirekSchema;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
+pub struct RawMessage {
+    pub topic: String,
+    pub payload: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 #[serde(tag = "topic", content = "payload")]
 pub enum Message {
     #[serde(rename = "bridge/info")]
@@ -34,9 +41,6 @@ pub enum Message {
 
     #[serde(rename = "bridge/extensions")]
     BridgeExtensions(Value),
-
-    #[serde(untagged)]
-    Other(Other),
 }
 
 #[derive(Serialize, Deserialize, Clone, Hash)]
@@ -156,6 +160,7 @@ pub struct BridgeConfigSchema {
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub advanced: ConfigAdvanced,
+    #[serde(default)]
     pub availability: Value,
     pub blocklist: Vec<Option<Value>>,
     pub device_options: ConfigDeviceOptions,
@@ -182,7 +187,7 @@ pub struct Version {
 #[serde(deny_unknown_fields)]
 pub struct Network {
     pub channel: i64,
-    pub extended_pan_id: String,
+    pub extended_pan_id: Value,
     pub pan_id: i64,
 }
 
@@ -468,7 +473,7 @@ pub struct ExposeNumeric {
 
 impl ExposeNumeric {
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     pub fn extract_mirek_schema(&self) -> Option<MirekSchema> {
         if self.unit.as_deref() == Some("mired") {
             if let (Some(min), Some(max)) = (self.value_min, self.value_max) {

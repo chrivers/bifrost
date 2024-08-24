@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Duration, Utc};
 use futures::{SinkExt, StreamExt};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
 use tokio::select;
@@ -30,7 +31,7 @@ use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;
 use crate::resource::AuxData;
 use crate::resource::Resources;
-use crate::z2m::api::{ExposeLight, Message, Other};
+use crate::z2m::api::{ExposeLight, Message, Other, RawMessage};
 use crate::z2m::request::{ClientRequest, Z2mRequest};
 use crate::z2m::update::DeviceUpdate;
 
@@ -162,19 +163,20 @@ impl Client {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     pub async fn add_group(&mut self, grp: &crate::z2m::api::Group) -> ApiResult<()> {
         let room_name;
 
         if let Some(ref prefix) = self.server.group_prefix {
-            if !grp.friendly_name.starts_with(prefix) {
+            if let Some(name) = grp.friendly_name.strip_prefix(prefix) {
+                room_name = name;
+            } else {
                 log::debug!(
                     "[{}] Ignoring room outside our prefix: {}",
                     self.name,
                     grp.friendly_name
                 );
                 return Ok(());
-            } else {
-                room_name = grp.friendly_name.strip_prefix(prefix).unwrap()
             }
         } else {
             room_name = &grp.friendly_name;
@@ -248,7 +250,11 @@ impl Client {
                 let _ = res.delete(&RType::Scene.link_to(*uuid));
             }
         } else {
-            log::debug!("[{}] {link_room:?} is new, adding..", self.name);
+            log::debug!(
+                "[{}] {link_room:?} ({}) is new, adding..",
+                self.name,
+                room_name
+            );
         }
 
         let mut metadata = RoomMetadata::new(RoomArchetype::Home, room_name);
@@ -281,8 +287,8 @@ impl Client {
         Ok(())
     }
 
-    pub async fn handle_update(&mut self, rid: &Uuid, payload: Value) -> ApiResult<()> {
-        let upd: DeviceUpdate = serde_json::from_value(payload)?;
+    pub async fn handle_update(&mut self, rid: &Uuid, payload: &Value) -> ApiResult<()> {
+        let upd = DeviceUpdate::deserialize(payload)?;
 
         let obj = self.state.lock().await.get_resource_by_id(rid)?.obj;
         match obj {
@@ -378,7 +384,7 @@ impl Client {
         })
     }
 
-    async fn handle_message(&mut self, msg: Message) -> ApiResult<()> {
+    async fn handle_bridge_message(&mut self, msg: Message) -> ApiResult<()> {
         #[allow(unused_variables)]
         match msg {
             Message::BridgeInfo(ref obj) => { /* println!("{obj:#?}"); */ }
@@ -428,25 +434,35 @@ impl Client {
                     self.add_group(grp).await?;
                 }
             }
-            Message::Other(obj) => {
-                if obj.topic.contains('/') {
-                    return Ok(());
-                }
-
-                let Some(ref val) = self.map.get(&obj.topic).copied() else {
-                    if !self.ignore.contains(&obj.topic) {
-                        log::warn!(
-                            "[{}] Notification on unknown topic {}",
-                            self.name,
-                            &obj.topic
-                        );
-                    }
-                    return Ok(());
-                };
-
-                self.handle_update(val, obj.payload).await?;
-            }
         }
+        Ok(())
+    }
+
+    async fn handle_device_message(&mut self, msg: RawMessage) -> ApiResult<()> {
+        if msg.topic.contains('/') {
+            return Ok(());
+        }
+
+        let Some(ref val) = self.map.get(&msg.topic).copied() else {
+            if !self.ignore.contains(&msg.topic) {
+                log::warn!(
+                    "[{}] Notification on unknown topic {}",
+                    self.name,
+                    &msg.topic
+                );
+            }
+            return Ok(());
+        };
+
+        let res = self.handle_update(val, &msg.payload).await;
+        if let Err(ref err) = res {
+            log::error!(
+                "Cannot parse update: {err}\n{}",
+                serde_json::to_string_pretty(&msg.payload)?
+            );
+        }
+
+        /* return Ok here, since we do not want to break the event loop */
         Ok(())
     }
 
@@ -456,10 +472,42 @@ impl Client {
             return Err(ApiError::UnexpectedZ2mReply(pkt));
         };
 
-        let data = serde_json::from_str(&txt);
+        let raw_msg: Result<RawMessage, _> = serde_json::from_str(&txt);
 
-        match data {
-            Ok(msg) => self.handle_message(msg).await,
+        match raw_msg {
+            Ok(msg) => {
+                if msg.topic.starts_with("bridge/") {
+                    match serde_json::from_str(&txt) {
+                        Ok(bridge_msg) => self.handle_bridge_message(bridge_msg).await,
+                        Err(err) => {
+                            match msg.topic.as_str() {
+                                topic @ ("bridge/devices" | "bridge/groups") => {
+                                    log::error!(
+                                        "[{}] Failed to parse critical z2m bridge message on [{}]:",
+                                        self.name,
+                                        topic,
+                                    );
+                                    log::error!(
+                                        "[{}] {}",
+                                        self.name,
+                                        serde_json::to_string(&msg.payload)?
+                                    );
+                                    Err(err)?
+                                }
+                                topic => {
+                                    log::error!("[{}] Failed to parse (non-critical) z2m bridge message on [{}]:", self.name, topic);
+                                    log::error!("{}", serde_json::to_string(&msg.payload)?);
+
+                                    /* Suppress this non-critical error, to avoid breaking the event loop */
+                                    Ok(())
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    self.handle_device_message(msg).await
+                }
+            }
             Err(err) => {
                 log::error!(
                     "[{}] Invalid websocket message: {:#?} [{}..]",
@@ -618,22 +666,16 @@ impl Client {
         mut socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
     ) -> ApiResult<()> {
         loop {
-            let res = select! {
+            select! {
                 pkt = chan.recv() => {
                     let api_req = pkt?;
-                    let res = self.websocket_write(&mut socket, api_req).await;
+                    self.websocket_write(&mut socket, api_req).await?;
                     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                    res
                 },
                 pkt = socket.next() => {
-                    self.websocket_read(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await
+                    self.websocket_read(pkt.ok_or(ApiError::UnexpectedZ2mEof)??).await?;
                 },
             };
-
-            if let Err(ref err) = res {
-                log::error!("[{}] Event loop failed!: {err:?}", self.name);
-                return res;
-            }
         }
     }
 
@@ -644,7 +686,9 @@ impl Client {
             match connect_async(&self.server.url).await {
                 Ok((socket, _)) => {
                     let res = self.event_loop(&mut chan, socket).await;
-                    log::error!("[{}] Event loop broke: {res:?}", self.name);
+                    if let Err(err) = res {
+                        log::error!("[{}] Event loop broke: {err}", self.name);
+                    }
                 }
                 Err(err) => {
                     log::error!("[{}] Connect failed: {err:?}", self.name);
