@@ -34,6 +34,7 @@ pub struct Z2mConfig {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Z2mServer {
     pub url: String,
+    pub group_prefix: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]

@@ -16,7 +16,7 @@ use tokio::time::sleep;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
-use crate::config::AppConfig;
+use crate::config::{AppConfig, Z2mServer};
 use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
@@ -43,7 +43,7 @@ struct LearnScene {
 
 pub struct Client {
     name: String,
-    conn: String,
+    server: Z2mServer,
     config: Arc<AppConfig>,
     state: Arc<Mutex<Resources>>,
     map: HashMap<String, Uuid>,
@@ -55,7 +55,7 @@ pub struct Client {
 impl Client {
     pub fn new(
         name: String,
-        conn: String,
+        server: Z2mServer,
         config: Arc<AppConfig>,
         state: Arc<Mutex<Resources>>,
     ) -> ApiResult<Self> {
@@ -65,7 +65,7 @@ impl Client {
         let ignore = HashSet::new();
         Ok(Self {
             name,
-            conn,
+            server,
             config,
             state,
             map,
@@ -163,6 +163,23 @@ impl Client {
     }
 
     pub async fn add_group(&mut self, grp: &crate::z2m::api::Group) -> ApiResult<()> {
+        let room_name;
+
+        if let Some(ref prefix) = self.server.group_prefix {
+            if !grp.friendly_name.starts_with(prefix) {
+                log::debug!(
+                    "[{}] Ignoring room outside our prefix: {}",
+                    self.name,
+                    grp.friendly_name
+                );
+                return Ok(());
+            } else {
+                room_name = grp.friendly_name.strip_prefix(prefix).unwrap()
+            }
+        } else {
+            room_name = &grp.friendly_name;
+        }
+
         let link_room = RType::Room.deterministic(&grp.friendly_name);
         let link_glight = RType::GroupedLight.deterministic((link_room.rid, grp.id));
 
@@ -234,7 +251,7 @@ impl Client {
             log::debug!("[{}] {link_room:?} is new, adding..", self.name);
         }
 
-        let mut metadata = RoomMetadata::new(RoomArchetype::Home, &topic);
+        let mut metadata = RoomMetadata::new(RoomArchetype::Home, room_name);
         if let Some(room_conf) = self.config.rooms.get(&topic) {
             if let Some(name) = &room_conf.name {
                 metadata.name = name.to_string();
@@ -623,8 +640,8 @@ impl Client {
     pub async fn run_forever(mut self) -> ApiResult<()> {
         let mut chan = self.state.lock().await.z2m_channel();
         loop {
-            log::info!("[{}] Connecting to {}", self.name, self.conn);
-            match connect_async(&self.conn).await {
+            log::info!("[{}] Connecting to {}", self.name, self.server.url);
+            match connect_async(&self.server.url).await {
                 Ok((socket, _)) => {
                     let res = self.event_loop(&mut chan, socket).await;
                     log::error!("[{}] Event loop broke: {res:?}", self.name);
