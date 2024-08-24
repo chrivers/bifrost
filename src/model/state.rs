@@ -37,6 +37,57 @@ impl AuxData {
     }
 }
 
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct IdMap {
+    forward: BTreeMap<Uuid, u32>,
+    reverse: BTreeMap<u32, Uuid>,
+    #[serde(skip)]
+    next_id: u32,
+}
+
+impl IdMap {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn find_next_id(&mut self) -> u32 {
+        while self.reverse.contains_key(&self.next_id) {
+            self.next_id += 1;
+        }
+        self.next_id
+    }
+
+    pub fn add(&mut self, uuid: Uuid) -> u32 {
+        if let Some(id) = self.forward.get(&uuid).copied() {
+            return id;
+        }
+
+        let id = self.find_next_id();
+
+        self.forward.insert(uuid, id);
+        self.reverse.insert(id, uuid);
+
+        id
+    }
+
+    #[must_use]
+    pub fn id(&self, uuid: &Uuid) -> Option<u32> {
+        self.forward.get(uuid).copied()
+    }
+
+    #[must_use]
+    pub fn uuid(&self, id: &u32) -> Option<Uuid> {
+        self.reverse.get(id).copied()
+    }
+
+    pub fn remove(&mut self, uuid: &Uuid) {
+        if let Some(id) = self.forward.remove(uuid) {
+            self.reverse.remove(&id);
+        }
+    }
+}
+
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct State {
     aux: BTreeMap<Uuid, AuxData>,
