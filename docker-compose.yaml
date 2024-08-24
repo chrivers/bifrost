@@ -1,7 +1,10 @@
 services:
   bifrost:
     build: .
-    volumes:
-      - /path/to/app-data/config.yaml:/app/config.yaml
-      - /path/to/app-data/certs:/app/certs
+    container_name: bifrost
+    restart: unless-stopped
     network_mode: host
+    volumes:
+      # If you followed the guide on our readme, these paths work out of the box
+      - ./config.yaml:/app/config.yaml
+      - ./certs:/app/certs

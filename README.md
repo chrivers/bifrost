@@ -10,11 +10,18 @@ might like to read the [comparison with DiyHue](doc/comparison-with-diyhue.md).
 
 ## Installation guide
 
-To install Bifrost, you will need the following:
+There are currently two ways you can install Bifrost.
 
- 1. The rust language toolchain (https://rustup.rs/)
- 2. At least one zigbee2mqtt server to connect to
- 3. The MAC address of the network interface you want to run the server on
+1.  [Install manualy](#manual) from source (for now, this is the preferred method)
+2.  [Install it via Docker](#docker) (still WIP, some aspects may not be optimal for now)
+
+### Manual
+
+To install Bifrost from source, you will need the following:
+
+1.  The rust language toolchain (https://rustup.rs/)
+2.  At least one zigbee2mqtt server to connect to
+3.  The MAC address of the network interface you want to run the server on
 
 When you have these things available, install bifrost:
 
@@ -89,11 +96,61 @@ At this point, the server should start: (log timestamps omitted for clarity)
 ...
 ```
 
-The log output shows Bifrost talking with zigbee2mqtt, and finding some lights to control (office_{1,2,3}).
+The log output shows Bifrost talking with zigbee2mqtt, and finding some lights to control (office\_{1,2,3}).
 
 At this point, you're running a Bifrost bridge.
 
 The Philips Hue app should be able to find it on your network!
+
+### Docker
+
+> [!WARNING]
+> Docker support was [merged recently](https://github.com/chrivers/bifrost/pull/2).
+> If you encounter any bugs, or have suggestions, feel free to leave your feedback
+> [here](#problems-questions-feedback).
+
+To install Bifrost with Docker, you will need the following:
+
+1.  At least one zigbee2mqtt server to connect to
+2.  The MAC address of the network interface you want to run the server on
+3.  A running [Docker](https://docs.docker.com/engine/install/) instance
+    with [Docker-Compose](https://docs.docker.com/compose/install/) installed
+4.  Have `git` installed to clone this repository
+
+When you have these things available, you can install Bifrost by running these commands:
+
+```
+git clone https://github.com/chrivers/bifrost
+cd bifrost
+```
+
+Then rename or copy our `config.example.yaml`:
+
+```
+cp config.example.yaml config.yaml
+```
+
+And edit it with your favorite editor to your liking (see
+[configuration reference](doc/config-reference.md)).
+
+If you want to put your configuration file or the certificates Bifrost creates somewhere
+else, you also need to adjust the mount paths in the `docker-compose.yaml`. Otherwise,
+just leave the default values.
+
+Now you are ready to run the app with:
+
+```
+docker compose up -d
+```
+
+This will build and then start the app on your Docker instance.
+
+To view the logs, use a tool like [Portainer](https://www.portainer.io/) or
+run the following command:
+
+```
+docker logs bifrost
+```
 
 # Configuration
 

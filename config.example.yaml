@@ -1,4 +1,5 @@
 bifrost:
+  # Override the default path to the one used in the docker image
   cert_file: "certs/cert.pem"
 
 bridge:
