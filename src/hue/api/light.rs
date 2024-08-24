@@ -436,3 +436,17 @@ impl From<Dimming> for f64 {
         value.brightness
     }
 }
+
+impl Dimming {
+    #[must_use]
+    pub const fn extract_from_expose(expose: &Expose) -> Option<Self> {
+        let Expose::Numeric(_) = expose else {
+            return None;
+        };
+
+        Some(Self {
+            brightness: 0.0,
+            min_dim_level: None,
+        })
+    }
+}
