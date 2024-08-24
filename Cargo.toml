@@ -2,6 +2,7 @@
 name = "bifrost"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.76"
 
 [features]
 default = ["server", "server-banner"]
