@@ -2,7 +2,24 @@
 name = "bifrost"
 version = "0.1.0"
 edition = "2021"
+authors = ["Christian Iversen <ci@iversenit.dk>"]
 rust-version = "1.76"
+description = "A Philips Hue bridge emulator backed by zigbee2mqtt"
+readme = "README.md"
+repository = "https://github.com/chrivers/bifrost"
+license = "GPL-3.0-only"
+categories = ["api-bindings", "simulation", "network-programming"]
+keywords = [
+    "home-automation",
+     "hue-lights",
+     "hue-bridge",
+     "home-assistant",
+     "hue",
+     "zigbee",
+     "hue-api",
+     "zigbee2mqtt",
+     "phillips-hue",
+]
 
 [features]
 default = ["server", "server-banner"]
