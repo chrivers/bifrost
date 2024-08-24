@@ -8,7 +8,9 @@ and scenes from [Zigbee2Mqtt](https://www.zigbee2mqtt.io/).
 If you are already familiar with [DiyHue](https://github.com/diyhue/diyHue), you
 might like to read the [comparison with DiyHue](doc/comparison-with-diyhue.md).
 
-Questions, feedback, comments? Join us on discord [![](https://dcbadge.limes.pink/api/server/YvBKjHBJpA)](https://discord.gg/YvBKjHBJpA)
+Questions, feedback, comments? Join us on discord
+
+[![](https://dcbadge.limes.pink/api/server/YvBKjHBJpA)](https://discord.gg/YvBKjHBJpA)
 
 ## Installation guide
 
@@ -163,7 +165,9 @@ See [configuration reference](doc/config-reference.md).
 Please note: Bifrost is a very young project. Some things are incomplete, and/or
 broken when they shouldn't be.
 
-Join us on discord [![](https://dcbadge.limes.pink/api/server/YvBKjHBJpA)](https://discord.gg/YvBKjHBJpA)
+Consider joining us on discord:
+
+[![](https://dcbadge.limes.pink/api/server/YvBKjHBJpA)](https://discord.gg/YvBKjHBJpA)
 
 If you have any problems, questions or suggestions, feel free to [create an
 issue](https://github.com/chrivers/bifrost/issues) on this project.
