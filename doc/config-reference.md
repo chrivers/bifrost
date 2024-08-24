@@ -33,6 +33,18 @@ bridge:
   gateway: 10.0.0.1
   timezone: Europe/Copenhagen
 
+  # http port for emulated bridge
+  #
+  # beware: most client programs do NOT support non-standard ports.
+  # This is for advanced users (e.g. bifrost behind a reverse proxy)
+  http_port: 80
+
+  # https port for emulated bridge
+  #
+  # beware: most client programs do NOT support non-standard ports.
+  # This is for advanced users (e.g. bifrost behind a reverse proxy)
+  https_port: 443
+
 # Zigbee2mqtt section
 #
 # Make a sub-section for each zigbee2mqtt server you want to connect

@@ -69,8 +69,17 @@ async fn build_tasks(appstate: AppState) -> ApiResult<JoinSet<ApiResult<()>>> {
     let tls_config = appstate.tls_config().await?;
     let state_file = appstate.config().bifrost.state_file.clone();
 
-    tasks.spawn(server::http_server(bconf.ipaddress, svc.clone()));
-    tasks.spawn(server::https_server(bconf.ipaddress, svc, tls_config));
+    tasks.spawn(server::http_server(
+        bconf.ipaddress,
+        bconf.http_port,
+        svc.clone(),
+    ));
+    tasks.spawn(server::https_server(
+        bconf.ipaddress,
+        bconf.https_port,
+        svc,
+        tls_config,
+    ));
     tasks.spawn(server::config_writer(appstate.res.clone(), state_file));
 
     for (name, server) in &appstate.config().z2m.servers {

@@ -61,12 +61,12 @@ pub fn build_service(appstate: AppState) -> IntoMakeService<NormalizePath<Router
     ServiceExt::<Request>::into_make_service(normalized)
 }
 
-pub async fn http_server<S>(listen_addr: Ipv4Addr, svc: S) -> ApiResult<()>
+pub async fn http_server<S>(listen_addr: Ipv4Addr, listen_port: u16, svc: S) -> ApiResult<()>
 where
     S: Send + MakeService<SocketAddr, Request<Incoming>>,
     S::MakeFuture: Send,
 {
-    let addr = SocketAddr::from((listen_addr, 80));
+    let addr = SocketAddr::from((listen_addr, listen_port));
     log::info!("http listening on {}", addr);
 
     axum_server::bind(addr).serve(svc).await?;
@@ -74,12 +74,17 @@ where
     Ok(())
 }
 
-pub async fn https_server<S>(listen_addr: Ipv4Addr, svc: S, config: RustlsConfig) -> ApiResult<()>
+pub async fn https_server<S>(
+    listen_addr: Ipv4Addr,
+    listen_port: u16,
+    svc: S,
+    config: RustlsConfig,
+) -> ApiResult<()>
 where
     S: Send + MakeService<SocketAddr, Request<Incoming>>,
     S::MakeFuture: Send,
 {
-    let addr = SocketAddr::from((listen_addr, 443));
+    let addr = SocketAddr::from((listen_addr, listen_port));
     log::info!("https listening on {}", addr);
 
     axum_server::bind_rustls(addr, config).serve(svc).await?;
