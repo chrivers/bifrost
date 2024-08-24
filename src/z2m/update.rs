@@ -135,6 +135,9 @@ pub enum PowerOnBehavior {
 
     #[serde(rename = "off")]
     Off,
+
+    #[serde(rename = "previous")]
+    Previous,
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]

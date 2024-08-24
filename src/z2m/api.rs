@@ -115,6 +115,12 @@ pub struct EndpointLink {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
+pub struct GroupLink {
+    pub id: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Scene {
     pub id: u32,
     pub name: String,
@@ -150,6 +156,7 @@ pub struct BridgeConfigSchema {
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub advanced: ConfigAdvanced,
+    pub availability: Value,
     pub blocklist: Vec<Option<Value>>,
     pub device_options: ConfigDeviceOptions,
     pub devices: HashMap<String, Value>,
@@ -175,7 +182,7 @@ pub struct Version {
 #[serde(deny_unknown_fields)]
 pub struct Network {
     pub channel: i64,
-    pub extended_pan_id: f64,
+    pub extended_pan_id: String,
     pub pan_id: i64,
 }
 
@@ -183,7 +190,9 @@ pub struct Network {
 #[serde(deny_unknown_fields)]
 pub struct Coordinator {
     pub ieee_address: IeeeAddress,
-    pub meta: CoordinatorMeta,
+    /* stict parsing disabled for now, format too volatile between versions */
+    /* pub meta: CoordinatorMeta, */
+    pub meta: Value,
     #[serde(rename = "type")]
     pub coordinator_type: String,
 }
@@ -238,7 +247,7 @@ pub struct CoordinatorMeta {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigSerial {
-    pub adapter: String,
+    pub adapter: Option<String>,
     pub disable_led: bool,
     pub port: String,
 }
@@ -303,7 +312,7 @@ pub struct Device {
     #[serde(default)]
     pub power_source: PowerSource,
     pub software_build_id: Option<String>,
-    pub supported: bool,
+    pub supported: Option<bool>,
     #[serde(rename = "type")]
     pub device_type: String,
 }
@@ -357,6 +366,7 @@ pub enum Expose {
     Enum(ExposeEnum),
     Light(ExposeLight),
     List(Value),
+    Lock(ExposeLock),
     Numeric(ExposeNumeric),
     Switch(ExposeSwitch),
 }
@@ -369,7 +379,7 @@ impl Expose {
             Self::Composite(obj) => Some(obj.name.as_str()),
             Self::Enum(obj) => Some(obj.name.as_str()),
             Self::Numeric(obj) => Some(obj.name.as_str()),
-            Self::Light(_) | Self::List(_) | Self::Switch(_) => None,
+            Self::Light(_) | Self::List(_) | Self::Switch(_) | Self::Lock(_) => None,
         }
     }
 }
@@ -421,6 +431,12 @@ pub struct ExposeLight {
     pub features: Vec<Expose>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExposeLock {
+    pub features: Vec<Expose>,
+    pub label: String,
+}
+
 impl ExposeLight {
     #[must_use]
     pub fn feature(&self, name: &str) -> Option<&Expose> {
@@ -442,8 +458,9 @@ pub struct ExposeNumeric {
 
     pub unit: Option<String>,
     pub category: Option<String>,
-    pub value_max: Option<i32>,
-    pub value_min: Option<i32>,
+    pub value_max: Option<f64>,
+    pub value_min: Option<f64>,
+    pub value_step: Option<f64>,
 
     #[serde(default)]
     pub presets: Vec<Preset>,
@@ -485,7 +502,8 @@ pub struct ConfiguredReporting {
     pub cluster: String,
     pub maximum_report_interval: i32,
     pub minimum_report_interval: i32,
-    pub reportable_change: i32,
+    #[serde(default)]
+    pub reportable_change: Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -506,6 +524,7 @@ pub struct Binding {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum BindingTarget {
+    Group(GroupLink),
     Endpoint(EndpointLink),
 }
 
