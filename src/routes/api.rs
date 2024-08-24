@@ -21,7 +21,7 @@ use crate::hue::legacy_api::{
     Capabilities, HueResult, NewUser, NewUserReply,
 };
 use crate::resource::Resources;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 use crate::z2m::request::ClientRequest;
 use crate::z2m::update::DeviceUpdate;
 

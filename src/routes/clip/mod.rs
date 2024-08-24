@@ -11,7 +11,7 @@ use serde_json::Value;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::api::V2Reply;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 
 type ApiV2Result = ApiResult<Json<V2Reply<Value>>>;
 

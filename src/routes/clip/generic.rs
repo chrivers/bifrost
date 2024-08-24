@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::error::ApiError;
 use crate::hue::api::{RType, Resource, ResourceLink, V2Reply};
 use crate::routes::clip::ApiV2Result;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 
 async fn get_root(State(state): State<AppState>) -> impl IntoResponse {
     V2Reply::list(state.res.lock().await.get_resources())

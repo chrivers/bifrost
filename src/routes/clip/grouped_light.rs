@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::hue::api::{GroupedLight, GroupedLightUpdate, RType, V2Reply};
 use crate::routes::clip::ApiV2Result;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 use crate::z2m::request::ClientRequest;
 use crate::z2m::update::DeviceUpdate;
 

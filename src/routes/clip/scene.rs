@@ -13,7 +13,7 @@ use crate::hue::api::{
 };
 use crate::resource::AuxData;
 use crate::routes::clip::ApiV2Result;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 use crate::z2m::request::ClientRequest;
 
 async fn post_scene(

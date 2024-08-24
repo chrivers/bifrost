@@ -8,7 +8,7 @@ use futures::StreamExt;
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::error::ApiResult;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 
 pub async fn get_clip_v2(
     State(state): State<AppState>,

@@ -1,3 +1,4 @@
+pub mod appstate;
 pub mod banner;
 pub mod certificate;
 
@@ -28,7 +29,7 @@ use tracing::{info_span, Span};
 use crate::error::ApiResult;
 use crate::resource::Resources;
 use crate::routes;
-use crate::state::AppState;
+use appstate::AppState;
 
 fn trace_layer_on_response(response: &Response<Body>, latency: Duration, span: &Span) {
     span.record(

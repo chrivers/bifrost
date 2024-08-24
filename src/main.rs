@@ -5,8 +5,7 @@ use tokio::task::JoinSet;
 use bifrost::config;
 use bifrost::error::ApiResult;
 use bifrost::mdns;
-use bifrost::server::{self, banner};
-use bifrost::state::AppState;
+use bifrost::server::{self, appstate::AppState, banner};
 use bifrost::z2m;
 
 /*
