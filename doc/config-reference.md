@@ -57,6 +57,16 @@ z2m:
     url: ws://10.00.0.100:8080
   other-server:
     url: ws://10.10.0.102:8080
+
+    # Group prefix [optional!]
+    #
+    # If you specify this parameter, *only* groups with this prefix
+    # will be visible from this z2m server. The prefix will be removed.
+    #
+    # So with a group_prefix of "bifrost_", the group "bifrost_kitchen"
+    # will be available as "kitchen", but the group "living_room" will
+    # be hidden instead.
+    group_prefix: bifrost_
   ...
 
 # Rooms section [optional!]

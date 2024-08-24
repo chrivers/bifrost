@@ -85,7 +85,7 @@ async fn build_tasks(appstate: AppState) -> ApiResult<JoinSet<ApiResult<()>>> {
     for (name, server) in &appstate.config().z2m.servers {
         let client = z2m::Client::new(
             name.clone(),
-            server.url.clone(),
+            server.clone(),
             appstate.config(),
             appstate.res.clone(),
         )?;
