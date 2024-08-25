@@ -77,7 +77,7 @@ pub struct Entertainment {
     pub owner: ResourceLink,
     pub proxy: bool,
     pub renderer: bool,
-    pub renderer_reference: ResourceLink,
+    pub renderer_reference: Option<ResourceLink>,
     pub segments: EntertainmentSegments,
 }
 
