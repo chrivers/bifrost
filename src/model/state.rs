@@ -115,6 +115,15 @@ impl State {
         self.aux.insert(link.rid, aux);
     }
 
+    #[must_use]
+    pub fn try_get(&self, id: &Uuid) -> Option<&Resource> {
+        self.res.get(id)
+    }
+
+    pub fn get(&self, id: &Uuid) -> ApiResult<&Resource> {
+        self.try_get(id).ok_or_else(|| ApiError::NotFound(*id))
+    }
+
     pub fn get_mut(&mut self, id: &Uuid) -> ApiResult<&mut Resource> {
         self.res.get_mut(id).ok_or_else(|| ApiError::NotFound(*id))
     }
