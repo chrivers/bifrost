@@ -21,9 +21,10 @@ pub use scene::{
 };
 pub use stubs::{
     BehaviorInstance, BehaviorScript, Bridge, BridgeHome, Button, ButtonData, ButtonMetadata,
-    ButtonReport, DollarRef, Entertainment, EntertainmentSegment, EntertainmentSegments,
-    GeofenceClient, Geolocation, Homekit, Matter, Metadata, PublicImage, SmartScene, TimeZone,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
+    ButtonReport, DevicePower, DollarRef, Entertainment, EntertainmentSegment,
+    EntertainmentSegments, GeofenceClient, Geolocation, Homekit, Matter, Metadata, PublicImage,
+    SmartScene, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery,
+    Zone,
 };
 pub use update::{Update, UpdateRecord};
 
@@ -44,6 +45,7 @@ pub enum Resource {
     BridgeHome(BridgeHome),
     Button(Button),
     Device(Device),
+    DevicePower(DevicePower),
     Entertainment(Entertainment),
     GeofenceClient(GeofenceClient),
     Geolocation(Geolocation),
@@ -70,6 +72,7 @@ impl Resource {
             Self::BridgeHome(_) => RType::BridgeHome,
             Self::Button(_) => RType::Button,
             Self::Device(_) => RType::Device,
+            Self::DevicePower(_) => RType::DevicePower,
             Self::Entertainment(_) => RType::Entertainment,
             Self::GeofenceClient(_) => RType::GeofenceClient,
             Self::Geolocation(_) => RType::Geolocation,
@@ -95,6 +98,7 @@ impl Resource {
             RType::BridgeHome => Self::BridgeHome(from_value(obj)?),
             RType::Button => Self::Button(from_value(obj)?),
             RType::Device => Self::Device(from_value(obj)?),
+            RType::DevicePower => Self::DevicePower(from_value(obj)?),
             RType::Entertainment => Self::Entertainment(from_value(obj)?),
             RType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
             RType::Geolocation => Self::Geolocation(from_value(obj)?),

@@ -15,6 +15,7 @@ pub enum RType {
     BridgeHome,
     Button,
     Device,
+    DevicePower,
     Entertainment,
     GeofenceClient,
     Geolocation,

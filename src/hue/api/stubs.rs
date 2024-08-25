@@ -54,6 +54,10 @@ pub struct DollarRef {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DevicePower {
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
     pub configuration_schema: DollarRef,
     pub description: String,
