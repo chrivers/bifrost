@@ -82,6 +82,9 @@ pub struct Entertainment {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfiguration {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentSegments {
     pub configurable: bool,
     pub max_segments: u32,
@@ -124,13 +127,22 @@ impl Default for Homekit {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightLevel {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Matter {
     pub has_qr_code: bool,
     pub max_fabrics: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Motion {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PublicImage {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RelativeRotary {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SmartScene {
@@ -175,6 +187,9 @@ pub struct Zone {
     #[serde(default)]
     pub services: Vec<ResourceLink>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Temperature {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimeZone {
