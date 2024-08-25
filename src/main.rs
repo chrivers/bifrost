@@ -37,6 +37,7 @@ fn init_logging() -> ApiResult<()> {
         "debug",
         "mdns_sd=off",
         "tower_http::trace::on_request=info",
+        "h2=info",
         "axum::rejection=trace",
     ];
 
