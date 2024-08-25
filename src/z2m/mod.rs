@@ -158,7 +158,7 @@ impl Client {
                 "status": "set",
                 "value": "channel_25",
             })),
-            extended_pan_id: String::from("0123456789abcdef"),
+            extended_pan_id: None,
         };
 
         res.add(&link_device, Resource::Device(dev))?;
