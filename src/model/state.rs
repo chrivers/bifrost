@@ -140,7 +140,13 @@ impl State {
         Ok(())
     }
 
+    #[must_use]
     pub fn id_v1(&self, uuid: &Uuid) -> Option<u32> {
         self.id_v1.id(uuid)
+    }
+
+    #[must_use]
+    pub fn from_id_v1(&self, id: &u32) -> Option<Uuid> {
+        self.id_v1.uuid(id)
     }
 }
