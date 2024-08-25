@@ -14,7 +14,7 @@ async fn main() -> ApiResult<()> {
 
         let Ok(msg) = data else {
             let err = data.unwrap_err();
-            log::error!("Parse error at line {} column {}", err.line(), err.column());
+            log::error!("Parse error {err:?} (stdin line {index})");
             continue;
         };
 
