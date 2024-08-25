@@ -323,18 +323,18 @@ impl Resources {
             /* No id v1 */
             Resource::BehaviorInstance(_)
             | Resource::DevicePower(_)
-            | Resource::Button(_)
-            | Resource::PublicImage(_)
-            | Resource::Zone(_)
             | Resource::BehaviorScript(_)
             | Resource::Bridge(_)
+            | Resource::Button(_)
             | Resource::Entertainment(_)
             | Resource::GeofenceClient(_)
             | Resource::Geolocation(_)
             | Resource::Homekit(_)
             | Resource::Matter(_)
+            | Resource::PublicImage(_)
             | Resource::SmartScene(_)
             | Resource::ZigbeeConnectivity(_)
+            | Resource::Zone(_)
             | Resource::ZigbeeDeviceDiscovery(_) => None,
         }
     }

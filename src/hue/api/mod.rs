@@ -66,8 +66,8 @@ impl Resource {
     #[must_use]
     pub const fn rtype(&self) -> RType {
         match self {
-            Self::BehaviorScript(_) => RType::BehaviorScript,
             Self::BehaviorInstance(_) => RType::BehaviorInstance,
+            Self::BehaviorScript(_) => RType::BehaviorScript,
             Self::Bridge(_) => RType::Bridge,
             Self::BridgeHome(_) => RType::BridgeHome,
             Self::Button(_) => RType::Button,
@@ -92,8 +92,8 @@ impl Resource {
 
     pub fn from_value(rtype: RType, obj: Value) -> ApiResult<Self> {
         let res = match rtype {
-            RType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
             RType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
+            RType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
             RType::Bridge => Self::Bridge(from_value(obj)?),
             RType::BridgeHome => Self::BridgeHome(from_value(obj)?),
             RType::Button => Self::Button(from_value(obj)?),
@@ -165,8 +165,8 @@ macro_rules! resource_conversion_impl {
     };
 }
 
-resource_conversion_impl!(BehaviorScript);
 resource_conversion_impl!(BehaviorInstance);
+resource_conversion_impl!(BehaviorScript);
 resource_conversion_impl!(Bridge);
 resource_conversion_impl!(BridgeHome);
 resource_conversion_impl!(Button);
