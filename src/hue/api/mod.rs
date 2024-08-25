@@ -21,10 +21,10 @@ pub use scene::{
 };
 pub use stubs::{
     BehaviorInstance, BehaviorScript, Bridge, BridgeHome, Button, ButtonData, ButtonMetadata,
-    ButtonReport, DevicePower, DollarRef, Entertainment, EntertainmentSegment,
-    EntertainmentSegments, GeofenceClient, Geolocation, Homekit, Matter, Metadata, PublicImage,
-    SmartScene, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery,
-    Zone,
+    ButtonReport, DevicePower, DollarRef, Entertainment, EntertainmentConfiguration,
+    EntertainmentSegment, EntertainmentSegments, GeofenceClient, Geolocation, Homekit, LightLevel,
+    Matter, Metadata, Motion, PublicImage, RelativeRotary, SmartScene, Temperature, TimeZone,
+    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
 };
 pub use update::{Update, UpdateRecord};
 
@@ -47,16 +47,21 @@ pub enum Resource {
     Device(Device),
     DevicePower(DevicePower),
     Entertainment(Entertainment),
+    EntertainmentConfiguration(EntertainmentConfiguration),
     GeofenceClient(GeofenceClient),
     Geolocation(Geolocation),
     GroupedLight(GroupedLight),
     Homekit(Homekit),
     Light(Light),
+    LightLevel(LightLevel),
     Matter(Matter),
+    Motion(Motion),
     PublicImage(PublicImage),
+    RelativeRotary(RelativeRotary),
     Room(Room),
     Scene(Scene),
     SmartScene(SmartScene),
+    Temperature(Temperature),
     ZigbeeConnectivity(ZigbeeConnectivity),
     ZigbeeDeviceDiscovery(ZigbeeDeviceDiscovery),
     Zone(Zone),
@@ -74,16 +79,21 @@ impl Resource {
             Self::Device(_) => RType::Device,
             Self::DevicePower(_) => RType::DevicePower,
             Self::Entertainment(_) => RType::Entertainment,
+            Self::EntertainmentConfiguration(_) => RType::EntertainmentConfiguration,
             Self::GeofenceClient(_) => RType::GeofenceClient,
             Self::Geolocation(_) => RType::Geolocation,
             Self::GroupedLight(_) => RType::GroupedLight,
             Self::Homekit(_) => RType::Homekit,
             Self::Light(_) => RType::Light,
+            Self::LightLevel(_) => RType::LightLevel,
             Self::Matter(_) => RType::Matter,
+            Self::Motion(_) => RType::Motion,
             Self::PublicImage(_) => RType::PublicImage,
+            Self::RelativeRotary(_) => RType::RelativeRotary,
             Self::Room(_) => RType::Room,
             Self::Scene(_) => RType::Scene,
             Self::SmartScene(_) => RType::SmartScene,
+            Self::Temperature(_) => RType::Temperature,
             Self::ZigbeeConnectivity(_) => RType::ZigbeeConnectivity,
             Self::ZigbeeDeviceDiscovery(_) => RType::ZigbeeDeviceDiscovery,
             Self::Zone(_) => RType::Zone,
@@ -100,16 +110,21 @@ impl Resource {
             RType::Device => Self::Device(from_value(obj)?),
             RType::DevicePower => Self::DevicePower(from_value(obj)?),
             RType::Entertainment => Self::Entertainment(from_value(obj)?),
+            RType::EntertainmentConfiguration => Self::EntertainmentConfiguration(from_value(obj)?),
             RType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
             RType::Geolocation => Self::Geolocation(from_value(obj)?),
             RType::GroupedLight => Self::GroupedLight(from_value(obj)?),
             RType::Homekit => Self::Homekit(from_value(obj)?),
             RType::Light => Self::Light(from_value(obj)?),
+            RType::LightLevel => Self::LightLevel(from_value(obj)?),
             RType::Matter => Self::Matter(from_value(obj)?),
+            RType::Motion => Self::Motion(from_value(obj)?),
             RType::PublicImage => Self::PublicImage(from_value(obj)?),
+            RType::RelativeRotary => Self::RelativeRotary(from_value(obj)?),
             RType::Room => Self::Room(from_value(obj)?),
             RType::Scene => Self::Scene(from_value(obj)?),
             RType::SmartScene => Self::SmartScene(from_value(obj)?),
+            RType::Temperature => Self::Temperature(from_value(obj)?),
             RType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
             RType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
             RType::Zone => Self::Zone(from_value(obj)?),
@@ -172,16 +187,21 @@ resource_conversion_impl!(BridgeHome);
 resource_conversion_impl!(Button);
 resource_conversion_impl!(Device);
 resource_conversion_impl!(Entertainment);
+resource_conversion_impl!(EntertainmentConfiguration);
 resource_conversion_impl!(GeofenceClient);
 resource_conversion_impl!(Geolocation);
 resource_conversion_impl!(GroupedLight);
 resource_conversion_impl!(Homekit);
 resource_conversion_impl!(Light);
+resource_conversion_impl!(LightLevel);
 resource_conversion_impl!(Matter);
+resource_conversion_impl!(Motion);
 resource_conversion_impl!(PublicImage);
+resource_conversion_impl!(RelativeRotary);
 resource_conversion_impl!(Room);
 resource_conversion_impl!(Scene);
 resource_conversion_impl!(SmartScene);
+resource_conversion_impl!(Temperature);
 resource_conversion_impl!(ZigbeeConnectivity);
 resource_conversion_impl!(ZigbeeDeviceDiscovery);
 resource_conversion_impl!(Zone);
