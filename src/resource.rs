@@ -229,7 +229,7 @@ impl Resources {
                 "status": "set",
                 "value": "channel_25",
             })),
-            extended_pan_id: String::from("0123456789abcdef"),
+            extended_pan_id: None,
         };
 
         self.add(&link_bridge_dev, Resource::Device(bridge_dev))?;
