@@ -54,8 +54,7 @@ pub struct DollarRef {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DevicePower {
-}
+pub struct DevicePower {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
