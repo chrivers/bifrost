@@ -38,11 +38,11 @@ impl Update {
     }
 
     #[must_use]
-    pub fn v1_id_scope(&self, id: u32) -> String {
+    pub fn id_v1_scope(&self, id: u32, uuid: &Uuid) -> Option<String> {
         match self {
-            Self::GroupedLight(_) => format!("/groups/{id}"),
-            Self::Light(_) => format!("/lights/{id}"),
-            Self::Scene(_) => format!("/scenes/{id}"),
+            Self::GroupedLight(_) => Some(format!("/groups/{id}")),
+            Self::Light(_) => Some(format!("/lights/{id}")),
+            Self::Scene(_) => Some(format!("/scenes/{uuid}")),
         }
     }
 }
@@ -57,10 +57,10 @@ pub struct UpdateRecord {
 
 impl UpdateRecord {
     #[must_use]
-    pub fn new(id: &Uuid, id_v1: Option<u32>, upd: Update) -> Self {
+    pub fn new(uuid: &Uuid, id_v1: Option<u32>, upd: Update) -> Self {
         Self {
-            id: *id,
-            id_v1: id_v1.map(|id| upd.v1_id_scope(id)),
+            id: *uuid,
+            id_v1: id_v1.and_then(|id| upd.id_v1_scope(id, uuid)),
             upd,
         }
     }

@@ -274,45 +274,105 @@ impl Resources {
     where
         &'a T: TryFrom<&'a Resource, Error = ApiError>,
     {
-        self.state
-            .res
-            .get(&link.rid)
-            .filter(|id| id.rtype() == link.rtype)
-            .ok_or_else(|| ApiError::NotFound(link.rid))?
-            .try_into()
+        self.state.get(&link.rid)?.try_into()
+    }
+
+    /*
+    behavior_script           null
+    bridge_home               /groups/{id}
+    bridge                    null
+    device                    /lights/{id} | null
+    entertainment             /lights/{id} | null
+    geofence_client           null
+    geolocation               null
+    grouped_light             /groups/{id}
+    homekit                   null
+    light                     /lights/{id}
+    matter                    null
+    room                      /groups/{id}
+    scene                     /scenes/{id}
+    smart_scene               null
+    zigbee_connectivity       /lights/{id}
+    zigbee_connectivity       null
+    zigbee_device_discovery   null
+     */
+
+    #[must_use]
+    fn id_v1_scope(&self, id: &Uuid, res: &Resource) -> Option<String> {
+        let id = self.state.id_v1(id)?;
+        match res {
+            Resource::GroupedLight(_) => Some(format!("/groups/{id}")),
+            Resource::Light(_) => Some(format!("/lights/{id}")),
+            Resource::Scene(_) => Some(format!("/scenes/{id}")),
+
+            /* Rooms map to their grouped_light service's id_v1 */
+            Resource::Room(room) => room
+                .grouped_light_service()
+                .and_then(|glight| self.state.id_v1(&glight.rid))
+                .map(|id| format!("/groups/{id}")),
+
+            /* Devices (that are lights) map to the light service's id_v1 */
+            Resource::Device(dev) => dev
+                .light_service()
+                .and_then(|light| self.state.id_v1(&light.rid))
+                .map(|id| format!("/lights/{id}")),
+
+            /* BridgeHome maps to "group 0" that seems to be present in the v1 api */
+            Resource::BridgeHome(_) => Some(String::from("/groups/0")),
+
+            /* No id v1 */
+            Resource::BehaviorInstance(_)
+            | Resource::Button(_)
+            | Resource::PublicImage(_)
+            | Resource::Zone(_)
+            | Resource::BehaviorScript(_)
+            | Resource::Bridge(_)
+            | Resource::Entertainment(_)
+            | Resource::GeofenceClient(_)
+            | Resource::Geolocation(_)
+            | Resource::Homekit(_)
+            | Resource::Matter(_)
+            | Resource::SmartScene(_)
+            | Resource::ZigbeeConnectivity(_)
+            | Resource::ZigbeeDeviceDiscovery(_) => None,
+        }
+    }
+
+    fn make_resource_record(&self, id: &Uuid, res: &Resource) -> ResourceRecord {
+        ResourceRecord::new(*id, self.id_v1_scope(id, res), res)
     }
 
     pub fn get_resource(&self, ty: RType, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.state
             .res
             .get(id)
-            .filter(|id| id.rtype() == ty)
-            .map(|r| ResourceRecord::from_ref((id, r)))
+            .filter(|res| res.rtype() == ty)
+            .map(|res| self.make_resource_record(id, res))
             .ok_or_else(|| ApiError::NotFound(*id))
     }
 
     pub fn get_resource_by_id(&self, id: &Uuid) -> ApiResult<ResourceRecord> {
         self.state
-            .res
             .get(id)
-            .map(|r| ResourceRecord::from_ref((id, r)))
-            .ok_or_else(|| ApiError::NotFound(*id))
+            .map(|res| self.make_resource_record(id, res))
     }
 
+    #[must_use]
     pub fn get_resources(&self) -> Vec<ResourceRecord> {
         self.state
             .res
             .iter()
-            .map(ResourceRecord::from_ref)
+            .map(|(id, res)| self.make_resource_record(id, res))
             .collect()
     }
 
+    #[must_use]
     pub fn get_resources_by_type(&self, ty: RType) -> Vec<ResourceRecord> {
         self.state
             .res
             .iter()
             .filter(|(_, r)| r.rtype() == ty)
-            .map(ResourceRecord::from_ref)
+            .map(|(id, res)| self.make_resource_record(id, res))
             .collect()
     }
 
