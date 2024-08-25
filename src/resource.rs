@@ -322,6 +322,7 @@ impl Resources {
 
             /* No id v1 */
             Resource::BehaviorInstance(_)
+            | Resource::DevicePower(_)
             | Resource::Button(_)
             | Resource::PublicImage(_)
             | Resource::Zone(_)
