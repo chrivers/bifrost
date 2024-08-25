@@ -85,6 +85,9 @@ pub enum ApiError {
     #[error("Cannot create resources of type: {0:?}")]
     V1CreateUnsupported(ApiResourceType),
 
+    #[error("Resource {0} not found")]
+    V1NotFound(u32),
+
     /* hue api v2 errors */
     #[error("State changes not supported for: {0:?}")]
     UpdateUnsupported(RType),
