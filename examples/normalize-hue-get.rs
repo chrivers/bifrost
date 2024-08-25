@@ -10,11 +10,13 @@ async fn main() -> ApiResult<()> {
     pretty_env_logger::init();
 
     for (index, line) in stdin().lines().enumerate() {
-        let data: Result<ResourceRecord, _> = serde_json::from_str(&line?);
+        let line = line?;
+        let data: Result<ResourceRecord, _> = serde_json::from_str(&line);
 
         let Ok(msg) = data else {
             let err = data.unwrap_err();
-            log::error!("Parse error {err:?} (stdin line {index})");
+            log::error!("Parse error {err:?} (stdin line {})", index + 1);
+            eprintln!("{}", &line);
             continue;
         };
 
