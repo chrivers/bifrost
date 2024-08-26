@@ -74,7 +74,6 @@ pub struct BehaviorScript {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorInstance {
-    pub active: bool,
     pub configuration: Value,
     pub status: String,
 }
