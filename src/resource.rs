@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
-use serde_json::json;
+use serde_json::{json, Value};
 use tokio::sync::broadcast::{Receiver, Sender};
 use tokio::sync::Notify;
 use uuid::Uuid;
@@ -221,6 +221,7 @@ impl Resources {
         let zbdd = ZigbeeDeviceDiscovery {
             owner: link_bridge_dev,
             status: String::from("ready"),
+            action: Value::Null,
         };
 
         let zbc = ZigbeeConnectivity {
