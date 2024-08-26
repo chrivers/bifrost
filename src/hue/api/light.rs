@@ -149,6 +149,7 @@ pub struct LightPowerup {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightSignaling {
     pub signal_values: Vec<LightSignal>,
+    #[serde(default)]
     pub status: Value,
 }
 
