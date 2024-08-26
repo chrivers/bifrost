@@ -222,7 +222,11 @@ pub struct Zone {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Temperature {}
+pub struct Temperature {
+    pub enabled: bool,
+    pub owner: ResourceLink,
+    pub temperature: Value,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimeZone {
