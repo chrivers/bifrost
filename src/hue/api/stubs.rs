@@ -154,7 +154,11 @@ pub struct Matter {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Motion {}
+pub struct Motion {
+    pub enabled: bool,
+    pub owner: ResourceLink,
+    pub motion: Value,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PublicImage {}
