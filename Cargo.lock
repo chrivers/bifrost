@@ -290,6 +290,7 @@ dependencies = [
  "hyper",
  "iana-time-zone",
  "itertools",
+ "json_diff_ng",
  "log",
  "mac_address",
  "mdns-sd",
@@ -547,6 +548,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "diffs"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff116c9781d74b71b9b8958281309dd2faaeabad2f0a3df27e50bd79ce5dc805"
 
 [[package]]
 name = "digest"
@@ -1016,6 +1023,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1868808506b929d7b0cfa8f75951347aa71bb21144b7791bae35d9bccfcfe37a"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "json_diff_ng"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "941b0c4ee9d01c0438aa8eb8fc24efab4b119c218cf1acb98e76619868eeca9b"
+dependencies = [
+ "diffs",
+ "regex",
+ "serde_json",
+ "thiserror",
+ "vg_errortools",
 ]
 
 [[package]]
@@ -1598,6 +1618,7 @@ version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
 dependencies = [
+ "indexmap",
  "itoa",
  "memchr",
  "ryu",
@@ -2029,6 +2050,15 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "vg_errortools"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f0d7932688493f8aac7d65e824820b6506fe68ae7450bf44ac7299b1841a4a6"
+dependencies = [
+ "thiserror",
+]
 
 [[package]]
 name = "wasi"
