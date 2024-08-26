@@ -25,6 +25,8 @@ pub struct DeviceProductData {
     pub product_archetype: DeviceArchetype,
     pub certified: bool,
     pub software_version: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hardware_platform_type: Option<String>,
 }
 
 impl DeviceProductData {
@@ -39,6 +41,7 @@ impl DeviceProductData {
             product_archetype: DeviceArchetype::BridgeV2,
             product_name: "Hue Bridge".to_string(),
             software_version: "1.66.1966060010".to_string(),
+            hardware_platform_type: None,
         }
     }
 
@@ -63,6 +66,7 @@ impl DeviceProductData {
             product_archetype,
             certified,
             software_version,
+            hardware_platform_type: None,
         }
     }
 }
