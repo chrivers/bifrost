@@ -164,7 +164,10 @@ pub struct Motion {
 pub struct PublicImage {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct RelativeRotary {}
+pub struct RelativeRotary {
+    pub owner: ResourceLink,
+    pub rotary_report: Value,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SmartScene {
