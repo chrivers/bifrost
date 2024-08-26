@@ -86,8 +86,11 @@ pub struct Entertainment {
     pub proxy: bool,
     pub renderer: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_streams: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub renderer_reference: Option<ResourceLink>,
-    pub segments: EntertainmentSegments,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub segments: Option<EntertainmentSegments>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
