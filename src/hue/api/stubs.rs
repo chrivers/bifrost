@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::hue::api::{DeviceArchetype, ResourceLink, SceneMetadata};
 use crate::hue::{best_guess_timezone, date_format};
@@ -75,7 +76,18 @@ pub struct BehaviorScript {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorInstance {
     pub configuration: Value,
+    #[serde(default)]
+    pub dependees: Vec<Value>,
+    pub enabled: bool,
+    pub last_error: String,
+    pub metadata: BehaviorInstanceMetadata,
+    pub script_id: Uuid,
     pub status: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BehaviorInstanceMetadata {
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
