@@ -31,6 +31,8 @@ pub enum RType {
     Room,
     Scene,
     SmartScene,
+    #[serde(rename = "taurus_7455")]
+    Taurus,
     Temperature,
     ZigbeeConnectivity,
     ZigbeeDeviceDiscovery,
@@ -69,6 +71,7 @@ impl RType {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceRecord {
     pub id: Uuid,
+    #[serde(skip_serializing_if = "Option::is_none")]
     id_v1: Option<String>,
     #[serde(flatten)]
     pub obj: Resource,

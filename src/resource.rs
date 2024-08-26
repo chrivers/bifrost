@@ -337,6 +337,7 @@ impl Resources {
             | Resource::PublicImage(_)
             | Resource::RelativeRotary(_)
             | Resource::SmartScene(_)
+            | Resource::Taurus(_)
             | Resource::Temperature(_)
             | Resource::ZigbeeConnectivity(_)
             | Resource::Zone(_)

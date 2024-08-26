@@ -159,6 +159,9 @@ pub struct SmartScene {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Taurus {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ZigbeeConnectivityStatus {
     Connected,
