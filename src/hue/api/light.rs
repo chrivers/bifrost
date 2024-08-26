@@ -21,6 +21,7 @@ pub struct Light {
     pub effects: Option<LightEffects>,
     #[serde(default)]
     pub identify: Identify,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timed_effects: Option<LightTimedEffects>,
     pub mode: LightMode,
     pub on: On,
@@ -153,6 +154,7 @@ pub struct LightPowerup {
 pub struct LightSignaling {
     pub signal_values: Vec<LightSignal>,
     #[serde(default)]
+    #[serde(skip_serializing_if = "Value::is_null")]
     pub status: Value,
 }
 
