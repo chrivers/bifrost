@@ -6,6 +6,7 @@ use crate::hue::api::{RType, ResourceLink};
 pub struct RoomMetadata {
     pub name: String,
     pub archetype: RoomArchetype,
+    pub hidden: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -76,6 +77,7 @@ impl RoomMetadata {
         Self {
             archetype,
             name: name.to_string(),
+            hidden: false
         }
     }
 }

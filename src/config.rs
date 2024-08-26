@@ -41,6 +41,7 @@ pub struct Z2mServer {
 pub struct RoomConfig {
     pub name: Option<String>,
     pub icon: Option<RoomArchetype>,
+    pub hidden: Option<bool>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -271,25 +271,36 @@ impl Client {
             if let Some(icon) = &room_conf.icon {
                 metadata.archetype = *icon;
             }
+            if let Some(hidden) = &room_conf.hidden {
+                metadata.hidden = *hidden;
+            }
         };
 
-        let room = Room {
-            children,
-            metadata,
-            services: vec![link_glight],
-        };
+        if !metadata.hidden {
+            let room = Room {
+                children,
+                metadata,
+                services: vec![link_glight],
+            };
+    
+            self.map.insert(topic.clone(), link_glight.rid);
+            self.rmap.insert(link_glight.rid, topic.clone());
+            self.rmap.insert(link_room.rid, topic.clone());
+    
+            res.add(&link_room, Resource::Room(room))?;
+    
+            let glight = GroupedLight::new(link_room);
+    
+            res.add(&link_glight, Resource::GroupedLight(glight))?;
+        } else {
+            log::debug!(
+                "[{}] {link_room:?} ({}) is hidden; passing on link!",
+                self.name,
+                room_name
+            );
+        }
 
-        self.map.insert(topic.clone(), link_glight.rid);
-        self.rmap.insert(link_glight.rid, topic.clone());
-        self.rmap.insert(link_room.rid, topic.clone());
-
-        res.add(&link_room, Resource::Room(room))?;
-
-        let glight = GroupedLight::new(link_room);
-
-        res.add(&link_glight, Resource::GroupedLight(glight))?;
         drop(res);
-
         Ok(())
     }
 
