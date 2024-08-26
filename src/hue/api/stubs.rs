@@ -60,6 +60,7 @@ pub struct DevicePower {}
 pub struct BehaviorScript {
     pub configuration_schema: DollarRef,
     pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_number_instances: Option<u32>,
     pub metadata: Value,
     pub state_schema: DollarRef,
@@ -77,6 +78,7 @@ pub struct Entertainment {
     pub owner: ResourceLink,
     pub proxy: bool,
     pub renderer: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub renderer_reference: Option<ResourceLink>,
     pub segments: EntertainmentSegments,
 }
@@ -170,7 +172,9 @@ pub enum ZigbeeConnectivityStatus {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub channel: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub extended_pan_id: Option<String>,
     pub mac_address: String,
     pub owner: ResourceLink,
