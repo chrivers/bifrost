@@ -41,6 +41,7 @@ pub struct Scene {
     /*     dimming: [], */
     /*     effects: [] */
     /* }, */
+    #[serde(default)]
     pub palette: Value,
     pub speed: f64,
     pub status: Option<SceneStatus>,
