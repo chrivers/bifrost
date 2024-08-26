@@ -23,8 +23,8 @@ pub use stubs::{
     BehaviorInstance, BehaviorScript, Bridge, BridgeHome, Button, ButtonData, ButtonMetadata,
     ButtonReport, DevicePower, DollarRef, Entertainment, EntertainmentConfiguration,
     EntertainmentSegment, EntertainmentSegments, GeofenceClient, Geolocation, Homekit, LightLevel,
-    Matter, Metadata, Motion, PublicImage, RelativeRotary, SmartScene, Temperature, TimeZone,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
+    Matter, Metadata, Motion, PublicImage, RelativeRotary, SmartScene, Taurus, Temperature,
+    TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
 };
 pub use update::{Update, UpdateRecord};
 
@@ -61,6 +61,8 @@ pub enum Resource {
     Room(Room),
     Scene(Scene),
     SmartScene(SmartScene),
+    #[serde(rename = "taurus_7455")]
+    Taurus(Taurus),
     Temperature(Temperature),
     ZigbeeConnectivity(ZigbeeConnectivity),
     ZigbeeDeviceDiscovery(ZigbeeDeviceDiscovery),
@@ -93,6 +95,7 @@ impl Resource {
             Self::Room(_) => RType::Room,
             Self::Scene(_) => RType::Scene,
             Self::SmartScene(_) => RType::SmartScene,
+            Self::Taurus(_) => RType::Taurus,
             Self::Temperature(_) => RType::Temperature,
             Self::ZigbeeConnectivity(_) => RType::ZigbeeConnectivity,
             Self::ZigbeeDeviceDiscovery(_) => RType::ZigbeeDeviceDiscovery,
@@ -124,6 +127,7 @@ impl Resource {
             RType::Room => Self::Room(from_value(obj)?),
             RType::Scene => Self::Scene(from_value(obj)?),
             RType::SmartScene => Self::SmartScene(from_value(obj)?),
+            RType::Taurus => Self::Taurus(from_value(obj)?),
             RType::Temperature => Self::Temperature(from_value(obj)?),
             RType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
             RType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
@@ -201,6 +205,7 @@ resource_conversion_impl!(RelativeRotary);
 resource_conversion_impl!(Room);
 resource_conversion_impl!(Scene);
 resource_conversion_impl!(SmartScene);
+resource_conversion_impl!(Taurus);
 resource_conversion_impl!(Temperature);
 resource_conversion_impl!(ZigbeeConnectivity);
 resource_conversion_impl!(ZigbeeDeviceDiscovery);
