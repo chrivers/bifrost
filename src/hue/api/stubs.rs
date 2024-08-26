@@ -49,8 +49,8 @@ pub struct ButtonReport {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DollarRef {
-    #[serde(rename = "$ref")]
-    pub dref: String,
+    #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
+    pub dref: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
