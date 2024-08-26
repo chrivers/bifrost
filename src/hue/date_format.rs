@@ -45,3 +45,38 @@ pub mod local {
             .ok_or_else(|| Error::custom("Localtime conversion failed"))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::{DateTime, TimeZone, Utc};
+
+    use crate::error::ApiResult;
+
+    fn date() -> (&'static str, DateTime<Utc>) {
+        let dt = Utc.with_ymd_and_hms(2014, 7, 8, 9, 10, 11).unwrap();
+        ("\"2014-07-08T09:10:11Z\"", dt)
+    }
+
+    #[test]
+    fn utc_de() -> ApiResult<()> {
+        let (ds, d1) = date();
+
+        let mut deser = serde_json::Deserializer::from_str(ds);
+        let d2 = super::utc::deserialize(&mut deser)?;
+
+        assert_eq!(d1, d2);
+        Ok(())
+    }
+
+    #[test]
+    fn utc_se() -> ApiResult<()> {
+        let (s1, dt) = date();
+
+        let mut s2 = vec![];
+        let mut ser = serde_json::Serializer::new(&mut s2);
+        super::utc::serialize(&dt, &mut ser)?;
+
+        assert_eq!(s1.as_bytes(), s2);
+        Ok(())
+    }
+}
