@@ -73,11 +73,11 @@ pub enum RoomArchetype {
 
 impl RoomMetadata {
     #[must_use]
-    pub fn new(archetype: RoomArchetype, name: &str) -> Self {
+    pub fn new(archetype: RoomArchetype, name: &str, hidden: bool) -> Self {
         Self {
             archetype,
             name: name.to_string(),
-            hidden: false
+            hidden,
         }
     }
 }

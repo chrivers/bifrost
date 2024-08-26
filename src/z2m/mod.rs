@@ -188,6 +188,29 @@ impl Client {
             room_name = &grp.friendly_name;
         }
 
+        let topic = grp.friendly_name.to_string();
+        let mut metadata = RoomMetadata::new(RoomArchetype::Home, room_name, false);
+        if let Some(room_conf) = self.config.rooms.get(&topic) {
+            if let Some(name) = &room_conf.name {
+                metadata.name = name.to_string();
+            }
+            if let Some(icon) = &room_conf.icon {
+                metadata.archetype = *icon;
+            }
+            if let Some(hidden) = &room_conf.hidden {
+                metadata.hidden = *hidden;
+            }
+        };
+
+        if metadata.hidden {
+            log::debug!(
+                "[{}] ({}) is hidden; passing on link!",
+                self.name,
+                room_name
+            );
+            return Ok(());
+        }
+
         let link_room = RType::Room.deterministic(&grp.friendly_name);
         let link_glight = RType::GroupedLight.deterministic((link_room.rid, grp.id));
 
@@ -197,7 +220,6 @@ impl Client {
             .map(|f| RType::Device.deterministic(&f.ieee_address))
             .collect();
 
-        let topic = grp.friendly_name.to_string();
 
         let mut res = self.state.lock().await;
 
@@ -263,42 +285,22 @@ impl Client {
             );
         }
 
-        let mut metadata = RoomMetadata::new(RoomArchetype::Home, room_name);
-        if let Some(room_conf) = self.config.rooms.get(&topic) {
-            if let Some(name) = &room_conf.name {
-                metadata.name = name.to_string();
-            }
-            if let Some(icon) = &room_conf.icon {
-                metadata.archetype = *icon;
-            }
-            if let Some(hidden) = &room_conf.hidden {
-                metadata.hidden = *hidden;
-            }
+        let room = Room {
+            children,
+            metadata,
+            services: vec![link_glight],
         };
 
-        if !metadata.hidden {
-            let room = Room {
-                children,
-                metadata,
-                services: vec![link_glight],
-            };
+        self.map.insert(topic.clone(), link_glight.rid);
+        self.rmap.insert(link_glight.rid, topic.clone());
+        self.rmap.insert(link_room.rid, topic.clone());
+
+        res.add(&link_room, Resource::Room(room))?;
+
+        let glight = GroupedLight::new(link_room);
+
+        res.add(&link_glight, Resource::GroupedLight(glight))?;
     
-            self.map.insert(topic.clone(), link_glight.rid);
-            self.rmap.insert(link_glight.rid, topic.clone());
-            self.rmap.insert(link_room.rid, topic.clone());
-    
-            res.add(&link_room, Resource::Room(room))?;
-    
-            let glight = GroupedLight::new(link_room);
-    
-            res.add(&link_glight, Resource::GroupedLight(glight))?;
-        } else {
-            log::debug!(
-                "[{}] {link_room:?} ({}) is hidden; passing on link!",
-                self.name,
-                room_name
-            );
-        }
 
         drop(res);
         Ok(())
