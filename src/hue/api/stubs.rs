@@ -54,7 +54,10 @@ pub struct DollarRef {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DevicePower {}
+pub struct DevicePower {
+    pub owner: ResourceLink,
+    pub power_state: Value,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
