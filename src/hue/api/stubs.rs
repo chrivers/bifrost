@@ -181,6 +181,9 @@ pub struct ZigbeeConnectivity {
 pub struct ZigbeeDeviceDiscovery {
     pub owner: ResourceLink,
     pub status: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Value::is_null")]
+    pub action: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
