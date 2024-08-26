@@ -117,6 +117,8 @@ pub struct GeofenceClient {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Geolocation {
     pub is_configured: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sun_today: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
