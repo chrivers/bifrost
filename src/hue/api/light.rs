@@ -12,7 +12,8 @@ pub struct Light {
     pub owner: ResourceLink,
     pub metadata: Metadata,
 
-    pub alert: Option<Vec<Value>>,
+    #[serde(default)]
+    pub alert: Value,
     pub color: Option<LightColor>,
     pub color_temperature: Option<ColorTemperature>,
     pub dimming: Option<Dimming>,
@@ -29,7 +30,7 @@ impl Light {
     #[must_use]
     pub const fn new(owner: ResourceLink, metadata: Metadata) -> Self {
         Self {
-            alert: None,
+            alert: Value::Null,
             color: None,
             color_temperature: None,
             dimming: None,
