@@ -141,7 +141,11 @@ impl Default for Homekit {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LightLevel {}
+pub struct LightLevel {
+    pub enabled: bool,
+    pub light: Value,
+    pub owner: ResourceLink,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Matter {
