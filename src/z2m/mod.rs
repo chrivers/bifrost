@@ -189,7 +189,8 @@ impl Client {
         }
 
         let topic = grp.friendly_name.to_string();
-        let mut metadata = RoomMetadata::new(RoomArchetype::Home, room_name, false);
+        let mut room_hidden = false;
+        let mut metadata = RoomMetadata::new(RoomArchetype::Home, room_name);
         if let Some(room_conf) = self.config.rooms.get(&topic) {
             if let Some(name) = &room_conf.name {
                 metadata.name = name.to_string();
@@ -198,13 +199,13 @@ impl Client {
                 metadata.archetype = *icon;
             }
             if let Some(hidden) = &room_conf.hidden {
-                metadata.hidden = *hidden;
+                room_hidden = *hidden;
             }
         };
 
-        if metadata.hidden {
+        if room_hidden {
             log::debug!(
-                "[{}] ({}) is hidden; passing on link!",
+                "[{}] ({}) is hidden; won't add to room list!",
                 self.name,
                 room_name
             );
@@ -300,9 +301,8 @@ impl Client {
         let glight = GroupedLight::new(link_room);
 
         res.add(&link_glight, Resource::GroupedLight(glight))?;
-    
-
         drop(res);
+
         Ok(())
     }
 
