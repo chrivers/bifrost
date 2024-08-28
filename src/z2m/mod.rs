@@ -143,6 +143,7 @@ impl Client {
             owner: link_device,
             metadata: ButtonMetadata { control_id: 0 },
             button: ButtonData {
+                last_event: None,
                 button_report: Some(ButtonReport {
                     updated: Utc::now(),
                     event: String::from("initial_press"),
