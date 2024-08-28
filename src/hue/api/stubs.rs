@@ -193,6 +193,8 @@ pub struct Motion {
     pub enabled: bool,
     pub owner: ResourceLink,
     pub motion: Value,
+    #[serde(default)]
+    pub sensitivity: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
