@@ -61,6 +61,13 @@ pub struct DevicePower {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceSoftwareUpdate {
+    pub owner: ResourceLink,
+    pub state: Value,
+    pub problems: Vec<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
     pub configuration_schema: DollarRef,
     pub description: String,
@@ -130,6 +137,21 @@ pub struct Geolocation {
     pub is_configured: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sun_today: Option<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GroupedMotion {
+    pub owner: ResourceLink,
+    pub enabled: bool,
+    pub motion: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GroupedLightLevel {
+    pub owner: ResourceLink,
+    pub enabled: bool,
+    #[serde(default)]
+    pub light: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
