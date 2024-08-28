@@ -402,6 +402,7 @@ pub enum GamutType {
     A,
     B,
     C,
+    #[serde(rename = "other")]
     Other,
 }
 
