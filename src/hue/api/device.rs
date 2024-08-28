@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::hue::api::{Metadata, RType, ResourceLink};
+use crate::hue::api::{Metadata, RType, ResourceLink, Stub};
 use crate::z2m;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -8,8 +8,10 @@ pub struct Device {
     pub product_data: DeviceProductData,
     pub metadata: Metadata,
     pub services: Vec<ResourceLink>,
-    #[serde(default)]
-    pub identify: Identify,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usertest: Option<UserTest>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identify: Option<Stub>,
 }
 
 impl Device {
@@ -21,6 +23,12 @@ impl Device {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Identify {}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct UserTest {
+    status: String,
+    usertest: bool,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeviceProductData {
