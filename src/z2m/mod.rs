@@ -89,7 +89,8 @@ impl Client {
             product_data,
             metadata: metadata.clone(),
             services: vec![link_light],
-            identify: Identify {},
+            identify: None,
+            usertest: None,
         };
 
         self.map.insert(name.to_string(), link_light.rid);
@@ -132,7 +133,8 @@ impl Client {
             product_data: DeviceProductData::guess_from_device(dev),
             metadata: Metadata::new(DeviceArchetype::UnknownArchetype, "foo"),
             services: vec![link_button, link_zbc],
-            identify: Identify {},
+            identify: None,
+            usertest: None,
         };
 
         self.map.insert(name.to_string(), link_button.rid);
