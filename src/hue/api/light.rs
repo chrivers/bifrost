@@ -10,7 +10,9 @@ use crate::z2m::api::Expose;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Light {
     pub owner: ResourceLink,
-    pub metadata: Metadata,
+    pub metadata: LightMetadata,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub product_data: Option<LightProductData>,
 
     #[serde(default)]
     pub alert: Value,
@@ -33,9 +35,50 @@ pub struct Light {
     pub signaling: Option<LightSignaling>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum LightFunction {
+    Decorative,
+    Mixed,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightMetadata {
+    pub name: String,
+    pub archetype: DeviceArchetype,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<LightFunction>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightProductData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<LightFunction>,
+}
+
+impl LightMetadata {
+    #[must_use]
+    pub fn new(archetype: DeviceArchetype, name: &str) -> Self {
+        Self {
+            archetype,
+            name: name.to_string(),
+            function: None,
+        }
+    }
+}
+
+impl From<LightMetadata> for Metadata {
+    fn from(value: LightMetadata) -> Self {
+        Self {
+            name: value.name,
+            archetype: value.archetype,
+        }
+    }
+}
+
 impl Light {
     #[must_use]
-    pub const fn new(owner: ResourceLink, metadata: Metadata) -> Self {
+    pub const fn new(owner: ResourceLink, metadata: LightMetadata) -> Self {
         Self {
             alert: Value::Null,
             color: None,
@@ -50,6 +93,7 @@ impl Light {
             timed_effects: None,
             mode: LightMode::Normal,
             on: On { on: true },
+            product_data: None,
             metadata,
             owner,
             powerup: None,

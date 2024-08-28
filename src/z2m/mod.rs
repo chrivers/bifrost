@@ -22,7 +22,7 @@ use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
     ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
-    Identify, Light, LightColor, LightUpdate, Metadata, RType, Resource, ResourceLink, Room,
+    Light, LightColor, LightMetadata, LightUpdate, Metadata, RType, Resource, ResourceLink, Room,
     RoomArchetype, RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata,
     SceneRecall, SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
@@ -83,11 +83,11 @@ impl Client {
         let link_light = RType::Light.deterministic(&dev.ieee_address);
 
         let product_data = DeviceProductData::guess_from_device(dev);
-        let metadata = Metadata::new(DeviceArchetype::SpotBulb, name);
+        let metadata = LightMetadata::new(DeviceArchetype::SpotBulb, name);
 
         let dev = hue::api::Device {
             product_data,
-            metadata: metadata.clone(),
+            metadata: metadata.clone().into(),
             services: vec![link_light],
             identify: None,
             usertest: None,
