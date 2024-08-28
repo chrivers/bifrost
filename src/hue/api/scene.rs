@@ -70,6 +70,7 @@ pub struct SceneActionElement {
 pub struct SceneMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appdata: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image: Option<ResourceLink>,
     pub name: String,
 }
