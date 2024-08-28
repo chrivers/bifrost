@@ -3,7 +3,7 @@ use std::ops::{AddAssign, Sub};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::hue::api::{Identify, Metadata, ResourceLink};
+use crate::hue::api::{DeviceArchetype, Identify, Metadata, ResourceLink, Stub};
 use crate::model::types::XY;
 use crate::z2m::api::Expose;
 
@@ -16,7 +16,9 @@ pub struct Light {
     pub alert: Value,
     pub color: Option<LightColor>,
     pub color_temperature: Option<ColorTemperature>,
+    pub color_temperature_delta: Stub,
     pub dimming: Option<Dimming>,
+    pub dimming_delta: Stub,
     pub dynamics: Option<LightDynamics>,
     pub effects: Option<LightEffects>,
     #[serde(default)]
@@ -36,7 +38,9 @@ impl Light {
             alert: Value::Null,
             color: None,
             color_temperature: None,
+            color_temperature_delta: Stub {},
             dimming: None,
+            dimming_delta: Stub {},
             dynamics: None,
             effects: None,
             identify: Identify {},
