@@ -21,6 +21,8 @@ pub struct Light {
     pub dimming_delta: Stub,
     pub dynamics: Option<LightDynamics>,
     pub effects: Option<LightEffects>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_id: Option<u32>,
     #[serde(default)]
     pub identify: Identify,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,6 +45,7 @@ impl Light {
             dimming_delta: Stub {},
             dynamics: None,
             effects: None,
+            service_id: None,
             identify: Identify {},
             timed_effects: None,
             mode: LightMode::Normal,
