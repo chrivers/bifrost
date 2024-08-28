@@ -1,4 +1,27 @@
 const FORMAT: &str = "%Y-%m-%dT%H:%M:%SZ";
+const FORMAT_MS: &str = "%Y-%m-%dT%H:%M:%S%.3fZ";
+
+pub mod utc_ms {
+    use chrono::{DateTime, NaiveDateTime, Utc};
+    use serde::{self, de::Error, Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let s = format!("{}", date.format(super::FORMAT_MS));
+        serializer.serialize_str(&s)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let dt = NaiveDateTime::parse_from_str(&s, super::FORMAT_MS).map_err(Error::custom)?;
+        Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
+    }
+}
 
 pub mod utc {
     use chrono::{DateTime, NaiveDateTime, Utc};
