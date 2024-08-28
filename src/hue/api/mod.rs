@@ -37,6 +37,10 @@ use serde_json::{from_value, json, Value};
 use crate::error::{ApiError, ApiResult};
 use crate::hue::legacy_api::ApiLightStateUpdate;
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Stub {}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Resource {
