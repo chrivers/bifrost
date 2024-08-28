@@ -229,16 +229,16 @@ pub enum LightDynamicsStatus {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightDynamics {
     pub status: LightDynamicsStatus,
-    pub status_values: Value,
+    pub status_values: Vec<String>,
     pub speed: f64,
     pub speed_valid: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightEffects {
-    pub status_values: Value,
-    pub status: Value,
-    pub effect_values: Value,
+    pub status_values: Vec<String>,
+    pub status: String,
+    pub effect_values: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
