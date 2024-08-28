@@ -36,6 +36,8 @@ pub struct ButtonData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub button_report: Option<ButtonReport>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_event: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub repeat_interval: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_values: Option<Value>,
