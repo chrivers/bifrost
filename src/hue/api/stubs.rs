@@ -45,7 +45,7 @@ pub struct ButtonData {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ButtonReport {
-    #[serde(with = "date_format::utc")]
+    #[serde(with = "date_format::utc_ms")]
     pub updated: DateTime<Utc>,
     pub event: String,
 }
