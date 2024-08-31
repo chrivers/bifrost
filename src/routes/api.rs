@@ -197,7 +197,7 @@ async fn put_api_user_resource_id(
 ) -> ApiResult<Json<Value>> {
     match resource {
         ApiResourceType::Lights => {
-            println!("req: {req:#?}");
+            log::debug!("req: {}", serde_json::to_string_pretty(&req)?);
             if path != "state" {
                 return Err(ApiError::V1NotFound(id))?;
             }
@@ -225,6 +225,7 @@ async fn put_api_user_resource_id(
             Ok(Json(reply.json()))
         }
         ApiResourceType::Groups => {
+            log::debug!("req: {}", serde_json::to_string_pretty(&req)?);
             if path != "action" {
                 return Err(ApiError::V1NotFound(id))?;
             }
