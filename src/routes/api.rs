@@ -157,7 +157,7 @@ async fn get_api_user_resource_id(
     State(state): State<AppState>,
     Path((username, resource, id)): Path<(Uuid, ApiResourceType, u32)>,
 ) -> ApiResult<impl IntoResponse> {
-    warn!("GET v1 user resource id");
+    log::debug!("GET v1 username={username} resource={resource:?} id={id}");
     match resource {
         ApiResourceType::Lights => {
             let lock = state.res.lock().await;
