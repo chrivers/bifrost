@@ -346,6 +346,18 @@ pub struct ApiLightStateUpdate {
     pub ct: Option<u32>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiGroupUpdate {
+    pub scene: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ApiGroupActionUpdate {
+    GroupUpdate(ApiGroupUpdate),
+    LightUpdate(ApiLightStateUpdate),
+}
+
 impl From<api::SceneAction> for ApiLightStateUpdate {
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn from(action: api::SceneAction) -> Self {
