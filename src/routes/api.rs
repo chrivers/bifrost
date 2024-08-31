@@ -83,18 +83,18 @@ fn get_groups(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiGroup
 }
 
 fn get_scenes(owner: &Uuid, res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiScene>> {
-    let mut rooms = HashMap::new();
+    let mut scenes = HashMap::new();
 
     for rr in res.get_resources_by_type(RType::Scene) {
         let scene: Scene = rr.obj.try_into()?;
 
-        rooms.insert(
+        scenes.insert(
             res.get_id_v1(rr.id)?.to_string(),
             ApiScene::from_scene(res, *owner, scene)?,
         );
     }
 
-    Ok(rooms)
+    Ok(scenes)
 }
 
 #[allow(clippy::zero_sized_map_values)]
