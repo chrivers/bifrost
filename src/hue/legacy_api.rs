@@ -391,12 +391,14 @@ pub struct ApiLight {
 impl ApiLight {
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     #[must_use]
-    pub fn from_dev_and_light(uuid: &Uuid, dev: api::Device, light: api::Light) -> Self {
+    pub fn from_dev_and_light(uuid: &Uuid, dev: &api::Device, light: &api::Light) -> Self {
         let colormode = if light.color.is_some() {
             LightColorMode::Xy
         } else {
             LightColorMode::Ct
         };
+
+        let product_data = dev.product_data.clone();
 
         Self {
             state: ApiLightState {
@@ -408,9 +410,14 @@ impl ApiLight {
                 hue: 0,
                 sat: 0,
                 effect: String::new(),
-                xy: light.color.map(|col| col.xy.into()).unwrap_or_default(),
+                xy: light
+                    .color
+                    .clone()
+                    .map(|col| col.xy.into())
+                    .unwrap_or_default(),
                 ct: light
                     .color_temperature
+                    .clone()
                     .and_then(|ct| ct.mirek)
                     .unwrap_or_default(),
                 alert: String::new(),
@@ -419,11 +426,11 @@ impl ApiLight {
                 reachable: true,
             },
             swupdate: SwUpdate::default(),
-            name: light.metadata.name,
-            modelid: dev.product_data.product_name,
-            manufacturername: dev.product_data.manufacturer_name,
+            name: light.metadata.name.clone(),
+            modelid: product_data.product_name,
+            manufacturername: product_data.manufacturer_name,
             productname: "Hue color spot".to_string(),
-            productid: dev.product_data.model_id,
+            productid: product_data.model_id,
             capabilities: json!({
                 "certified": true,
                 "control": {
@@ -456,7 +463,7 @@ impl ApiLight {
             }),
             light_type: "Extended color light".to_string(),
             uniqueid: uuid.as_simple().to_string(),
-            swversion: dev.product_data.software_version,
+            swversion: product_data.software_version,
             swconfigid: String::new(),
         }
     }
@@ -505,7 +512,7 @@ pub struct ApiScene {
 }
 
 impl ApiScene {
-    pub fn from_scene(res: &Resources, owner: Uuid, scene: api::Scene) -> ApiResult<Self> {
+    pub fn from_scene(res: &Resources, owner: Uuid, scene: &api::Scene) -> ApiResult<Self> {
         let lights = scene
             .actions
             .iter()
@@ -526,7 +533,7 @@ impl ApiScene {
         let room_id = res.get_id_v1_index(scene.group.rid)?;
 
         Ok(Self {
-            name: scene.metadata.name,
+            name: scene.metadata.name.clone(),
             scene_type: ApiSceneType::GroupScene,
             lights,
             lightstates,

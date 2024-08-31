@@ -44,10 +44,10 @@ fn get_lights(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiLight
 
     for rr in res.get_resources_by_type(RType::Light) {
         let light: Light = rr.obj.try_into()?;
-        let dev = res.get::<Device>(&light.owner)?.clone();
+        let dev = res.get::<Device>(&light.owner)?;
         lights.insert(
             res.get_id_v1(rr.id)?,
-            ApiLight::from_dev_and_light(&rr.id, dev, light),
+            ApiLight::from_dev_and_light(&rr.id, dev, &light),
         );
     }
 
@@ -87,7 +87,7 @@ fn get_scenes(owner: &Uuid, res: &MutexGuard<Resources>) -> ApiResult<HashMap<St
     let mut scenes = HashMap::new();
 
     for rr in res.get_resources_by_type(RType::Scene) {
-        let scene: Scene = rr.obj.try_into()?;
+        let scene = &rr.obj.try_into()?;
 
         scenes.insert(
             res.get_id_v1(rr.id)?,
@@ -159,25 +159,23 @@ async fn get_api_user_resource_id(
     Path((username, resource, id)): Path<(Uuid, ApiResourceType, u32)>,
 ) -> ApiResult<impl IntoResponse> {
     log::debug!("GET v1 username={username} resource={resource:?} id={id}");
-    match resource {
+    let result = match resource {
         ApiResourceType::Lights => {
             let lock = state.res.lock().await;
             let uuid = lock.from_id_v1(id)?;
             let link = ResourceLink::new(uuid, RType::Light);
             let light = lock.get::<Light>(&link)?;
-            let dev = lock.get::<Device>(&light.owner)?.clone();
-            Ok(Json(json!(ApiLight::from_dev_and_light(
-                &uuid,
-                dev,
-                light.clone(),
-            ))))
+            let dev = lock.get::<Device>(&light.owner)?;
+
+            json!(ApiLight::from_dev_and_light(&uuid, dev, light))
         }
         ApiResourceType::Scenes => {
             let lock = state.res.lock().await;
             let uuid = lock.from_id_v1(id)?;
             let link = ResourceLink::new(uuid, RType::Scene);
-            let scene = lock.get::<Scene>(&link)?.clone();
-            Ok(Json(json!(ApiScene::from_scene(&lock, username, scene)?)))
+            let scene = lock.get::<Scene>(&link)?;
+
+            json!(ApiScene::from_scene(&lock, username, scene)?)
         }
         ApiResourceType::Groups => {
             let lock = state.res.lock().await;
@@ -185,10 +183,13 @@ async fn get_api_user_resource_id(
             let group = groups
                 .get(&id.to_string())
                 .ok_or(ApiError::V1NotFound(id))?;
-            Ok(Json(json!(group)))
+
+            json!(group)
         }
-        _ => Err(ApiError::V1NotFound(id)),
-    }
+        _ => Err(ApiError::V1NotFound(id))?,
+    };
+
+    Ok(Json(result))
 }
 
 async fn put_api_user_resource_id(
