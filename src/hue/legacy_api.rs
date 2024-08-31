@@ -468,6 +468,12 @@ pub enum ApiSceneVersion {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ApiSceneAppData {
+    pub data: String,
+    pub version: u8,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ApiScene {
     name: String,
     #[serde(rename = "type")]
@@ -477,7 +483,7 @@ pub struct ApiScene {
     owner: Uuid,
     recycle: bool,
     locked: bool,
-    appdata: Value,
+    appdata: ApiSceneAppData,
     picture: String,
     #[serde(with = "date_format::utc")]
     lastupdated: DateTime<Utc>,
@@ -505,6 +511,8 @@ impl ApiScene {
             })
             .collect::<ApiResult<_>>()?;
 
+        let room_id = res.get_id_v1_index(scene.group.rid)?;
+
         Ok(Self {
             name: scene.metadata.name,
             scene_type: ApiSceneType::GroupScene,
@@ -513,12 +521,16 @@ impl ApiScene {
             owner,
             recycle: false,
             locked: false,
-            appdata: json!({}),
+            /* Some clients (e.g. Hue Essentials) require .appdata */
+            appdata: ApiSceneAppData {
+                data: format!("xxxxx_r{room_id}"),
+                version: 1,
+            },
             picture: String::new(),
             lastupdated: Utc::now(),
             version: ApiSceneVersion::V2 as u32,
             image: scene.metadata.image.map(|rl| rl.rid),
-            group: res.get_id_v1(scene.group.rid)?,
+            group: room_id.to_string(),
         })
     }
 }
