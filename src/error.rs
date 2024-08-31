@@ -1,3 +1,4 @@
+use std::num::ParseIntError;
 use std::sync::Arc;
 
 use camino::Utf8PathBuf;
@@ -31,6 +32,9 @@ pub enum ApiError {
 
     #[error(transparent)]
     JoinError(#[from] JoinError),
+
+    #[error(transparent)]
+    ParseIntError(#[from] ParseIntError),
 
     #[error(transparent)]
     MdnsSdError(#[from] mdns_sd::Error),
