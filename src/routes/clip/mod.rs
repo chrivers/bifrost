@@ -46,12 +46,11 @@ impl IntoResponse for ApiError {
         });
 
         let status = match self {
-            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::NotFound(_) | Self::V1NotFound(_) => StatusCode::NOT_FOUND,
             Self::Full(_) => StatusCode::INSUFFICIENT_STORAGE,
             Self::WrongType(_, _) => StatusCode::NOT_ACCEPTABLE,
             Self::DeleteDenied(_) => StatusCode::FORBIDDEN,
             Self::V1CreateUnsupported(_) => StatusCode::NOT_IMPLEMENTED,
-            Self::V1NotFound(_) => StatusCode::NOT_FOUND,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
