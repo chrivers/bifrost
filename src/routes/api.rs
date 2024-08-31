@@ -260,6 +260,7 @@ async fn put_api_user_resource_id(
                     let scene_uuid = lock.from_id_v1(scene_id)?;
                     let rlink = RType::Scene.link_to(scene_uuid);
                     lock.z2m_request(ClientRequest::scene_recall(rlink))?;
+                    drop(lock);
 
                     V1ReplyBuilder::new(format!("/groups/{id}/{path}"))
                         .add("scene", upd.scene)?
