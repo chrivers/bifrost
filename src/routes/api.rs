@@ -134,6 +134,15 @@ async fn get_api_user_resource(
     }
 }
 
+async fn post_api_user_resource(
+    Path((_username, resource)): Path<(Uuid, ApiResourceType)>,
+    Json(req): Json<Value>,
+) -> ApiResult<Json<Value>> {
+    warn!("POST v1 user resource unsupported");
+    warn!("Request: {req:?}");
+    Err(ApiError::V1CreateUnsupported(resource))
+}
+
 async fn put_api_user_resource(
     Path((_username, _resource)): Path<(String, String)>,
     Json(req): Json<Value>,
@@ -261,6 +270,7 @@ pub fn router() -> Router<AppState> {
         .route("/config", get(get_api_config))
         .route("/:user", get(get_api_user))
         .route("/:user/:rtype", get(get_api_user_resource))
+        .route("/:user/:rtype", post(post_api_user_resource))
         .route("/:user/:rtype", put(put_api_user_resource))
         .route("/:user/:rtype/:id", get(get_api_user_resource_id))
         .route("/:user/:rtype/:id/:key", put(put_api_user_resource_id))
