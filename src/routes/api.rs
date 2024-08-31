@@ -12,7 +12,7 @@ use serde_json::{json, Value};
 use tokio::sync::MutexGuard;
 use uuid::Uuid;
 
-use crate::error::{ApiError, ApiResult};
+use crate::{error::{ApiError, ApiResult}, hue::legacy_api::ApiGroupActionUpdate};
 use crate::hue::api::{
     Device, GroupedLight, Light, RType, ResourceLink, Room, Scene, V1ReplyBuilder,
 };
@@ -236,22 +236,35 @@ async fn put_api_user_resource_id(
             let room: &Room = lock.get(&link)?;
             let glight = room.grouped_light_service().unwrap();
 
-            let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+            let upd: ApiGroupActionUpdate = serde_json::from_value(req)?;
 
-            let payload = DeviceUpdate::default()
-                .with_state(upd.on)
-                .with_brightness(upd.bri.map(f64::from))
-                .with_color_xy(upd.xy.map(Into::into))
-                .with_color_temp(upd.ct);
+            let reply = match upd {
+                ApiGroupActionUpdate::LightUpdate(upd) => {
+                    let payload = DeviceUpdate::default()
+                        .with_state(upd.on)
+                        .with_brightness(upd.bri.map(f64::from))
+                        .with_color_xy(upd.xy.map(Into::into))
+                        .with_color_temp(upd.ct);
 
-            lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
-            drop(lock);
+                    lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
+                    drop(lock);
 
-            let reply = V1ReplyBuilder::new(format!("/groups/{id}/{path}"))
-                .add_option("on", upd.on)?
-                .add_option("bri", upd.bri)?
-                .add_option("xy", upd.xy)?
-                .add_option("ct", upd.ct)?;
+                    V1ReplyBuilder::new(format!("/groups/{id}/{path}"))
+                        .add_option("on", upd.on)?
+                        .add_option("bri", upd.bri)?
+                        .add_option("xy", upd.xy)?
+                        .add_option("ct", upd.ct)?
+                }
+                ApiGroupActionUpdate::GroupUpdate(upd) => {
+                    let scene_id = upd.scene.parse()?;
+                    let scene_uuid = lock.from_id_v1(scene_id)?;
+                    let rlink = RType::Scene.link_to(scene_uuid);
+                    lock.z2m_request(ClientRequest::scene_recall(rlink))?;
+
+                    V1ReplyBuilder::new(format!("/groups/{id}/{path}"))
+                        .add("scene", upd.scene)?
+                }
+            };
 
             Ok(Json(reply.json()))
         },
