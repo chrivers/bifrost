@@ -189,61 +189,61 @@ async fn put_api_user_resource_id(
     match resource {
         ApiResourceType::Lights => {
             println!("req: {req:#?}");
-            match path.as_str() {
-                "state" => {
-                    let lock = state.res.lock().await;
-                    let uuid = lock.from_id_v1(id)?;
-                    let link = ResourceLink::new(uuid, RType::Light);
-                    let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
-
-                    let payload = DeviceUpdate::default()
-                        .with_state(upd.on)
-                        .with_brightness(upd.bri.map(f64::from))
-                        .with_color_xy(upd.xy.map(Into::into))
-                        .with_color_temp(upd.ct);
-
-                    lock.z2m_request(ClientRequest::light_update(link, payload))?;
-                    drop(lock);
-
-                    let reply = V1ReplyBuilder::new(format!("/lights/{id}/{path}"))
-                        .add_option("on", upd.on)?
-                        .add_option("bri", upd.bri)?
-                        .add_option("xy", upd.xy)?
-                        .add_option("ct", upd.ct)?;
-
-                    Ok(Json(reply.json()))
-                }
-                _ => Err(ApiError::V1NotFound(id)),
+            if path != "state" {
+                return Err(ApiError::V1NotFound(id))?;
             }
+
+            let lock = state.res.lock().await;
+            let uuid = lock.from_id_v1(id)?;
+            let link = ResourceLink::new(uuid, RType::Light);
+            let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+
+            let payload = DeviceUpdate::default()
+                .with_state(upd.on)
+                .with_brightness(upd.bri.map(f64::from))
+                .with_color_xy(upd.xy.map(Into::into))
+                .with_color_temp(upd.ct);
+
+            lock.z2m_request(ClientRequest::light_update(link, payload))?;
+            drop(lock);
+
+            let reply = V1ReplyBuilder::new(format!("/lights/{id}/{path}"))
+                .add_option("on", upd.on)?
+                .add_option("bri", upd.bri)?
+                .add_option("xy", upd.xy)?
+                .add_option("ct", upd.ct)?;
+
+            Ok(Json(reply.json()))
         }
-        ApiResourceType::Groups => match path.as_str() {
-            "action" => {
-                let lock = state.res.lock().await;
-                let uuid = lock.from_id_v1(id)?;
-                let link = ResourceLink::new(uuid, RType::Room);
-                let room: &Room = lock.get(&link)?;
-                let glight = room.grouped_light_service().unwrap();
-
-                let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
-
-                let payload = DeviceUpdate::default()
-                    .with_state(upd.on)
-                    .with_brightness(upd.bri.map(f64::from))
-                    .with_color_xy(upd.xy.map(Into::into))
-                    .with_color_temp(upd.ct);
-
-                lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
-                drop(lock);
-
-                let reply = V1ReplyBuilder::new(format!("/groups/{id}/{path}"))
-                    .add_option("on", upd.on)?
-                    .add_option("bri", upd.bri)?
-                    .add_option("xy", upd.xy)?
-                    .add_option("ct", upd.ct)?;
-
-                Ok(Json(reply.json()))
+        ApiResourceType::Groups => {
+            if path != "action" {
+                return Err(ApiError::V1NotFound(id))?;
             }
-            _ => Err(ApiError::V1NotFound(id)),
+
+            let lock = state.res.lock().await;
+            let uuid = lock.from_id_v1(id)?;
+            let link = ResourceLink::new(uuid, RType::Room);
+            let room: &Room = lock.get(&link)?;
+            let glight = room.grouped_light_service().unwrap();
+
+            let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+
+            let payload = DeviceUpdate::default()
+                .with_state(upd.on)
+                .with_brightness(upd.bri.map(f64::from))
+                .with_color_xy(upd.xy.map(Into::into))
+                .with_color_temp(upd.ct);
+
+            lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
+            drop(lock);
+
+            let reply = V1ReplyBuilder::new(format!("/groups/{id}/{path}"))
+                .add_option("on", upd.on)?
+                .add_option("bri", upd.bri)?
+                .add_option("xy", upd.xy)?
+                .add_option("ct", upd.ct)?;
+
+            Ok(Json(reply.json()))
         },
         ApiResourceType::Config
         | ApiResourceType::Resourcelinks
