@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::error::ApiResult;
 use crate::hue::{api, best_guess_timezone};
+use crate::resource::Resources;
 
 use super::date_format;
 
@@ -278,12 +280,12 @@ impl ApiGroup {
     #[must_use]
     pub fn from_lights_and_room(
         glight: api::GroupedLight,
-        lights: &[(Uuid, api::Light)],
+        lights: Vec<String>,
         room: api::Room,
     ) -> Self {
         Self {
             name: room.metadata.name,
-            lights: lights.iter().map(|l| format!("{}", l.0.simple())).collect(),
+            lights,
             action: ApiGroupAction {
                 on: glight.on.is_some_and(|on| on.on),
                 bri: glight
@@ -485,26 +487,25 @@ pub struct ApiScene {
 }
 
 impl ApiScene {
-    #[must_use]
-    pub fn from_scene(owner: Uuid, scene: api::Scene) -> Self {
+    pub fn from_scene(res: &Resources, owner: Uuid, scene: api::Scene) -> ApiResult<Self> {
         let lights = scene
             .actions
             .iter()
-            .map(|sae| sae.target.rid.as_simple().to_string())
-            .collect();
+            .map(|sae| Ok(res.get_id_v1(sae.target.rid)?.to_string()))
+            .collect::<ApiResult<_>>()?;
 
         let lightstates = scene
             .actions
             .iter()
             .map(|sae| {
-                (
-                    sae.target.rid.as_simple().to_string(),
+                Ok((
+                    res.get_id_v1(sae.target.rid)?.to_string(),
                     ApiLightStateUpdate::from(sae.action.clone()),
-                )
+                ))
             })
-            .collect();
+            .collect::<ApiResult<_>>()?;
 
-        Self {
+        Ok(Self {
             name: scene.metadata.name,
             scene_type: ApiSceneType::GroupScene,
             lights,
@@ -517,8 +518,8 @@ impl ApiScene {
             lastupdated: Utc::now(),
             version: ApiSceneVersion::V2 as u32,
             image: scene.metadata.image.map(|rl| rl.rid),
-            group: scene.group.rid.as_simple().to_string(),
-        }
+            group: res.get_id_v1(scene.group.rid)?.to_string(),
+        })
     }
 }
 
