@@ -491,7 +491,7 @@ impl ApiScene {
         let lights = scene
             .actions
             .iter()
-            .map(|sae| Ok(res.get_id_v1(sae.target.rid)?.to_string()))
+            .map(|sae| res.get_id_v1(sae.target.rid))
             .collect::<ApiResult<_>>()?;
 
         let lightstates = scene
@@ -499,7 +499,7 @@ impl ApiScene {
             .iter()
             .map(|sae| {
                 Ok((
-                    res.get_id_v1(sae.target.rid)?.to_string(),
+                    res.get_id_v1(sae.target.rid)?,
                     ApiLightStateUpdate::from(sae.action.clone()),
                 ))
             })
@@ -518,7 +518,7 @@ impl ApiScene {
             lastupdated: Utc::now(),
             version: ApiSceneVersion::V2 as u32,
             image: scene.metadata.image.map(|rl| rl.rid),
-            group: res.get_id_v1(scene.group.rid)?.to_string(),
+            group: res.get_id_v1(scene.group.rid)?,
         })
     }
 }

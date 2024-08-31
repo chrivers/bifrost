@@ -45,7 +45,7 @@ fn get_lights(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiLight
         let light: Light = rr.obj.try_into()?;
         let dev = res.get::<Device>(&light.owner)?.clone();
         lights.insert(
-            res.get_id_v1(rr.id)?.to_string(),
+            res.get_id_v1(rr.id)?,
             ApiLight::from_dev_and_light(&rr.id, dev, light),
         );
     }
@@ -70,11 +70,11 @@ fn get_groups(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiGroup
             .iter()
             .filter_map(|rl| res.get(rl).ok())
             .filter_map(Device::light_service)
-            .filter_map(|rl| Some(res.get_id_v1(rl.rid).ok()?.to_string()))
+            .filter_map(|rl| res.get_id_v1(rl.rid).ok())
             .collect();
 
         rooms.insert(
-            res.get_id_v1(rr.id)?.to_string(),
+            res.get_id_v1(rr.id)?,
             ApiGroup::from_lights_and_room(glight, lights, room),
         );
     }
@@ -89,7 +89,7 @@ fn get_scenes(owner: &Uuid, res: &MutexGuard<Resources>) -> ApiResult<HashMap<St
         let scene: Scene = rr.obj.try_into()?;
 
         scenes.insert(
-            res.get_id_v1(rr.id)?.to_string(),
+            res.get_id_v1(rr.id)?,
             ApiScene::from_scene(res, *owner, scene)?,
         );
     }

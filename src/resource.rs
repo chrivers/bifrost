@@ -376,8 +376,12 @@ impl Resources {
             .collect()
     }
 
-    pub fn get_id_v1(&self, uuid: Uuid) -> ApiResult<u32> {
+    pub fn get_id_v1_index(&self, uuid: Uuid) -> ApiResult<u32> {
         self.state.id_v1(&uuid).ok_or(ApiError::NotFound(uuid))
+    }
+
+    pub fn get_id_v1(&self, uuid: Uuid) -> ApiResult<String> {
+        Ok(self.get_id_v1_index(uuid)?.to_string())
     }
 
     pub fn from_id_v1(&self, id: u32) -> ApiResult<Uuid> {
