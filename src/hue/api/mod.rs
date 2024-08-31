@@ -189,12 +189,12 @@ pub struct V2Reply<T> {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct V1ReplyBuilder<'a> {
+pub struct V1Reply<'a> {
     prefix: String,
     success: Vec<(&'a str, Value)>,
 }
 
-impl<'a> V1ReplyBuilder<'a> {
+impl<'a> V1Reply<'a> {
     #[must_use]
     pub const fn new(prefix: String) -> Self {
         Self {
