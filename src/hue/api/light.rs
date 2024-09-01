@@ -16,12 +16,15 @@ pub struct Light {
 
     #[serde(default)]
     pub alert: Value,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<LightColor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature: Option<ColorTemperature>,
     pub color_temperature_delta: Stub,
     pub dimming: Option<Dimming>,
     pub dimming_delta: Stub,
     pub dynamics: Option<LightDynamics>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effects: Option<LightEffects>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_id: Option<u32>,
@@ -31,6 +34,7 @@ pub struct Light {
     pub timed_effects: Option<LightTimedEffects>,
     pub mode: LightMode,
     pub on: On,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub powerup: Option<LightPowerup>,
     pub signaling: Option<LightSignaling>,
 }
@@ -488,6 +492,7 @@ impl ColorTemperature {
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Dimming {
     pub brightness: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_dim_level: Option<f64>,
 }
 
