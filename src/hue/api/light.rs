@@ -16,7 +16,9 @@ pub struct Light {
 
     #[serde(default)]
     pub alert: Value,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<LightColor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature: Option<ColorTemperature>,
     pub color_temperature_delta: Stub,
     pub dimming: Option<Dimming>,
@@ -40,6 +42,7 @@ pub struct Light {
 pub enum LightFunction {
     Decorative,
     Mixed,
+    Functional,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
