@@ -8,9 +8,12 @@ use crate::model::types::XY;
 pub struct GroupedLight {
     pub alert: Value,
     pub dimming: Option<DimmingUpdate>,
-    pub color: Stub,
-    pub color_temperature: Stub,
-    pub color_temperature_delta: Stub,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<Stub>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature: Option<Stub>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature_delta: Option<Stub>,
     pub dimming_delta: Stub,
     pub dynamics: Stub,
     pub on: Option<On>,
@@ -24,9 +27,9 @@ impl GroupedLight {
         Self {
             alert: Value::Null,
             dimming: None,
-            color: Stub {},
-            color_temperature: Stub {},
-            color_temperature_delta: Stub {},
+            color: Some(Stub {}),
+            color_temperature: Some(Stub {}),
+            color_temperature_delta: Some(Stub {}),
             dimming_delta: Stub {},
             dynamics: Stub {},
             on: None,
