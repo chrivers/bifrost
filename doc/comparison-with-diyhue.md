@@ -55,6 +55,8 @@ In any case, feedback always welcome.
 | Multiple type of backends            | ✅                                      | ❌ (only zigbee2mqtt)                     |
 | Entertainment zones                  | ✅                                      | ❌ (planned)                              |
 | Routines / Wake up / Go to sleep     | ✅                                      | ❌ (planned)                              |
+| Remote services                      | ✅ (only with Hue essentials)           | ❌                                        |
+| Add custom lights and switches       | ✅                                      | ❌                                        |
 
 [^1]: Light state synchronization (i.e. consistency between hue emulator, hue
     app and reality) seems to be, unfortunately, somewhat brittle in DiyHue. See
