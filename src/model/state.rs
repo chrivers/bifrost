@@ -89,6 +89,16 @@ impl IdMap {
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub enum StateVersion {
+    /// Version 0: (`res`, `aux`) tuple, no version field in state
+    V0 = 0,
+
+    #[default]
+    /// Version 1: { `version`, `aux`, `id_v1`, `res` } map
+    V1 = 1,
+}
+
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct State {
     aux: BTreeMap<Uuid, AuxData>,
     id_v1: IdMap,
