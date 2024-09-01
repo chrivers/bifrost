@@ -109,6 +109,9 @@ pub enum ApiError {
     Full(RType),
 
     /* bifrost errors */
+    #[error("Cannot parse state file: no version field found")]
+    StateVersionNotFound,
+
     #[error("Missing auxiliary data resource {0:?}")]
     AuxNotFound(ResourceLink),
 
