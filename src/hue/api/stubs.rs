@@ -122,7 +122,7 @@ pub struct EntertainmentConfiguration {
     pub stream_proxy: EntertainmentConfigurationStreamProxy,
     pub locations: EntertainmentConfigurationLocations,
     pub light_services: Vec<ResourceLink>,
-    pub channels: Vec<EntertainmentConfigurationChannels>
+    pub channels: Vec<EntertainmentConfigurationChannels>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -133,12 +133,12 @@ pub struct EntertainmentConfigurationMetadata {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentConfigurationStreamProxy {
     pub mode: String,
-    pub node: ResourceLink
+    pub node: ResourceLink,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentConfigurationLocations {
-    pub service_locations: Vec<EntertainmentConfigurationServiceLocations>
+    pub service_locations: Vec<EntertainmentConfigurationServiceLocations>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -146,27 +146,27 @@ pub struct EntertainmentConfigurationServiceLocations {
     pub equalization_factor: u32,
     pub position: EntertainmentConfigurationPosition,
     pub positions: Vec<EntertainmentConfigurationPosition>,
-    pub service: ResourceLink
+    pub service: ResourceLink,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentConfigurationChannels {
     pub channel_id: u32,
     pub position: EntertainmentConfigurationPosition,
-    pub members: Vec<EntertainmentConfigurationStreamMembers>
+    pub members: Vec<EntertainmentConfigurationStreamMembers>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentConfigurationPosition {
     pub x: f64,
     pub y: f64,
-    pub z: f64
+    pub z: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EntertainmentConfigurationStreamMembers {
     pub service: ResourceLink,
-    pub index: u32
+    pub index: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
