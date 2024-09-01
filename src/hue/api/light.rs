@@ -20,9 +20,10 @@ pub struct Light {
     pub color: Option<LightColor>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature: Option<ColorTemperature>,
-    pub color_temperature_delta: Stub,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature_delta: Option<Stub>,
     pub dimming: Option<Dimming>,
-    pub dimming_delta: Stub,
+    pub dimming_delta: Option<Stub>,
     pub dynamics: Option<LightDynamics>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effects: Option<LightEffects>,
@@ -88,9 +89,9 @@ impl Light {
             alert: Value::Null,
             color: None,
             color_temperature: None,
-            color_temperature_delta: Stub {},
+            color_temperature_delta: Some(Stub {}),
             dimming: None,
-            dimming_delta: Stub {},
+            dimming_delta: Some(Stub {}),
             dynamics: None,
             effects: None,
             service_id: None,
