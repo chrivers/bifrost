@@ -40,6 +40,7 @@ pub struct Light {
 pub enum LightFunction {
     Decorative,
     Mixed,
+    Functional,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
