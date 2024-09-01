@@ -1,6 +1,7 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, io::Read};
 
 use serde::{Deserialize, Serialize};
+use serde_yaml::Value;
 use uuid::Uuid;
 
 use crate::{
@@ -100,6 +101,7 @@ pub enum StateVersion {
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct State {
+    version: StateVersion,
     aux: BTreeMap<Uuid, AuxData>,
     id_v1: IdMap,
     pub res: BTreeMap<Uuid, Resource>,
@@ -109,6 +111,65 @@ impl State {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn version(state: &Value) -> ApiResult<StateVersion> {
+        if state.is_sequence() {
+            return Ok(StateVersion::V0);
+        }
+
+        if let Some(version) = state.get("version") {
+            return Ok(StateVersion::deserialize(version)?);
+        }
+
+        Err(ApiError::StateVersionNotFound)
+    }
+
+    pub fn from_v0(state: Value) -> ApiResult<Self> {
+        let (v0res, v0aux): (serde_yaml::Mapping, serde_yaml::Mapping) =
+            serde_yaml::from_value(state)?;
+
+        let mut aux = BTreeMap::new();
+        let mut res = BTreeMap::new();
+
+        log::debug!("Importing aux data from old v0 state..");
+        for (key, value) in v0aux {
+            log::debug!("  {key:?}: {value:?}");
+            aux.insert(serde_yaml::from_value(key)?, serde_yaml::from_value(value)?);
+        }
+
+        log::debug!("Importing res data from old v0 state..");
+        for (key, value) in v0res {
+            log::debug!("  {key:?}: {value:?}");
+            res.insert(serde_yaml::from_value(key)?, serde_yaml::from_value(value)?);
+        }
+
+        /* generate all missing id_v1 entries */
+        log::debug!("Synthesizing id_v1 entries for all resources..");
+        let mut id_v1 = IdMap::new();
+        for key in res.keys() {
+            id_v1.add(*key);
+        }
+
+        /* construct upgraded state */
+        Ok(Self {
+            version: StateVersion::V1,
+            aux,
+            id_v1,
+            res,
+        })
+    }
+
+    pub fn from_v1(state: Value) -> ApiResult<Self> {
+        Ok(serde_yaml::from_value(state)?)
+    }
+
+    pub fn from_reader(rdr: impl Read) -> ApiResult<Self> {
+        let state = serde_yaml::from_reader(rdr)?;
+        match Self::version(&state)? {
+            StateVersion::V0 => Self::from_v0(state),
+            StateVersion::V1 => Self::from_v1(state),
+        }
     }
 
     #[must_use]
