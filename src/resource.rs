@@ -31,9 +31,9 @@ impl Resources {
 
     #[allow(clippy::new_without_default)]
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(state: State) -> Self {
         Self {
-            state: State::new(),
+            state,
             state_updates: Arc::new(Notify::new()),
             hue_updates: Sender::new(32),
             z2m_updates: Sender::new(32),
@@ -41,7 +41,7 @@ impl Resources {
     }
 
     pub fn read(&mut self, rdr: impl Read) -> ApiResult<()> {
-        self.state = serde_yaml::from_reader(rdr)?;
+        self.state = State::from_reader(rdr)?;
         Ok(())
     }
 

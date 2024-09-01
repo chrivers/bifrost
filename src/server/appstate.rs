@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{self, File};
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
@@ -11,6 +11,7 @@ use uuid::Uuid;
 use crate::config::AppConfig;
 use crate::error::{ApiError, ApiResult};
 use crate::hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
+use crate::model::state::{State, StateVersion};
 use crate::resource::Resources;
 use crate::server::{self, certificate};
 
@@ -32,13 +33,28 @@ impl AppState {
             certificate::generate_and_save(certpath, config.bridge.mac)?;
         }
 
-        let mut res = Resources::new();
+        let mut res;
 
         if let Ok(fd) = File::open(&config.bifrost.state_file) {
             log::debug!("Existing state file found, loading..");
-            res.read(fd)?;
+            let yaml = serde_yaml::from_reader(fd)?;
+            let state = match State::version(&yaml)? {
+                StateVersion::V0 => {
+                    log::info!("Detected state file version 0. Upgrading to new version..");
+                    let backup_path = &config.bifrost.state_file.with_extension("v0.bak");
+                    fs::rename(&config.bifrost.state_file, backup_path)?;
+                    log::info!("  ..saved old state file as {backup_path}");
+                    State::from_v0(yaml)?
+                }
+                StateVersion::V1 => {
+                    log::info!("Detected state file version 1. Loading..");
+                    State::from_v1(yaml)?
+                }
+            };
+            res = Resources::new(state);
         } else {
             log::debug!("No state file found, initializing..");
+            res = Resources::new(State::new());
             res.init(&server::certificate::hue_bridge_id(config.bridge.mac))?;
         }
 
