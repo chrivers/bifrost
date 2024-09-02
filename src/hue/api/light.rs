@@ -56,6 +56,8 @@ pub struct LightMetadata {
     pub archetype: DeviceArchetype,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub function: Option<LightFunction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fixed_mired: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -71,6 +73,7 @@ impl LightMetadata {
             archetype,
             name: name.to_string(),
             function: None,
+            fixed_mired: None,
         }
     }
 }
