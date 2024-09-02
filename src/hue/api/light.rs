@@ -29,6 +29,8 @@ pub struct Light {
     pub effects: Option<LightEffects>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gradient: Option<Value>,
     #[serde(default)]
     pub identify: Identify,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -95,6 +97,7 @@ impl Light {
             dynamics: None,
             effects: None,
             service_id: None,
+            gradient: None,
             identify: Identify {},
             timed_effects: None,
             mode: LightMode::Normal,

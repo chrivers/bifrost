@@ -58,6 +58,8 @@ pub struct SceneAction {
     pub dimming: Option<DimmingUpdate>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<On>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gradient: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -356,6 +356,7 @@ impl Client {
                         color_temperature,
                         dimming: light.as_dimming_opt(),
                         on: Some(light.on),
+                        gradient: None,
                     },
                 );
             }
