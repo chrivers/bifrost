@@ -92,6 +92,8 @@ pub struct BehaviorInstance {
     pub metadata: BehaviorInstanceMetadata,
     pub script_id: Uuid,
     pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
