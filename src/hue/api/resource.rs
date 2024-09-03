@@ -63,18 +63,18 @@ impl RType {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceRecord {
     pub id: Uuid,
-    id_v1: String,
+    id_v1: Option<String>,
     #[serde(flatten)]
     pub obj: Resource,
 }
 
 impl ResourceRecord {
     #[must_use]
-    pub fn from_ref((id, obj): (&Uuid, &Resource)) -> Self {
+    pub fn new(id: Uuid, id_v1: Option<String>, res: &Resource) -> Self {
         Self {
-            id: *id,
-            id_v1: format!("/legacy/{}", id.as_simple()),
-            obj: obj.clone(),
+            id,
+            id_v1,
+            obj: res.clone(),
         }
     }
 }

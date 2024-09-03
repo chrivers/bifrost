@@ -1,8 +1,7 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::HashSet;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
-use serde::{self, Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::broadcast::{Receiver, Sender};
 use tokio::sync::Notify;
@@ -16,42 +15,13 @@ use crate::hue::api::{
 };
 use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
+use crate::model::state::{AuxData, State};
 use crate::z2m::request::ClientRequest;
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub struct AuxData {
-    pub topic: Option<String>,
-    pub index: Option<u32>,
-}
-
-impl AuxData {
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    #[must_use]
-    pub fn with_topic(self, topic: &str) -> Self {
-        Self {
-            topic: Some(topic.to_string()),
-            ..self
-        }
-    }
-
-    #[must_use]
-    pub fn with_index(self, index: u32) -> Self {
-        Self {
-            index: Some(index),
-            ..self
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct Resources {
-    aux: HashMap<Uuid, AuxData>,
+    state: State,
     state_updates: Arc<Notify>,
-    pub res: HashMap<Uuid, Resource>,
     pub hue_updates: Sender<EventBlock>,
     pub z2m_updates: Sender<Arc<ClientRequest>>,
 }
@@ -61,10 +31,9 @@ impl Resources {
 
     #[allow(clippy::new_without_default)]
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(state: State) -> Self {
         Self {
-            res: HashMap::new(),
-            aux: HashMap::new(),
+            state,
             state_updates: Arc::new(Notify::new()),
             hue_updates: Sender::new(32),
             z2m_updates: Sender::new(32),
@@ -72,20 +41,16 @@ impl Resources {
     }
 
     pub fn read(&mut self, rdr: impl Read) -> ApiResult<()> {
-        (self.res, self.aux) = serde_yaml::from_reader(rdr)?;
+        self.state = State::from_reader(rdr)?;
         Ok(())
     }
 
-    fn ordered_state(&self) -> (BTreeMap<&Uuid, &Resource>, BTreeMap<&Uuid, &AuxData>) {
-        (self.res.iter().collect(), self.aux.iter().collect())
-    }
-
     pub fn write(&self, wr: impl Write) -> ApiResult<()> {
-        Ok(serde_yaml::to_writer(wr, &self.ordered_state())?)
+        Ok(serde_yaml::to_writer(wr, &self.state)?)
     }
 
     pub fn serialize(&self) -> ApiResult<String> {
-        Ok(serde_yaml::to_string(&self.ordered_state())?)
+        Ok(serde_yaml::to_string(&self.state)?)
     }
 
     pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
@@ -93,13 +58,11 @@ impl Resources {
     }
 
     pub fn aux_get(&self, link: &ResourceLink) -> ApiResult<&AuxData> {
-        self.aux
-            .get(&link.rid)
-            .ok_or_else(|| ApiError::AuxNotFound(*link))
+        self.state.aux_get(link)
     }
 
     pub fn aux_set(&mut self, link: &ResourceLink, aux: AuxData) {
-        self.aux.insert(link.rid, aux);
+        self.state.aux_set(link, aux);
     }
 
     fn generate_update(obj: &Resource) -> ApiResult<Option<Update>> {
@@ -140,11 +103,12 @@ impl Resources {
     where
         for<'a> &'a mut T: TryFrom<&'a mut Resource, Error = ApiError>,
     {
-        let obj = self.res.get_mut(id).ok_or(ApiError::NotFound(*id))?;
+        let obj = self.state.get_mut(id)?;
         func(obj.try_into()?)?;
 
         if let Some(delta) = Self::generate_update(obj)? {
-            self.hue_event(EventBlock::update(id, delta)?);
+            let id_v1 = self.state.id_v1(id);
+            self.hue_event(EventBlock::update(id, id_v1, delta)?);
         }
 
         self.state_updates.notify_one();
@@ -164,7 +128,8 @@ impl Resources {
 
     #[must_use]
     pub fn get_scenes_for_room(&self, id: &Uuid) -> Vec<Uuid> {
-        self.res
+        self.state
+            .res
             .iter()
             .filter_map(|(k, v)| {
                 if let Resource::Scene(scn) = v {
@@ -189,12 +154,12 @@ impl Resources {
             obj.rtype()
         );
 
-        if self.res.contains_key(&link.rid) {
+        if self.state.res.contains_key(&link.rid) {
             log::trace!("Resource {link:?} is already known");
             return Ok(());
         }
 
-        self.res.insert(link.rid, obj);
+        self.state.insert(link.rid, obj);
 
         self.state_updates.notify_one();
 
@@ -209,11 +174,7 @@ impl Resources {
 
     pub fn delete(&mut self, link: &ResourceLink) -> ApiResult<()> {
         log::info!("Deleting {link:?}..");
-        self.res
-            .remove(&link.rid)
-            .ok_or(ApiError::NotFound(link.rid))?;
-
-        self.aux.remove(&link.rid);
+        self.state.remove(&link.rid)?;
 
         self.state_updates.notify_one();
 
@@ -292,7 +253,7 @@ impl Resources {
             if &scn.group == room {
                 let Some(AuxData {
                     index: Some(index), ..
-                }) = self.aux.get(&scene.id)
+                }) = self.state.try_aux_get(&scene.id)
                 else {
                     continue;
                 };
@@ -313,38 +274,118 @@ impl Resources {
     where
         &'a T: TryFrom<&'a Resource, Error = ApiError>,
     {
-        self.res
-            .get(&link.rid)
-            .filter(|id| id.rtype() == link.rtype)
-            .ok_or_else(|| ApiError::NotFound(link.rid))?
-            .try_into()
+        self.state.get(&link.rid)?.try_into()
+    }
+
+    /*
+    behavior_script           null
+    bridge_home               /groups/{id}
+    bridge                    null
+    device                    /lights/{id} | null
+    entertainment             /lights/{id} | null
+    geofence_client           null
+    geolocation               null
+    grouped_light             /groups/{id}
+    homekit                   null
+    light                     /lights/{id}
+    matter                    null
+    room                      /groups/{id}
+    scene                     /scenes/{id}
+    smart_scene               null
+    zigbee_connectivity       /lights/{id}
+    zigbee_connectivity       null
+    zigbee_device_discovery   null
+     */
+
+    #[must_use]
+    fn id_v1_scope(&self, id: &Uuid, res: &Resource) -> Option<String> {
+        let id = self.state.id_v1(id)?;
+        match res {
+            Resource::GroupedLight(_) => Some(format!("/groups/{id}")),
+            Resource::Light(_) => Some(format!("/lights/{id}")),
+            Resource::Scene(_) => Some(format!("/scenes/{id}")),
+
+            /* Rooms map to their grouped_light service's id_v1 */
+            Resource::Room(room) => room
+                .grouped_light_service()
+                .and_then(|glight| self.state.id_v1(&glight.rid))
+                .map(|id| format!("/groups/{id}")),
+
+            /* Devices (that are lights) map to the light service's id_v1 */
+            Resource::Device(dev) => dev
+                .light_service()
+                .and_then(|light| self.state.id_v1(&light.rid))
+                .map(|id| format!("/lights/{id}")),
+
+            /* BridgeHome maps to "group 0" that seems to be present in the v1 api */
+            Resource::BridgeHome(_) => Some(String::from("/groups/0")),
+
+            /* No id v1 */
+            Resource::BehaviorInstance(_)
+            | Resource::Button(_)
+            | Resource::PublicImage(_)
+            | Resource::Zone(_)
+            | Resource::BehaviorScript(_)
+            | Resource::Bridge(_)
+            | Resource::Entertainment(_)
+            | Resource::GeofenceClient(_)
+            | Resource::Geolocation(_)
+            | Resource::Homekit(_)
+            | Resource::Matter(_)
+            | Resource::SmartScene(_)
+            | Resource::ZigbeeConnectivity(_)
+            | Resource::ZigbeeDeviceDiscovery(_) => None,
+        }
+    }
+
+    fn make_resource_record(&self, id: &Uuid, res: &Resource) -> ResourceRecord {
+        ResourceRecord::new(*id, self.id_v1_scope(id, res), res)
     }
 
     pub fn get_resource(&self, ty: RType, id: &Uuid) -> ApiResult<ResourceRecord> {
-        self.res
+        self.state
+            .res
             .get(id)
-            .filter(|id| id.rtype() == ty)
-            .map(|r| ResourceRecord::from_ref((id, r)))
+            .filter(|res| res.rtype() == ty)
+            .map(|res| self.make_resource_record(id, res))
             .ok_or_else(|| ApiError::NotFound(*id))
     }
 
     pub fn get_resource_by_id(&self, id: &Uuid) -> ApiResult<ResourceRecord> {
-        self.res
+        self.state
             .get(id)
-            .map(|r| ResourceRecord::from_ref((id, r)))
-            .ok_or_else(|| ApiError::NotFound(*id))
+            .map(|res| self.make_resource_record(id, res))
     }
 
+    #[must_use]
     pub fn get_resources(&self) -> Vec<ResourceRecord> {
-        self.res.iter().map(ResourceRecord::from_ref).collect()
+        self.state
+            .res
+            .iter()
+            .map(|(id, res)| self.make_resource_record(id, res))
+            .collect()
     }
 
+    #[must_use]
     pub fn get_resources_by_type(&self, ty: RType) -> Vec<ResourceRecord> {
-        self.res
+        self.state
+            .res
             .iter()
             .filter(|(_, r)| r.rtype() == ty)
-            .map(ResourceRecord::from_ref)
+            .map(|(id, res)| self.make_resource_record(id, res))
             .collect()
+    }
+
+    pub fn get_id_v1_index(&self, uuid: Uuid) -> ApiResult<u32> {
+        self.state.id_v1(&uuid).ok_or(ApiError::NotFound(uuid))
+    }
+
+    pub fn get_id_v1(&self, uuid: Uuid) -> ApiResult<String> {
+        Ok(self.get_id_v1_index(uuid)?.to_string())
+    }
+
+    pub fn from_id_v1(&self, id: u32) -> ApiResult<Uuid> {
+        self.state.from_id_v1(&id).ok_or(ApiError::V1NotFound(id))
     }
 
     #[must_use]

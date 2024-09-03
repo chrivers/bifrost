@@ -1,3 +1,4 @@
+use std::num::ParseIntError;
 use std::sync::Arc;
 
 use camino::Utf8PathBuf;
@@ -31,6 +32,9 @@ pub enum ApiError {
 
     #[error(transparent)]
     JoinError(#[from] JoinError),
+
+    #[error(transparent)]
+    ParseIntError(#[from] ParseIntError),
 
     #[error(transparent)]
     MdnsSdError(#[from] mdns_sd::Error),
@@ -85,6 +89,9 @@ pub enum ApiError {
     #[error("Cannot create resources of type: {0:?}")]
     V1CreateUnsupported(ApiResourceType),
 
+    #[error("Resource {0} not found")]
+    V1NotFound(u32),
+
     /* hue api v2 errors */
     #[error("State changes not supported for: {0:?}")]
     UpdateUnsupported(RType),
@@ -102,6 +109,9 @@ pub enum ApiError {
     Full(RType),
 
     /* bifrost errors */
+    #[error("Cannot parse state file: no version field found")]
+    StateVersionNotFound,
+
     #[error("Missing auxiliary data resource {0:?}")]
     AuxNotFound(ResourceLink),
 

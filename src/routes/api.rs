@@ -12,18 +12,19 @@ use serde_json::{json, Value};
 use tokio::sync::MutexGuard;
 use uuid::Uuid;
 
-use crate::error::{ApiError, ApiResult};
-use crate::hue::api::{
-    Device, GroupedLight, Light, RType, ResourceLink, Room, Scene, V1ReplyBuilder,
-};
+use crate::hue::api::{Device, GroupedLight, Light, RType, ResourceLink, Room, Scene, V1Reply};
 use crate::hue::legacy_api::{
     ApiGroup, ApiLight, ApiLightStateUpdate, ApiResourceType, ApiScene, ApiUserConfig,
     Capabilities, HueResult, NewUser, NewUserReply,
 };
 use crate::resource::Resources;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 use crate::z2m::request::ClientRequest;
 use crate::z2m::update::DeviceUpdate;
+use crate::{
+    error::{ApiError, ApiResult},
+    hue::legacy_api::ApiGroupActionUpdate,
+};
 
 async fn get_api_config(State(state): State<AppState>) -> impl IntoResponse {
     Json(state.api_short_config())
@@ -43,10 +44,10 @@ fn get_lights(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiLight
 
     for rr in res.get_resources_by_type(RType::Light) {
         let light: Light = rr.obj.try_into()?;
-        let dev = res.get::<Device>(&light.owner)?.clone();
+        let dev = res.get::<Device>(&light.owner)?;
         lights.insert(
-            rr.id.simple().to_string(),
-            ApiLight::from_dev_and_light(&rr.id, dev, light),
+            res.get_id_v1(rr.id)?,
+            ApiLight::from_dev_and_light(&rr.id, dev, &light),
         );
     }
 
@@ -65,17 +66,17 @@ fn get_groups(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiGroup
             .ok_or(ApiError::NotFound(rr.id))?;
 
         let glight = res.get::<GroupedLight>(uuid)?.clone();
-        let lights: Vec<(Uuid, Light)> = room
+        let lights: Vec<String> = room
             .children
             .iter()
             .filter_map(|rl| res.get(rl).ok())
             .filter_map(Device::light_service)
-            .filter_map(|rl| Some((rl.rid, res.get::<Light>(rl).ok()?.clone())))
+            .filter_map(|rl| res.get_id_v1(rl.rid).ok())
             .collect();
 
         rooms.insert(
-            rr.id.simple().to_string(),
-            ApiGroup::from_lights_and_room(glight, &lights, room),
+            res.get_id_v1(rr.id)?,
+            ApiGroup::from_lights_and_room(glight, lights, room),
         );
     }
 
@@ -83,18 +84,18 @@ fn get_groups(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiGroup
 }
 
 fn get_scenes(owner: &Uuid, res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiScene>> {
-    let mut rooms = HashMap::new();
+    let mut scenes = HashMap::new();
 
     for rr in res.get_resources_by_type(RType::Scene) {
-        let scene: Scene = rr.obj.try_into()?;
+        let scene = &rr.obj.try_into()?;
 
-        rooms.insert(
-            rr.id.simple().to_string(),
-            ApiScene::from_scene(*owner, scene),
+        scenes.insert(
+            res.get_id_v1(rr.id)?,
+            ApiScene::from_scene(res, *owner, scene)?,
         );
     }
 
-    Ok(rooms)
+    Ok(scenes)
 }
 
 #[allow(clippy::zero_sized_map_values)]
@@ -134,6 +135,15 @@ async fn get_api_user_resource(
     }
 }
 
+async fn post_api_user_resource(
+    Path((_username, resource)): Path<(Uuid, ApiResourceType)>,
+    Json(req): Json<Value>,
+) -> ApiResult<Json<Value>> {
+    warn!("POST v1 user resource unsupported");
+    warn!("Request: {req:?}");
+    Err(ApiError::V1CreateUnsupported(resource))
+}
+
 async fn put_api_user_resource(
     Path((_username, _resource)): Path<(String, String)>,
     Json(req): Json<Value>,
@@ -146,93 +156,112 @@ async fn put_api_user_resource(
 #[allow(clippy::significant_drop_tightening)]
 async fn get_api_user_resource_id(
     State(state): State<AppState>,
-    Path((username, resource, id)): Path<(Uuid, ApiResourceType, Uuid)>,
+    Path((username, resource, id)): Path<(Uuid, ApiResourceType, u32)>,
 ) -> ApiResult<impl IntoResponse> {
-    warn!("GET v1 user resource id");
-    match resource {
+    log::debug!("GET v1 username={username} resource={resource:?} id={id}");
+    let result = match resource {
         ApiResourceType::Lights => {
             let lock = state.res.lock().await;
-            let link = ResourceLink::new(id, RType::Light);
+            let uuid = lock.from_id_v1(id)?;
+            let link = ResourceLink::new(uuid, RType::Light);
             let light = lock.get::<Light>(&link)?;
-            let dev = lock.get::<Device>(&light.owner)?.clone();
-            Ok(Json(json!(ApiLight::from_dev_and_light(
-                &id,
-                dev,
-                light.clone(),
-            ))))
+            let dev = lock.get::<Device>(&light.owner)?;
+
+            json!(ApiLight::from_dev_and_light(&uuid, dev, light))
         }
         ApiResourceType::Scenes => {
             let lock = state.res.lock().await;
-            let link = ResourceLink::new(id, RType::Scene);
-            let scene = lock.get::<Scene>(&link)?.clone();
-            Ok(Json(json!(ApiScene::from_scene(username, scene))))
+            let uuid = lock.from_id_v1(id)?;
+            let link = ResourceLink::new(uuid, RType::Scene);
+            let scene = lock.get::<Scene>(&link)?;
+
+            json!(ApiScene::from_scene(&lock, username, scene)?)
         }
-        _ => Err(ApiError::NotFound(id)),
-    }
+        ApiResourceType::Groups => {
+            let lock = state.res.lock().await;
+            let groups = get_groups(&lock)?;
+            let group = groups
+                .get(&id.to_string())
+                .ok_or(ApiError::V1NotFound(id))?;
+
+            json!(group)
+        }
+        _ => Err(ApiError::V1NotFound(id))?,
+    };
+
+    Ok(Json(result))
 }
 
 async fn put_api_user_resource_id(
     State(state): State<AppState>,
-    Path((_username, resource, id, path)): Path<(String, ApiResourceType, Uuid, String)>,
+    Path((_username, resource, id, path)): Path<(String, ApiResourceType, u32, String)>,
     Json(req): Json<Value>,
 ) -> ApiResult<Json<Value>> {
     match resource {
         ApiResourceType::Lights => {
-            println!("req: {req:#?}");
-            match path.as_str() {
-                "state" => {
-                    let lock = state.res.lock().await;
-                    let link = ResourceLink::new(id, RType::Light);
-                    let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+            log::debug!("req: {}", serde_json::to_string_pretty(&req)?);
+            if path != "state" {
+                return Err(ApiError::V1NotFound(id))?;
+            }
 
+            let lock = state.res.lock().await;
+            let uuid = lock.from_id_v1(id)?;
+            let link = ResourceLink::new(uuid, RType::Light);
+            let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
+
+            let payload = DeviceUpdate::default()
+                .with_state(upd.on)
+                .with_brightness(upd.bri.map(f64::from))
+                .with_color_xy(upd.xy.map(Into::into))
+                .with_color_temp(upd.ct);
+
+            lock.z2m_request(ClientRequest::light_update(link, payload))?;
+            drop(lock);
+
+            let reply = V1Reply::for_light(id, &path).with_light_state_update(&upd)?;
+
+            Ok(Json(reply.json()))
+        }
+        ApiResourceType::Groups => {
+            log::debug!("req: {}", serde_json::to_string_pretty(&req)?);
+            if path != "action" {
+                return Err(ApiError::V1NotFound(id))?;
+            }
+
+            let lock = state.res.lock().await;
+            let uuid = lock.from_id_v1(id)?;
+            let link = ResourceLink::new(uuid, RType::Room);
+            let room: &Room = lock.get(&link)?;
+            let glight = room.grouped_light_service().unwrap();
+
+            let upd: ApiGroupActionUpdate = serde_json::from_value(req)?;
+
+            let reply = match upd {
+                ApiGroupActionUpdate::LightUpdate(upd) => {
                     let payload = DeviceUpdate::default()
                         .with_state(upd.on)
                         .with_brightness(upd.bri.map(f64::from))
                         .with_color_xy(upd.xy.map(Into::into))
                         .with_color_temp(upd.ct);
 
-                    lock.z2m_request(ClientRequest::light_update(link, payload))?;
+                    lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
                     drop(lock);
 
-                    let reply = V1ReplyBuilder::new(format!("/lights/{}/{path}", id.as_simple()))
-                        .add_option("on", upd.on)?
-                        .add_option("bri", upd.bri)?
-                        .add_option("xy", upd.xy)?
-                        .add_option("ct", upd.ct)?;
-
-                    Ok(Json(reply.json()))
+                    V1Reply::for_group(id, &path).with_light_state_update(&upd)?
                 }
-                _ => Err(ApiError::NotFound(id)),
-            }
+                ApiGroupActionUpdate::GroupUpdate(upd) => {
+                    let scene_id = upd.scene.parse()?;
+                    let scene_uuid = lock.from_id_v1(scene_id)?;
+                    let rlink = RType::Scene.link_to(scene_uuid);
+                    lock.z2m_request(ClientRequest::scene_recall(rlink))?;
+                    drop(lock);
+
+                    V1Reply::for_group(id, &path).add("scene", upd.scene)?
+                }
+            };
+
+            Ok(Json(reply.json()))
         }
-        ApiResourceType::Groups => match path.as_str() {
-            "action" => {
-                let lock = state.res.lock().await;
-                let link = ResourceLink::new(id, RType::Room);
-                let room: &Room = lock.get(&link)?;
-                let glight = room.grouped_light_service().unwrap();
-
-                let upd: ApiLightStateUpdate = serde_json::from_value(req)?;
-
-                let payload = DeviceUpdate::default()
-                    .with_state(upd.on)
-                    .with_brightness(upd.bri.map(f64::from))
-                    .with_color_xy(upd.xy.map(Into::into))
-                    .with_color_temp(upd.ct);
-
-                lock.z2m_request(ClientRequest::group_update(*glight, payload))?;
-                drop(lock);
-
-                let reply = V1ReplyBuilder::new(format!("/groups/{}/{path}", id.as_simple()))
-                    .add_option("on", upd.on)?
-                    .add_option("bri", upd.bri)?
-                    .add_option("xy", upd.xy)?
-                    .add_option("ct", upd.ct)?;
-
-                Ok(Json(reply.json()))
-            }
-            _ => Err(ApiError::NotFound(id)),
-        },
         ApiResourceType::Config
         | ApiResourceType::Resourcelinks
         | ApiResourceType::Rules
@@ -249,6 +278,7 @@ pub fn router() -> Router<AppState> {
         .route("/config", get(get_api_config))
         .route("/:user", get(get_api_user))
         .route("/:user/:rtype", get(get_api_user_resource))
+        .route("/:user/:rtype", post(post_api_user_resource))
         .route("/:user/:rtype", put(put_api_user_resource))
         .route("/:user/:rtype/:id", get(get_api_user_resource_id))
         .route("/:user/:rtype/:id/:key", put(put_api_user_resource_id))

@@ -33,6 +33,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_value, json, Value};
 
 use crate::error::{ApiError, ApiResult};
+use crate::hue::legacy_api::ApiLightStateUpdate;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -188,18 +189,35 @@ pub struct V2Reply<T> {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct V1ReplyBuilder<'a> {
+pub struct V1Reply<'a> {
     prefix: String,
     success: Vec<(&'a str, Value)>,
 }
 
-impl<'a> V1ReplyBuilder<'a> {
+impl<'a> V1Reply<'a> {
     #[must_use]
     pub const fn new(prefix: String) -> Self {
         Self {
             prefix,
             success: vec![],
         }
+    }
+
+    #[must_use]
+    pub fn for_light(id: u32, path: &str) -> Self {
+        Self::new(format!("/lights/{id}/{path}"))
+    }
+
+    #[must_use]
+    pub fn for_group(id: u32, path: &str) -> Self {
+        Self::new(format!("/groups/{id}/{path}"))
+    }
+
+    pub fn with_light_state_update(self, upd: &ApiLightStateUpdate) -> ApiResult<Self> {
+        self.add_option("on", upd.on)?
+            .add_option("bri", upd.bri)?
+            .add_option("xy", upd.xy)?
+            .add_option("ct", upd.ct)
     }
 
     pub fn add<T: Serialize>(mut self, name: &'a str, value: T) -> ApiResult<Self> {

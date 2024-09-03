@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::error::ApiResult;
 use crate::hue::{api, best_guess_timezone};
+use crate::resource::Resources;
 
 use super::date_format;
 
@@ -278,12 +280,12 @@ impl ApiGroup {
     #[must_use]
     pub fn from_lights_and_room(
         glight: api::GroupedLight,
-        lights: &[(Uuid, api::Light)],
+        lights: Vec<String>,
         room: api::Room,
     ) -> Self {
         Self {
             name: room.metadata.name,
-            lights: lights.iter().map(|l| format!("{}", l.0.simple())).collect(),
+            lights,
             action: ApiGroupAction {
                 on: glight.on.is_some_and(|on| on.on),
                 bri: glight
@@ -344,6 +346,18 @@ pub struct ApiLightStateUpdate {
     pub ct: Option<u32>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApiGroupUpdate {
+    pub scene: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ApiGroupActionUpdate {
+    GroupUpdate(ApiGroupUpdate),
+    LightUpdate(ApiLightStateUpdate),
+}
+
 impl From<api::SceneAction> for ApiLightStateUpdate {
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn from(action: api::SceneAction) -> Self {
@@ -377,12 +391,14 @@ pub struct ApiLight {
 impl ApiLight {
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     #[must_use]
-    pub fn from_dev_and_light(uuid: &Uuid, dev: api::Device, light: api::Light) -> Self {
+    pub fn from_dev_and_light(uuid: &Uuid, dev: &api::Device, light: &api::Light) -> Self {
         let colormode = if light.color.is_some() {
             LightColorMode::Xy
         } else {
             LightColorMode::Ct
         };
+
+        let product_data = dev.product_data.clone();
 
         Self {
             state: ApiLightState {
@@ -394,9 +410,14 @@ impl ApiLight {
                 hue: 0,
                 sat: 0,
                 effect: String::new(),
-                xy: light.color.map(|col| col.xy.into()).unwrap_or_default(),
+                xy: light
+                    .color
+                    .clone()
+                    .map(|col| col.xy.into())
+                    .unwrap_or_default(),
                 ct: light
                     .color_temperature
+                    .clone()
                     .and_then(|ct| ct.mirek)
                     .unwrap_or_default(),
                 alert: String::new(),
@@ -405,11 +426,11 @@ impl ApiLight {
                 reachable: true,
             },
             swupdate: SwUpdate::default(),
-            name: light.metadata.name,
-            modelid: dev.product_data.product_name,
-            manufacturername: dev.product_data.manufacturer_name,
+            name: light.metadata.name.clone(),
+            modelid: product_data.product_name,
+            manufacturername: product_data.manufacturer_name,
             productname: "Hue color spot".to_string(),
-            productid: dev.product_data.model_id,
+            productid: product_data.model_id,
             capabilities: json!({
                 "certified": true,
                 "control": {
@@ -442,7 +463,7 @@ impl ApiLight {
             }),
             light_type: "Extended color light".to_string(),
             uniqueid: uuid.as_simple().to_string(),
-            swversion: dev.product_data.software_version,
+            swversion: product_data.software_version,
             swconfigid: String::new(),
         }
     }
@@ -466,6 +487,12 @@ pub enum ApiSceneVersion {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ApiSceneAppData {
+    pub data: String,
+    pub version: u8,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ApiScene {
     name: String,
     #[serde(rename = "type")]
@@ -475,7 +502,7 @@ pub struct ApiScene {
     owner: Uuid,
     recycle: bool,
     locked: bool,
-    appdata: Value,
+    appdata: ApiSceneAppData,
     picture: String,
     #[serde(with = "date_format::utc")]
     lastupdated: DateTime<Utc>,
@@ -485,40 +512,45 @@ pub struct ApiScene {
 }
 
 impl ApiScene {
-    #[must_use]
-    pub fn from_scene(owner: Uuid, scene: api::Scene) -> Self {
+    pub fn from_scene(res: &Resources, owner: Uuid, scene: &api::Scene) -> ApiResult<Self> {
         let lights = scene
             .actions
             .iter()
-            .map(|sae| sae.target.rid.as_simple().to_string())
-            .collect();
+            .map(|sae| res.get_id_v1(sae.target.rid))
+            .collect::<ApiResult<_>>()?;
 
         let lightstates = scene
             .actions
             .iter()
             .map(|sae| {
-                (
-                    sae.target.rid.as_simple().to_string(),
+                Ok((
+                    res.get_id_v1(sae.target.rid)?,
                     ApiLightStateUpdate::from(sae.action.clone()),
-                )
+                ))
             })
-            .collect();
+            .collect::<ApiResult<_>>()?;
 
-        Self {
-            name: scene.metadata.name,
+        let room_id = res.get_id_v1_index(scene.group.rid)?;
+
+        Ok(Self {
+            name: scene.metadata.name.clone(),
             scene_type: ApiSceneType::GroupScene,
             lights,
             lightstates,
             owner,
             recycle: false,
             locked: false,
-            appdata: json!({}),
+            /* Some clients (e.g. Hue Essentials) require .appdata */
+            appdata: ApiSceneAppData {
+                data: format!("xxxxx_r{room_id}"),
+                version: 1,
+            },
             picture: String::new(),
             lastupdated: Utc::now(),
             version: ApiSceneVersion::V2 as u32,
             image: scene.metadata.image.map(|rl| rl.rid),
-            group: scene.group.rid.as_simple().to_string(),
-        }
+            group: room_id.to_string(),
+        })
     }
 }
 

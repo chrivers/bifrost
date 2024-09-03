@@ -11,9 +11,9 @@ use crate::error::{ApiError, ApiResult};
 use crate::hue::api::{
     RType, Resource, Scene, SceneStatus, SceneStatusUpdate, SceneUpdate, V2Reply,
 };
-use crate::resource::AuxData;
+use crate::model::state::AuxData;
 use crate::routes::clip::ApiV2Result;
-use crate::state::AppState;
+use crate::server::appstate::AppState;
 use crate::z2m::request::ClientRequest;
 
 async fn post_scene(

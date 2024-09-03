@@ -22,5 +22,4 @@ pub mod model;
 pub mod resource;
 pub mod routes;
 pub mod server;
-pub mod state;
 pub mod z2m;

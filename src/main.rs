@@ -5,8 +5,7 @@ use tokio::task::JoinSet;
 use bifrost::config;
 use bifrost::error::ApiResult;
 use bifrost::mdns;
-use bifrost::server::{self, banner};
-use bifrost::state::AppState;
+use bifrost::server::{self, appstate::AppState, banner};
 use bifrost::z2m;
 
 /*
@@ -38,6 +37,7 @@ fn init_logging() -> ApiResult<()> {
         "debug",
         "mdns_sd=off",
         "tower_http::trace::on_request=info",
+        "h2=info",
         "axum::rejection=trace",
     ];
 

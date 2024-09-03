@@ -29,7 +29,7 @@ use crate::hue::api::{
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;
-use crate::resource::AuxData;
+use crate::model::state::AuxData;
 use crate::resource::Resources;
 use crate::z2m::api::{ExposeLight, Message, Other, RawMessage};
 use crate::z2m::request::{ClientRequest, Z2mRequest};
