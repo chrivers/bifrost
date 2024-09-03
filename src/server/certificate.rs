@@ -174,10 +174,10 @@ pub fn check_certificate(certpath: &Utf8Path, mac: MacAddress) -> ApiResult<()> 
             if cn == id {
                 log::debug!("Found existing certificate for bridge id [{id}]");
             } else {
-                log::error!("Certificate found, but mac address does not match!");
-                log::error!("  [{id}] (expected)");
-                log::error!("  [{cn}] {certpath}");
-                return Err(ApiError::CertificateInvalid(certpath.to_owned()));
+                log::warn!("Certificate found, but common name (CN) does not match!");
+                log::warn!("  [{id}] (expected)");
+                log::warn!("  [{cn}] {certpath}");
+                return Ok(());
             }
         }
         None => {
