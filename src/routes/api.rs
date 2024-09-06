@@ -7,6 +7,7 @@ use axum::{
     Json, Router,
 };
 
+use bytes::Bytes;
 use log::{info, warn};
 use serde_json::{json, Value};
 use tokio::sync::MutexGuard;
@@ -30,13 +31,14 @@ async fn get_api_config(State(state): State<AppState>) -> impl IntoResponse {
     Json(state.api_short_config())
 }
 
-async fn post_api(Json(j): Json<NewUser>) -> impl IntoResponse {
-    info!("post: {j:?}");
+async fn post_api(bytes: Bytes) -> ApiResult<impl IntoResponse> {
+    let json: NewUser = serde_json::from_slice(&bytes)?;
+    info!("post: {json:?}");
     let res = NewUserReply {
         clientkey: Uuid::new_v4(),
         username: Uuid::new_v4(),
     };
-    Json(vec![HueResult::Success(res)])
+    Ok(Json(vec![HueResult::Success(res)]))
 }
 
 fn get_lights(res: &MutexGuard<Resources>) -> ApiResult<HashMap<String, ApiLight>> {
