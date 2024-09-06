@@ -64,13 +64,6 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
-pub struct Other {
-    pub topic: String,
-    pub payload: Value,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum BridgeOnlineState {
     Online,

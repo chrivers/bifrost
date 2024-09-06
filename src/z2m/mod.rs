@@ -31,7 +31,7 @@ use crate::error::{ApiError, ApiResult};
 use crate::hue::scene_icons;
 use crate::model::state::AuxData;
 use crate::resource::Resources;
-use crate::z2m::api::{ExposeLight, Message, Other, RawMessage};
+use crate::z2m::api::{ExposeLight, Message, RawMessage};
 use crate::z2m::request::{ClientRequest, Z2mRequest};
 use crate::z2m::update::DeviceUpdate;
 
@@ -588,7 +588,7 @@ impl Client {
             "[{}] Topic [{topic}] known as {uuid} on this z2m connection, sending event..",
             self.name
         );
-        let api_req = Other {
+        let api_req = RawMessage {
             payload: serde_json::to_value(payload)?,
             topic: format!("{topic}/set"),
         };
