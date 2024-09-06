@@ -15,7 +15,6 @@ pub struct RawMessage {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
 #[serde(tag = "topic", content = "payload")]
 pub enum Message {
     #[serde(rename = "bridge/info")]
@@ -357,7 +356,6 @@ pub struct Definition {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
-#[serde(deny_unknown_fields)]
 pub enum Expose {
     Binary(ExposeBinary),
     Composite(ExposeComposite),
