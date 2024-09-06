@@ -15,7 +15,6 @@ pub struct RawMessage {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
 #[serde(tag = "topic", content = "payload")]
 pub enum Message {
     #[serde(rename = "bridge/info")]
@@ -61,13 +60,6 @@ where
     let s: &str = Deserialize::deserialize(deserializer)?;
     let num = u64::from_str_radix(s.trim_start_matches("0x"), 16).map_err(Error::custom)?;
     Ok(num)
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
-pub struct Other {
-    pub topic: String,
-    pub payload: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -352,7 +344,6 @@ impl Device {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Definition {
     pub description: String,
     pub exposes: Vec<Expose>,
@@ -364,7 +355,6 @@ pub struct Definition {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
-#[serde(deny_unknown_fields)]
 pub enum Expose {
     Binary(ExposeBinary),
     Composite(ExposeComposite),
