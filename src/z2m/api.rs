@@ -344,7 +344,6 @@ impl Device {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Definition {
     pub description: String,
     pub exposes: Vec<Expose>,
