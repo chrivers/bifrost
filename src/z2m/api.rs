@@ -142,10 +142,11 @@ pub struct BridgeInfo {
 #[serde(deny_unknown_fields)]
 pub struct BridgeConfigSchema {
     pub definitions: Value,
+    #[serde(default)]
     pub required: Vec<String>,
     pub properties: Value,
     #[serde(rename = "type")]
-    pub config_type: Value,
+    pub config_type: Option<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -267,6 +268,7 @@ pub struct ConfigDeviceOptions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GroupValue {
+    #[serde(default)]
     pub devices: Vec<String>,
     pub friendly_name: String,
 }
@@ -399,7 +401,7 @@ pub struct ExposeBinary {
 
     pub name: String,
     pub label: String,
-    pub description: String,
+    pub description: Option<String>,
 
     pub value_off: Value,
     pub value_on: Value,
