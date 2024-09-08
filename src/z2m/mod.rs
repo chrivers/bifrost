@@ -357,6 +357,7 @@ impl Client {
                         dimming: light.as_dimming_opt(),
                         on: Some(light.on),
                         gradient: None,
+                        effects: json!({}),
                     },
                 );
             }

@@ -60,6 +60,8 @@ pub struct SceneAction {
     pub on: Option<On>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gradient: Option<Value>,
+    #[serde(default, skip_serializing_if = "Value::is_null")]
+    pub effects: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
