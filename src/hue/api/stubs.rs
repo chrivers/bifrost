@@ -253,6 +253,9 @@ pub struct Motion {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PrivateGroup {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PublicImage {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

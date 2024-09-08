@@ -29,6 +29,7 @@ pub enum RType {
     LightLevel,
     Matter,
     Motion,
+    PrivateGroup,
     PublicImage,
     RelativeRotary,
     Room,

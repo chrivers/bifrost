@@ -342,6 +342,7 @@ impl Resources {
             | Resource::LightLevel(_)
             | Resource::Matter(_)
             | Resource::Motion(_)
+            | Resource::PrivateGroup(_)
             | Resource::PublicImage(_)
             | Resource::RelativeRotary(_)
             | Resource::SmartScene(_)

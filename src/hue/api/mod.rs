@@ -24,8 +24,8 @@ pub use stubs::{
     ButtonData, ButtonMetadata, ButtonReport, DevicePower, DeviceSoftwareUpdate, DollarRef,
     Entertainment, EntertainmentConfiguration, EntertainmentSegment, EntertainmentSegments,
     GeofenceClient, Geolocation, GroupedLightLevel, GroupedMotion, Homekit, LightLevel, Matter,
-    Metadata, Motion, PublicImage, RelativeRotary, SmartScene, Taurus, Temperature, TimeZone,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
+    Metadata, Motion, PrivateGroup, PublicImage, RelativeRotary, SmartScene, Taurus, Temperature,
+    TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
 };
 pub use update::{Update, UpdateRecord};
 
@@ -64,6 +64,7 @@ pub enum Resource {
     LightLevel(LightLevel),
     Matter(Matter),
     Motion(Motion),
+    PrivateGroup(PrivateGroup),
     PublicImage(PublicImage),
     RelativeRotary(RelativeRotary),
     Room(Room),
@@ -101,6 +102,7 @@ impl Resource {
             Self::LightLevel(_) => RType::LightLevel,
             Self::Matter(_) => RType::Matter,
             Self::Motion(_) => RType::Motion,
+            Self::PrivateGroup(_) => RType::PrivateGroup,
             Self::PublicImage(_) => RType::PublicImage,
             Self::RelativeRotary(_) => RType::RelativeRotary,
             Self::Room(_) => RType::Room,
@@ -136,6 +138,7 @@ impl Resource {
             RType::LightLevel => Self::LightLevel(from_value(obj)?),
             RType::Matter => Self::Matter(from_value(obj)?),
             RType::Motion => Self::Motion(from_value(obj)?),
+            RType::PrivateGroup => Self::PrivateGroup(from_value(obj)?),
             RType::PublicImage => Self::PublicImage(from_value(obj)?),
             RType::RelativeRotary => Self::RelativeRotary(from_value(obj)?),
             RType::Room => Self::Room(from_value(obj)?),
@@ -214,6 +217,7 @@ resource_conversion_impl!(Light);
 resource_conversion_impl!(LightLevel);
 resource_conversion_impl!(Matter);
 resource_conversion_impl!(Motion);
+resource_conversion_impl!(PrivateGroup);
 resource_conversion_impl!(PublicImage);
 resource_conversion_impl!(RelativeRotary);
 resource_conversion_impl!(Room);
