@@ -212,8 +212,68 @@ pub enum LightPowerupPreset {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LightPowerup {
     pub preset: LightPowerupPreset,
-    #[serde(flatten)]
-    pub data: Value,
+
+    pub configured: bool,
+    #[serde(default, skip_serializing_if = "LightPowerupOn::is_none")]
+    pub on: LightPowerupOn,
+    #[serde(default, skip_serializing_if = "LightPowerupDimming::is_none")]
+    pub dimming: LightPowerupDimming,
+    #[serde(default, skip_serializing_if = "LightPowerupColor::is_none")]
+    pub color: LightPowerupColor,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[serde(tag = "mode", rename_all = "snake_case")]
+pub enum LightPowerupOn {
+    #[default]
+    None,
+    Previous,
+    On {
+        on: On,
+    },
+}
+
+impl LightPowerupOn {
+    pub const fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[serde(tag = "mode", rename_all = "snake_case")]
+pub enum LightPowerupColor {
+    #[default]
+    None,
+    Previous,
+    Color {
+        color: ColorUpdate,
+    },
+    ColorTemperature {
+        color_temperature: ColorTemperatureUpdate,
+    },
+}
+
+impl LightPowerupColor {
+    pub const fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[serde(tag = "mode", rename_all = "snake_case")]
+pub enum LightPowerupDimming {
+    #[default]
+    None,
+    Previous,
+    Dimming {
+        dimming: DimmingUpdate,
+    },
+}
+
+impl LightPowerupDimming {
+    pub const fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
