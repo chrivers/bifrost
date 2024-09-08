@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::ops::{AddAssign, Sub};
 
 use serde::{Deserialize, Serialize};
@@ -32,7 +33,7 @@ pub struct Light {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_id: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gradient: Option<Value>,
+    pub gradient: Option<LightGradient>,
     #[serde(default)]
     pub identify: Identify,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -198,6 +199,22 @@ pub enum LightMode {
     #[default]
     Normal,
     Streaming,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, Ord, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum LightGradientMode {
+    InterpolatedPalette,
+    InterpolatedPaletteMirrored,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightGradient {
+    mode: LightGradientMode,
+    mode_values: BTreeSet<LightGradientMode>,
+    points_capable: u32,
+    points: Vec<Value>,
+    pixel_count: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
