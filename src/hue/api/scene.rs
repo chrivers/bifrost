@@ -41,7 +41,7 @@ pub struct Scene {
     /*     dimming: [], */
     /*     effects: [] */
     /* }, */
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Value::is_null")]
     pub palette: Value,
     pub speed: f64,
     pub status: Option<SceneStatus>,

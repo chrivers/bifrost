@@ -22,7 +22,9 @@ pub struct Light {
     pub color_temperature: Option<ColorTemperature>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature_delta: Option<Stub>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dimming: Option<Dimming>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dimming_delta: Option<Stub>,
     pub dynamics: Option<LightDynamics>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,6 +41,7 @@ pub struct Light {
     pub on: On,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub powerup: Option<LightPowerup>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub signaling: Option<LightSignaling>,
 }
 
