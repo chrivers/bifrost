@@ -94,6 +94,8 @@ pub struct BehaviorInstance {
     pub status: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub migrated_from: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
