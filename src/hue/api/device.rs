@@ -38,7 +38,7 @@ impl DeviceProductData {
             model_id: "BSB002".to_string(),
             product_archetype: DeviceArchetype::BridgeV2,
             product_name: "Hue Bridge".to_string(),
-            software_version: "1.60.1960149090".to_string(),
+            software_version: "1.66.1966060010".to_string(),
         }
     }
 
