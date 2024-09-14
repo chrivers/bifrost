@@ -297,6 +297,7 @@ pub type BridgeDevices = Vec<Device>;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Device {
+    pub description: Option<String>,
     pub date_code: Option<String>,
     pub definition: Option<Definition>,
     pub disabled: bool,
