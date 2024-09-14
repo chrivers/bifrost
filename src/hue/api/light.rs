@@ -15,8 +15,7 @@ pub struct Light {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub product_data: Option<LightProductData>,
 
-    #[serde(default)]
-    pub alert: Value,
+    pub alert: Option<LightAlert>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<LightColor>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -95,7 +94,7 @@ impl Light {
     #[must_use]
     pub const fn new(owner: ResourceLink, metadata: LightMetadata) -> Self {
         Self {
-            alert: Value::Null,
+            alert: None,
             color: None,
             color_temperature: None,
             color_temperature_delta: Some(Stub {}),
@@ -199,6 +198,11 @@ pub enum LightMode {
     #[default]
     Normal,
     Streaming,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightAlert {
+    action_values: BTreeSet<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialOrd, Ord, Eq, PartialEq)]
