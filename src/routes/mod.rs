@@ -10,6 +10,7 @@ use crate::server::appstate::AppState;
 pub mod api;
 pub mod clip;
 pub mod eventstream;
+pub mod licenses;
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
@@ -36,6 +37,7 @@ impl IntoResponse for ApiError {
 pub fn router(appstate: AppState) -> Router<()> {
     Router::new()
         .nest("/api", api::router())
+        .nest("/licenses", licenses::router())
         .nest("/clip/v2/resource", clip::router())
         .nest("/eventstream", eventstream::router())
         .with_state(appstate)
