@@ -1,3 +1,5 @@
+use std::ops::{AddAssign, Sub};
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -64,7 +66,7 @@ pub struct SceneActionElement {
     pub target: ResourceLink,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct SceneMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appdata: Option<String>,
@@ -72,11 +74,19 @@ pub struct SceneMetadata {
     pub name: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+pub struct SceneMetadataUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub appdata: Option<String>,
+    pub image: Option<ResourceLink>,
+    pub name: Option<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SceneUpdate {
     pub actions: Option<Vec<SceneActionElement>>,
     pub recall: Option<SceneRecall>,
-    pub metadata: Option<SceneMetadata>,
+    pub metadata: Option<SceneMetadataUpdate>,
     pub palette: Option<Value>,
     pub speed: Option<f64>,
     pub auto_dynamic: Option<bool>,
@@ -107,6 +117,43 @@ impl SceneUpdate {
             }),
             ..self
         }
+    }
+}
+
+impl AddAssign<SceneMetadataUpdate> for SceneMetadata {
+    fn add_assign(&mut self, upd: SceneMetadataUpdate) {
+        if let Some(appdata) = upd.appdata {
+            self.appdata = Some(appdata);
+        }
+        if let Some(image) = upd.image {
+            self.image = Some(image);
+        }
+        if let Some(name) = upd.name {
+            self.name = name;
+        }
+    }
+}
+
+#[allow(clippy::if_not_else)]
+impl Sub<&SceneMetadata> for &SceneMetadata {
+    type Output = SceneMetadataUpdate;
+
+    fn sub(self, rhs: &SceneMetadata) -> Self::Output {
+        let mut upd = Self::Output::default();
+
+        if self != rhs {
+            if self.appdata != rhs.appdata {
+                upd.appdata.clone_from(&rhs.appdata);
+            }
+            if self.image != rhs.image {
+                upd.image.clone_from(&rhs.image);
+            }
+            if self.name != rhs.name {
+                upd.name = Some(rhs.name.clone());
+            }
+        }
+
+        upd
     }
 }
 

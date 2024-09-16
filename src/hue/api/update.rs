@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::hue::api::{GroupedLightUpdate, LightUpdate, RType, SceneUpdate};
+use crate::hue::api::{
+    DeviceUpdate, GroupedLightUpdate, LightUpdate, RType, RoomUpdate, SceneUpdate,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -10,7 +12,7 @@ pub enum Update {
     /* BehaviorInstance(BehaviorInstanceUpdate), */
     /* Bridge(BridgeUpdate), */
     /* BridgeHome(BridgeHomeUpdate), */
-    /* Device(DeviceUpdate), */
+    Device(DeviceUpdate),
     /* Entertainment(EntertainmentUpdate), */
     /* GeofenceClient(GeofenceClientUpdate), */
     /* Geolocation(GeolocationUpdate), */
@@ -19,7 +21,7 @@ pub enum Update {
     Light(LightUpdate),
     /* Matter(MatterUpdate), */
     /* PublicImage(PublicImageUpdate), */
-    /* Room(RoomUpdate), */
+    Room(RoomUpdate),
     Scene(SceneUpdate),
     /* SmartScene(SmartSceneUpdate), */
     /* ZigbeeConnectivity(ZigbeeConnectivityUpdate), */
@@ -32,7 +34,9 @@ impl Update {
     pub const fn rtype(&self) -> RType {
         match self {
             Self::GroupedLight(_) => RType::GroupedLight,
+            Self::Device(_) => RType::Device,
             Self::Light(_) => RType::Light,
+            Self::Room(_) => RType::Room,
             Self::Scene(_) => RType::Scene,
         }
     }
@@ -40,7 +44,8 @@ impl Update {
     #[must_use]
     pub fn id_v1_scope(&self, id: u32, uuid: &Uuid) -> Option<String> {
         match self {
-            Self::GroupedLight(_) => Some(format!("/groups/{id}")),
+            Self::Room(_) | Self::GroupedLight(_) => Some(format!("/groups/{id}")),
+            Self::Device(_) => Some(format!("/device/{id}")),
             Self::Light(_) => Some(format!("/lights/{id}")),
             Self::Scene(_) => Some(format!("/scenes/{uuid}")),
         }

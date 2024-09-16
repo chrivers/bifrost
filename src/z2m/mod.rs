@@ -365,9 +365,7 @@ impl Client {
                         target: RType::Light.link_to(uuid),
                     })
                     .collect();
-                res.update(uuid, |scene: &mut Scene| {
-                    scene.actions = actions;
-                })?;
+                res.update::<Scene>(uuid, |scene| scene.actions = actions)?;
             }
         }
         drop(res);

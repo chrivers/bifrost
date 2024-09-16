@@ -9,9 +9,9 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, ApiResult};
 use crate::hue::api::{
-    Bridge, BridgeHome, Device, DeviceArchetype, DeviceProductData, Metadata, RType, Resource,
-    ResourceLink, ResourceRecord, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus,
-    ZigbeeDeviceDiscovery,
+    Bridge, BridgeHome, Device, DeviceArchetype, DeviceProductData, DeviceUpdate, Metadata, RType,
+    Resource, ResourceLink, ResourceRecord, RoomUpdate, TimeZone, ZigbeeConnectivity,
+    ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery,
 };
 use crate::hue::api::{GroupedLightUpdate, LightUpdate, SceneUpdate, Update};
 use crate::hue::event::EventBlock;
@@ -90,7 +90,16 @@ impl Resources {
 
                 Ok(Some(Update::Scene(upd)))
             }
-            Resource::Room(_) => Ok(None),
+            Resource::Device(device) => {
+                let upd = DeviceUpdate::new().with_metadata(device.metadata.clone());
+
+                Ok(Some(Update::Device(upd)))
+            }
+            Resource::Room(room) => {
+                let upd = RoomUpdate::new().with_metadata(room.metadata.clone());
+
+                Ok(Some(Update::Room(upd)))
+            }
             obj => Err(ApiError::UpdateUnsupported(obj.rtype())),
         }
     }

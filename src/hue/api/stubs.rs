@@ -186,7 +186,7 @@ impl TimeZone {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct Metadata {
     pub name: String,
     pub archetype: DeviceArchetype,
@@ -200,4 +200,10 @@ impl Metadata {
             name: name.to_string(),
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct MetadataUpdate {
+    pub name: Option<String>,
+    pub archetype: Option<DeviceArchetype>,
 }
