@@ -217,7 +217,7 @@ pub struct ConfigAdvanced {
     pub channel: i64,
     pub elapsed: bool,
     pub ext_pan_id: Vec<i64>,
-    pub homeassistant_legacy_entity_attributes: bool,
+    pub homeassistant_legacy_entity_attributes: Option<bool>,
     pub last_seen: String,
     pub legacy_api: bool,
     pub legacy_availability_payload: bool,
