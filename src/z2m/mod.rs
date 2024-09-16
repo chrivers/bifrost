@@ -33,7 +33,7 @@ use crate::model::state::AuxData;
 use crate::resource::Resources;
 use crate::z2m::api::{ExposeLight, Message, RawMessage};
 use crate::z2m::request::{ClientRequest, Z2mRequest};
-use crate::z2m::update::DeviceUpdate;
+use crate::z2m::update::{DeviceColor, DeviceUpdate};
 
 #[derive(Debug)]
 struct LearnScene {
@@ -321,7 +321,7 @@ impl Client {
                 .with_on(devupd.state.map(Into::into))
                 .with_brightness(devupd.brightness.map(|b| b / 254.0 * 100.0))
                 .with_color_temperature(devupd.color_temp)
-                .with_color_xy(devupd.color.map(|col| col.xy));
+                .with_color_xy(devupd.color.and_then(|col| col.xy));
 
             *light += upd;
         })?;
@@ -333,8 +333,8 @@ impl Client {
                 let light = res.get::<Light>(&rlink)?;
                 let mut color_temperature = None;
                 let mut color = None;
-                if let Some(col) = upd.color {
-                    color = Some(ColorUpdate { xy: col.xy });
+                if let Some(DeviceColor { xy: Some(xy), .. }) = upd.color {
+                    color = Some(ColorUpdate { xy });
                 } else if let Some(mirek) = upd.color_temp {
                     color_temperature = Some(ColorTemperatureUpdate { mirek });
                 }

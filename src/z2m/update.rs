@@ -97,7 +97,7 @@ pub struct DeviceColor {
     pub saturation: Option<f64>,
 
     #[serde(flatten)]
-    pub xy: XY,
+    pub xy: Option<XY>,
 }
 
 impl DeviceColor {
@@ -108,7 +108,7 @@ impl DeviceColor {
             s: None,
             hue: None,
             saturation: None,
-            xy,
+            xy: Some(xy),
         }
     }
 
@@ -119,7 +119,7 @@ impl DeviceColor {
             s: None,
             hue: Some(h),
             saturation: Some(s),
-            xy: XY::new(0.0, 0.0),
+            xy: None,
         }
     }
 }
