@@ -22,16 +22,11 @@ async fn put_device(
 
     let upd: DeviceUpdate = serde_json::from_value(put)?;
 
-    state.res.lock().await.update::<Device>(&id, |obj| {
-        if let Some(md) = upd.metadata {
-            if let Some(name) = md.name {
-                obj.metadata.name = name;
-            }
-            if let Some(archetype) = md.archetype {
-                obj.metadata.archetype = archetype;
-            }
-        }
-    })?;
+    state
+        .res
+        .lock()
+        .await
+        .update::<Device>(&id, |obj| *obj += upd)?;
 
     V2Reply::ok(rlink)
 }
