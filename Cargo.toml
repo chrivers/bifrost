@@ -32,31 +32,31 @@ async-stream = "0.3.5"
 axum = { version = "0.7.5", features = ["macros"] }
 axum-core = "0.4.3"
 axum-server = { version = "0.6.0", features = ["rustls", "tls-rustls"] }
-bytes = "1.6.1"
+bytes = "1.7.1"
 chrono = { version = "0.4.38", features = ["serde"] }
-clap = { version = "4.5.11", features = ["color", "derive"] }
+clap = { version = "4.5.17", features = ["color", "derive"] }
 config = { version = "0.14.0", default-features = false, features = ["yaml"] }
 futures = "0.3.30"
 hyper = "1.4.1"
 iana-time-zone = "0.1.60"
 log = "0.4.22"
 mac_address = { version = "1.1.7", features = ["serde"] }
-mdns-sd = "0.11.1"
+mdns-sd = "0.11.4"
 mime = "0.3.17"
 rand = "0.8.5"
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.121"
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
 serde_yml = "0"
 thiserror = "1.0.63"
-tokio = { version = "1.39.2", features = ["rt-multi-thread"] }
-tokio-stream = { version = "0.1.15", features = ["sync"] }
+tokio = { version = "1.40.0", features = ["rt-multi-thread"] }
+tokio-stream = { version = "0.1.16", features = ["sync"] }
 tokio-tungstenite = "0.23.1"
 tower = "0.4.13"
 tower-http = { version = "0.5.2", features = ["normalize-path", "trace"] }
 tracing = "0.1.40"
 uuid = { version = "1.10.0", features = ["serde", "v4", "v5"] }
 pretty_env_logger = "0.5.0"
-camino = { version = "1.1.8", features = ["serde1"] }
+camino = { version = "1.1.9", features = ["serde1"] }
 x509-cert = { version = "0.2.5", features = ["builder", "hazmat"] }
 rsa = "0.9.6"
 sha2 = { version = "0.10.8", features = ["oid"] }
