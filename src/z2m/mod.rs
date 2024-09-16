@@ -480,48 +480,46 @@ impl Client {
 
         let raw_msg: Result<RawMessage, _> = serde_json::from_str(&txt);
 
-        match raw_msg {
-            Ok(msg) => {
-                if msg.topic.starts_with("bridge/") {
-                    match serde_json::from_str(&txt) {
-                        Ok(bridge_msg) => self.handle_bridge_message(bridge_msg).await,
-                        Err(err) => {
-                            match msg.topic.as_str() {
-                                topic @ ("bridge/devices" | "bridge/groups") => {
-                                    log::error!(
-                                        "[{}] Failed to parse critical z2m bridge message on [{}]:",
-                                        self.name,
-                                        topic,
-                                    );
-                                    log::error!(
-                                        "[{}] {}",
-                                        self.name,
-                                        serde_json::to_string(&msg.payload)?
-                                    );
-                                    Err(err)?
-                                }
-                                topic => {
-                                    log::error!("[{}] Failed to parse (non-critical) z2m bridge message on [{}]:", self.name, topic);
-                                    log::error!("{}", serde_json::to_string(&msg.payload)?);
+        let msg = raw_msg.map_err(|err| {
+            log::error!(
+                "[{}] Invalid websocket message: {:#?} [{}..]",
+                self.name,
+                err,
+                &txt.chars().take(128).collect::<String>()
+            );
+            err
+        })?;
 
-                                    /* Suppress this non-critical error, to avoid breaking the event loop */
-                                    Ok(())
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    self.handle_device_message(msg).await
-                }
-            }
+        /* bridge messages are handled differently. everything else is a device message */
+        if !msg.topic.starts_with("bridge/") {
+            return self.handle_device_message(msg).await;
+        }
+
+        match serde_json::from_str(&txt) {
+            Ok(bridge_msg) => self.handle_bridge_message(bridge_msg).await,
             Err(err) => {
-                log::error!(
-                    "[{}] Invalid websocket message: {:#?} [{}..]",
-                    self.name,
-                    err,
-                    &txt.chars().take(128).collect::<String>()
-                );
-                Err(err)?
+                match msg.topic.as_str() {
+                    topic @ ("bridge/devices" | "bridge/groups") => {
+                        log::error!(
+                            "[{}] Failed to parse critical z2m bridge message on [{}]:",
+                            self.name,
+                            topic,
+                        );
+                        log::error!("[{}] {}", self.name, serde_json::to_string(&msg.payload)?);
+                        Err(err)?
+                    }
+                    topic => {
+                        log::error!(
+                            "[{}] Failed to parse (non-critical) z2m bridge message on [{}]:",
+                            self.name,
+                            topic
+                        );
+                        log::error!("{}", serde_json::to_string(&msg.payload)?);
+
+                        /* Suppress this non-critical error, to avoid breaking the event loop */
+                        Ok(())
+                    }
+                }
             }
         }
     }
