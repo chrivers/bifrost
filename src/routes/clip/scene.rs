@@ -67,15 +67,7 @@ async fn put_scene(
     let upd: SceneUpdate = serde_json::from_value(put)?;
 
     if let Some(md) = upd.metadata {
-        lock.update::<Scene>(&id, |scn| {
-            if md.appdata.is_some() {
-                scn.metadata.appdata = md.appdata;
-            }
-            if md.image.is_some() {
-                scn.metadata.image = md.image;
-            }
-            scn.metadata.name = md.name;
-        })?;
+        lock.update::<Scene>(&id, |scn| scn.metadata += md)?;
     }
 
     let scene = lock.get::<Scene>(&rlink)?;
