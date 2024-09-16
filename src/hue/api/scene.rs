@@ -41,9 +41,12 @@ pub struct Scene {
     /*     dimming: [], */
     /*     effects: [] */
     /* }, */
+    #[serde(default, skip_serializing_if = "Value::is_null")]
     pub palette: Value,
     pub speed: f64,
     pub status: Option<SceneStatus>,
+    #[serde(default)]
+    pub recall: SceneRecall,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -56,6 +59,10 @@ pub struct SceneAction {
     pub dimming: Option<DimmingUpdate>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<On>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gradient: Option<Value>,
+    #[serde(default, skip_serializing_if = "Value::is_null")]
+    pub effects: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -68,6 +75,7 @@ pub struct SceneActionElement {
 pub struct SceneMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appdata: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image: Option<ResourceLink>,
     pub name: String,
 }
@@ -110,9 +118,12 @@ impl SceneUpdate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SceneRecall {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub action: Option<SceneStatusUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dimming: Option<DimmingUpdate>,
 }

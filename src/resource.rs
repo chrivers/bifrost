@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
-use serde_json::json;
+use serde_json::{json, Value};
 use tokio::sync::broadcast::{Receiver, Sender};
 use tokio::sync::Notify;
 use uuid::Uuid;
@@ -197,6 +197,8 @@ impl Resources {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::new(DeviceArchetype::BridgeV2, "Bifrost"),
             services: vec![link_bridge, link_zbdd, link_zbc],
+            identify: None,
+            usertest: None,
         };
 
         let bridge = Bridge {
@@ -209,6 +211,8 @@ impl Resources {
             product_data: DeviceProductData::hue_bridge_v2(),
             metadata: Metadata::new(DeviceArchetype::BridgeV2, "Bifrost Bridge Home"),
             services: vec![link_bridge],
+            identify: None,
+            usertest: None,
         };
 
         let bridge_home = BridgeHome {
@@ -219,6 +223,7 @@ impl Resources {
         let zbdd = ZigbeeDeviceDiscovery {
             owner: link_bridge_dev,
             status: String::from("ready"),
+            action: Value::Null,
         };
 
         let zbc = ZigbeeConnectivity {
@@ -229,7 +234,7 @@ impl Resources {
                 "status": "set",
                 "value": "channel_25",
             })),
-            extended_pan_id: String::from("0123456789abcdef"),
+            extended_pan_id: None,
         };
 
         self.add(&link_bridge_dev, Resource::Device(bridge_dev))?;
@@ -322,18 +327,29 @@ impl Resources {
 
             /* No id v1 */
             Resource::BehaviorInstance(_)
-            | Resource::Button(_)
-            | Resource::PublicImage(_)
-            | Resource::Zone(_)
+            | Resource::DevicePower(_)
+            | Resource::DeviceSoftwareUpdate(_)
             | Resource::BehaviorScript(_)
             | Resource::Bridge(_)
+            | Resource::Button(_)
             | Resource::Entertainment(_)
+            | Resource::EntertainmentConfiguration(_)
             | Resource::GeofenceClient(_)
             | Resource::Geolocation(_)
+            | Resource::GroupedMotion(_)
+            | Resource::GroupedLightLevel(_)
             | Resource::Homekit(_)
+            | Resource::LightLevel(_)
             | Resource::Matter(_)
+            | Resource::Motion(_)
+            | Resource::PrivateGroup(_)
+            | Resource::PublicImage(_)
+            | Resource::RelativeRotary(_)
             | Resource::SmartScene(_)
+            | Resource::Taurus(_)
+            | Resource::Temperature(_)
             | Resource::ZigbeeConnectivity(_)
+            | Resource::Zone(_)
             | Resource::ZigbeeDeviceDiscovery(_) => None,
         }
     }

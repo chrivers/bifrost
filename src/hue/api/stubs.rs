@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::hue::api::{DeviceArchetype, ResourceLink, SceneMetadata};
 use crate::hue::{best_guess_timezone, date_format};
@@ -35,6 +36,8 @@ pub struct ButtonData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub button_report: Option<ButtonReport>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_event: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub repeat_interval: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_values: Option<Value>,
@@ -42,21 +45,35 @@ pub struct ButtonData {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ButtonReport {
-    #[serde(with = "date_format::utc")]
+    #[serde(with = "date_format::utc_ms")]
     pub updated: DateTime<Utc>,
     pub event: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DollarRef {
-    #[serde(rename = "$ref")]
-    pub dref: String,
+    #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
+    pub dref: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DevicePower {
+    pub owner: ResourceLink,
+    pub power_state: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceSoftwareUpdate {
+    pub owner: ResourceLink,
+    pub state: Value,
+    pub problems: Vec<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BehaviorScript {
     pub configuration_schema: DollarRef,
     pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_number_instances: Option<u32>,
     pub metadata: Value,
     pub state_schema: DollarRef,
@@ -66,7 +83,25 @@ pub struct BehaviorScript {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BehaviorInstance {}
+pub struct BehaviorInstance {
+    pub configuration: Value,
+    #[serde(default)]
+    pub dependees: Vec<Value>,
+    pub enabled: bool,
+    pub last_error: String,
+    pub metadata: BehaviorInstanceMetadata,
+    pub script_id: Uuid,
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub migrated_from: Option<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BehaviorInstanceMetadata {
+    pub name: String,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Entertainment {
@@ -74,8 +109,68 @@ pub struct Entertainment {
     pub owner: ResourceLink,
     pub proxy: bool,
     pub renderer: bool,
-    pub renderer_reference: ResourceLink,
-    pub segments: EntertainmentSegments,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_streams: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub renderer_reference: Option<ResourceLink>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub segments: Option<EntertainmentSegments>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfiguration {
+    pub name: String,
+    pub configuration_type: String,
+    pub metadata: EntertainmentConfigurationMetadata,
+    pub status: String,
+    pub stream_proxy: EntertainmentConfigurationStreamProxy,
+    pub locations: EntertainmentConfigurationLocations,
+    pub light_services: Vec<ResourceLink>,
+    pub channels: Vec<EntertainmentConfigurationChannels>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationMetadata {
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationStreamProxy {
+    pub mode: String,
+    pub node: ResourceLink,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationLocations {
+    pub service_locations: Vec<EntertainmentConfigurationServiceLocations>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationServiceLocations {
+    pub equalization_factor: u32,
+    pub position: EntertainmentConfigurationPosition,
+    pub positions: Vec<EntertainmentConfigurationPosition>,
+    pub service: ResourceLink,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationChannels {
+    pub channel_id: u32,
+    pub position: EntertainmentConfigurationPosition,
+    pub members: Vec<EntertainmentConfigurationStreamMembers>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationPosition {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntertainmentConfigurationStreamMembers {
+    pub service: ResourceLink,
+    pub index: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -99,6 +194,23 @@ pub struct GeofenceClient {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Geolocation {
     pub is_configured: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sun_today: Option<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GroupedMotion {
+    pub owner: ResourceLink,
+    pub enabled: bool,
+    pub motion: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GroupedLightLevel {
+    pub owner: ResourceLink,
+    pub enabled: bool,
+    #[serde(default)]
+    pub light: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -121,13 +233,41 @@ impl Default for Homekit {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LightLevel {
+    pub enabled: bool,
+    pub light: Value,
+    pub owner: ResourceLink,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Matter {
     pub has_qr_code: bool,
     pub max_fabrics: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Motion {
+    pub enabled: bool,
+    pub owner: ResourceLink,
+    pub motion: Value,
+    #[serde(default)]
+    pub sensitivity: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PrivateGroup {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PublicImage {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RelativeRotary {
+    pub owner: ResourceLink,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub relative_rotary: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rotary_report: Option<Value>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SmartScene {
@@ -144,15 +284,21 @@ pub struct SmartScene {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Taurus {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ZigbeeConnectivityStatus {
+    Connected,
     ConnectivityIssue,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZigbeeConnectivity {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub channel: Option<Value>,
-    pub extended_pan_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extended_pan_id: Option<String>,
     pub mac_address: String,
     pub owner: ResourceLink,
     pub status: ZigbeeConnectivityStatus,
@@ -162,6 +308,9 @@ pub struct ZigbeeConnectivity {
 pub struct ZigbeeDeviceDiscovery {
     pub owner: ResourceLink,
     pub status: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Value::is_null")]
+    pub action: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -170,6 +319,13 @@ pub struct Zone {
     pub children: Vec<ResourceLink>,
     #[serde(default)]
     pub services: Vec<ResourceLink>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Temperature {
+    pub enabled: bool,
+    pub owner: ResourceLink,
+    pub temperature: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

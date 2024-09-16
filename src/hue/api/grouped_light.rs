@@ -1,13 +1,23 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::hue::api::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate, On, ResourceLink};
+use crate::hue::api::{ColorTemperatureUpdate, ColorUpdate, DimmingUpdate, On, ResourceLink, Stub};
 use crate::model::types::XY;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupedLight {
     pub alert: Value,
     pub dimming: Option<DimmingUpdate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<Stub>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature: Option<Stub>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature_delta: Option<Stub>,
+    #[serde(default)]
+    pub dimming_delta: Stub,
+    #[serde(default)]
+    pub dynamics: Stub,
     pub on: Option<On>,
     pub owner: ResourceLink,
     pub signaling: Value,
@@ -19,6 +29,11 @@ impl GroupedLight {
         Self {
             alert: Value::Null,
             dimming: None,
+            color: Some(Stub {}),
+            color_temperature: Some(Stub {}),
+            color_temperature_delta: Some(Stub {}),
+            dimming_delta: Stub {},
+            dynamics: Stub {},
             on: None,
             owner: room,
             signaling: Value::Null,

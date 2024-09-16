@@ -22,9 +22,9 @@ use crate::hue;
 use crate::hue::api::{
     Button, ButtonData, ButtonMetadata, ButtonReport, ColorTemperature, ColorTemperatureUpdate,
     ColorUpdate, Device, DeviceArchetype, DeviceProductData, Dimming, DimmingUpdate, GroupedLight,
-    Light, LightColor, LightUpdate, Metadata, RType, Resource, ResourceLink, Room, RoomArchetype,
-    RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata, SceneStatus,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    Light, LightColor, LightMetadata, LightUpdate, Metadata, RType, Resource, ResourceLink, Room,
+    RoomArchetype, RoomMetadata, Scene, SceneAction, SceneActionElement, SceneMetadata,
+    SceneRecall, SceneStatus, ZigbeeConnectivity, ZigbeeConnectivityStatus,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -83,12 +83,14 @@ impl Client {
         let link_light = RType::Light.deterministic(&dev.ieee_address);
 
         let product_data = DeviceProductData::guess_from_device(dev);
-        let metadata = Metadata::new(DeviceArchetype::SpotBulb, name);
+        let metadata = LightMetadata::new(DeviceArchetype::SpotBulb, name);
 
         let dev = hue::api::Device {
             product_data,
-            metadata: metadata.clone(),
+            metadata: metadata.clone().into(),
             services: vec![link_light],
+            identify: None,
+            usertest: None,
         };
 
         self.map.insert(name.to_string(), link_light.rid);
@@ -131,6 +133,8 @@ impl Client {
             product_data: DeviceProductData::guess_from_device(dev),
             metadata: Metadata::new(DeviceArchetype::UnknownArchetype, "foo"),
             services: vec![link_button, link_zbc],
+            identify: None,
+            usertest: None,
         };
 
         self.map.insert(name.to_string(), link_button.rid);
@@ -141,6 +145,7 @@ impl Client {
             owner: link_device,
             metadata: ButtonMetadata { control_id: 0 },
             button: ButtonData {
+                last_event: None,
                 button_report: Some(ButtonReport {
                     updated: Utc::now(),
                     event: String::from("initial_press"),
@@ -158,7 +163,7 @@ impl Client {
                 "status": "set",
                 "value": "channel_25",
             })),
-            extended_pan_id: String::from("0123456789abcdef"),
+            extended_pan_id: None,
         };
 
         res.add(&link_device, Resource::Device(dev))?;
@@ -220,6 +225,11 @@ impl Client {
                     "effects": [],
                 }),
                 speed: 0.5,
+                recall: SceneRecall {
+                    action: None,
+                    dimming: None,
+                    duration: None,
+                },
                 status: Some(SceneStatus::Inactive),
             };
 
@@ -346,6 +356,8 @@ impl Client {
                         color_temperature,
                         dimming: light.as_dimming_opt(),
                         on: Some(light.on),
+                        gradient: None,
+                        effects: json!({}),
                     },
                 );
             }

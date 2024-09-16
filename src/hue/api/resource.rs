@@ -15,17 +15,29 @@ pub enum RType {
     BridgeHome,
     Button,
     Device,
+    DevicePower,
+    DeviceSoftwareUpdate,
     Entertainment,
+    EntertainmentConfiguration,
     GeofenceClient,
     Geolocation,
     GroupedLight,
+    GroupedLightLevel,
+    GroupedMotion,
     Homekit,
     Light,
+    LightLevel,
     Matter,
+    Motion,
+    PrivateGroup,
     PublicImage,
+    RelativeRotary,
     Room,
     Scene,
     SmartScene,
+    #[serde(rename = "taurus_7455")]
+    Taurus,
+    Temperature,
     ZigbeeConnectivity,
     ZigbeeDeviceDiscovery,
     Zone,
@@ -63,6 +75,7 @@ impl RType {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResourceRecord {
     pub id: Uuid,
+    #[serde(skip_serializing_if = "Option::is_none")]
     id_v1: Option<String>,
     #[serde(flatten)]
     pub obj: Resource,
