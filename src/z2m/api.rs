@@ -401,7 +401,7 @@ pub struct ExposeBinary {
     pub property: String,
 
     pub name: String,
-    pub label: String,
+    pub label: Option<String>,
     pub description: Option<String>,
 
     pub value_off: Value,
@@ -411,11 +411,11 @@ pub struct ExposeBinary {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExposeComposite {
-    pub access: u8,
+    pub access: Option<u8>,
     pub property: String,
 
     pub name: String,
-    pub label: String,
+    pub label: Option<String>,
     pub description: Option<String>,
 
     pub category: Option<String>,
@@ -430,7 +430,7 @@ pub struct ExposeEnum {
     pub property: String,
 
     pub name: String,
-    pub label: String,
+    pub label: Option<String>,
     pub description: Option<String>,
 
     pub category: Option<String>,
@@ -445,7 +445,7 @@ pub struct ExposeLight {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExposeLock {
     pub features: Vec<Expose>,
-    pub label: String,
+    pub label: Option<String>,
 }
 
 impl ExposeLight {
@@ -463,7 +463,7 @@ pub struct ExposeNumeric {
     pub access: u8,
     pub property: String,
     pub name: String,
-    pub label: String,
+    pub label: Option<String>,
 
     pub description: Option<String>,
 
