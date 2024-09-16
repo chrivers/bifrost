@@ -96,6 +96,7 @@ pub struct BridgeEvent {
 pub struct BridgeLogging {
     pub level: String,
     pub message: String,
+    pub topic: Option<String>,
 }
 
 type BridgeGroups = Vec<Group>;
