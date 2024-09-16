@@ -6,8 +6,8 @@ use serde_json::Value;
 use crate::hue::api::On;
 use crate::model::types::XY;
 
+#[allow(clippy::pub_underscore_fields)]
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(deny_unknown_fields)]
 pub struct DeviceUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<DeviceState>,
@@ -42,6 +42,11 @@ pub struct DeviceUpdate {
     pub battery: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transition: Option<f64>,
+
+    /* all other fields */
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, flatten)]
+    pub __: HashMap<String, Value>,
 }
 
 impl DeviceUpdate {
@@ -53,7 +58,13 @@ impl DeviceUpdate {
     #[must_use]
     pub fn with_state(self, state: Option<bool>) -> Self {
         Self {
-            state: state.map(DeviceState::from),
+            state: state.map(|on| {
+                if on {
+                    DeviceState::On
+                } else {
+                    DeviceState::Off
+                }
+            }),
             ..self
         }
     }
@@ -97,7 +108,7 @@ pub struct DeviceColor {
     pub saturation: Option<f64>,
 
     #[serde(flatten)]
-    pub xy: XY,
+    pub xy: Option<XY>,
 }
 
 impl DeviceColor {
@@ -108,7 +119,7 @@ impl DeviceColor {
             s: None,
             hue: None,
             saturation: None,
-            xy,
+            xy: Some(xy),
         }
     }
 
@@ -119,7 +130,7 @@ impl DeviceColor {
             s: None,
             hue: Some(h),
             saturation: Some(s),
-            xy: XY::new(0.0, 0.0),
+            xy: None,
         }
     }
 }
@@ -181,34 +192,19 @@ pub enum DeviceColorMode {
     Xy,
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum DeviceState {
     On,
     Off,
-}
-
-impl From<bool> for DeviceState {
-    fn from(value: bool) -> Self {
-        if value {
-            Self::On
-        } else {
-            Self::Off
-        }
-    }
-}
-
-impl From<DeviceState> for bool {
-    fn from(value: DeviceState) -> Self {
-        match value {
-            DeviceState::On => true,
-            DeviceState::Off => false,
-        }
-    }
+    Lock,
+    Unlock,
 }
 
 impl From<DeviceState> for On {
     fn from(value: DeviceState) -> Self {
-        Self { on: value.into() }
+        Self {
+            on: value == DeviceState::On,
+        }
     }
 }

@@ -42,6 +42,13 @@ pub enum Message {
     BridgeExtensions(Value),
 }
 
+#[derive(Serialize, Deserialize, Clone, Hash, Debug, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum Availability {
+    Online,
+    Offline,
+}
+
 #[derive(Serialize, Deserialize, Clone, Hash)]
 #[serde(transparent)]
 pub struct IeeeAddress(#[serde(deserialize_with = "ieee_address")] u64);
@@ -89,6 +96,7 @@ pub struct BridgeEvent {
 pub struct BridgeLogging {
     pub level: String,
     pub message: String,
+    pub topic: Option<String>,
 }
 
 type BridgeGroups = Vec<Group>;
@@ -209,7 +217,7 @@ pub struct ConfigAdvanced {
     pub channel: i64,
     pub elapsed: bool,
     pub ext_pan_id: Vec<i64>,
-    pub homeassistant_legacy_entity_attributes: bool,
+    pub homeassistant_legacy_entity_attributes: Option<bool>,
     pub last_seen: String,
     pub legacy_api: bool,
     pub legacy_availability_payload: bool,
@@ -294,8 +302,8 @@ pub enum PowerSource {
 
 pub type BridgeDevices = Vec<Device>;
 
+#[allow(clippy::pub_underscore_fields)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Device {
     pub description: Option<String>,
     pub date_code: Option<String>,
@@ -315,6 +323,11 @@ pub struct Device {
     pub supported: Option<bool>,
     #[serde(rename = "type")]
     pub device_type: String,
+
+    /* all other fields */
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, flatten)]
+    pub __: HashMap<String, Value>,
 }
 
 impl Device {
