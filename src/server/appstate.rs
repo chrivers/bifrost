@@ -37,7 +37,7 @@ impl AppState {
 
         if let Ok(fd) = File::open(&config.bifrost.state_file) {
             log::debug!("Existing state file found, loading..");
-            let yaml = serde_yaml::from_reader(fd)?;
+            let yaml = serde_yml::from_reader(fd)?;
             let state = match State::version(&yaml)? {
                 StateVersion::V0 => {
                     log::info!("Detected state file version 0. Upgrading to new version..");

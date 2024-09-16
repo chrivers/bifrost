@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, io::Read};
 
 use serde::{Deserialize, Serialize};
-use serde_yaml::Value;
+use serde_yml::Value;
 use uuid::Uuid;
 
 use crate::{
@@ -126,8 +126,8 @@ impl State {
     }
 
     pub fn from_v0(state: Value) -> ApiResult<Self> {
-        let (v0res, v0aux): (serde_yaml::Mapping, serde_yaml::Mapping) =
-            serde_yaml::from_value(state)?;
+        let (v0res, v0aux): (serde_yml::Mapping, serde_yml::Mapping) =
+            serde_yml::from_value(state)?;
 
         let mut aux = BTreeMap::new();
         let mut res = BTreeMap::new();
@@ -135,13 +135,13 @@ impl State {
         log::debug!("Importing aux data from old v0 state..");
         for (key, value) in v0aux {
             log::debug!("  {key:?}: {value:?}");
-            aux.insert(serde_yaml::from_value(key)?, serde_yaml::from_value(value)?);
+            aux.insert(serde_yml::from_value(key)?, serde_yml::from_value(value)?);
         }
 
         log::debug!("Importing res data from old v0 state..");
         for (key, value) in v0res {
             log::debug!("  {key:?}: {value:?}");
-            res.insert(serde_yaml::from_value(key)?, serde_yaml::from_value(value)?);
+            res.insert(serde_yml::from_value(key)?, serde_yml::from_value(value)?);
         }
 
         /* generate all missing id_v1 entries */
@@ -161,11 +161,11 @@ impl State {
     }
 
     pub fn from_v1(state: Value) -> ApiResult<Self> {
-        Ok(serde_yaml::from_value(state)?)
+        Ok(serde_yml::from_value(state)?)
     }
 
     pub fn from_reader(rdr: impl Read) -> ApiResult<Self> {
-        let state = serde_yaml::from_reader(rdr)?;
+        let state = serde_yml::from_reader(rdr)?;
         match Self::version(&state)? {
             StateVersion::V0 => Self::from_v0(state),
             StateVersion::V1 => Self::from_v1(state),
