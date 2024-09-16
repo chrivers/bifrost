@@ -77,11 +77,11 @@ async fn put_scene(
             let scenes = lock.get_scenes_for_room(&scene.group.rid);
             for rid in scenes {
                 lock.update::<Scene>(&rid, |scn| {
-                    if rid == id {
-                        scn.status = Some(SceneStatus::Static);
+                    scn.status = if rid == id {
+                        Some(SceneStatus::Static)
                     } else {
-                        scn.status = Some(SceneStatus::Inactive);
-                    }
+                        Some(SceneStatus::Inactive)
+                    };
                 })?;
             }
 
