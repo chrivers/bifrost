@@ -67,7 +67,7 @@ async fn put_scene(
     let upd: SceneUpdate = serde_json::from_value(put)?;
 
     if let Some(md) = upd.metadata {
-        lock.update(&id, |scn: &mut Scene| {
+        lock.update::<Scene>(&id, |scn| {
             if md.appdata.is_some() {
                 scn.metadata.appdata = md.appdata;
             }
@@ -84,7 +84,7 @@ async fn put_scene(
         if recall.action == Some(SceneStatusUpdate::Active) {
             let scenes = lock.get_scenes_for_room(&scene.group.rid);
             for rid in scenes {
-                lock.update(&rid, |scn: &mut Scene| {
+                lock.update::<Scene>(&rid, |scn| {
                     if rid == id {
                         scn.status = Some(SceneStatus::Static);
                     } else {
