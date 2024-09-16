@@ -2,6 +2,7 @@
 ARG RUST_VERSION=1.80.1
 FROM rust:${RUST_VERSION}-slim-bookworm AS build
 WORKDIR /app
+COPY LICENSE LICENSE
 
 RUN --mount=type=bind,source=src,target=src \
     --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
