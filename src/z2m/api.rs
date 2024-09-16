@@ -302,8 +302,8 @@ pub enum PowerSource {
 
 pub type BridgeDevices = Vec<Device>;
 
+#[allow(clippy::pub_underscore_fields)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Device {
     pub description: Option<String>,
     pub date_code: Option<String>,
@@ -323,6 +323,11 @@ pub struct Device {
     pub supported: Option<bool>,
     #[serde(rename = "type")]
     pub device_type: String,
+
+    /* all other fields */
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, flatten)]
+    pub __: HashMap<String, Value>,
 }
 
 impl Device {

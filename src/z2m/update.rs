@@ -6,8 +6,8 @@ use serde_json::Value;
 use crate::hue::api::On;
 use crate::model::types::XY;
 
+#[allow(clippy::pub_underscore_fields)]
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(deny_unknown_fields)]
 pub struct DeviceUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<DeviceState>,
@@ -42,6 +42,11 @@ pub struct DeviceUpdate {
     pub battery: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transition: Option<f64>,
+
+    /* all other fields */
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    #[serde(default, flatten)]
+    pub __: HashMap<String, Value>,
 }
 
 impl DeviceUpdate {
