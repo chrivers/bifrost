@@ -719,7 +719,7 @@ fn guess_scene_icon(name: &str) -> Option<ResourceLink> {
         "Read" => scene_icons::READ,
         "Cool Bright" => scene_icons::COOL_BRIGHT,
 
-        /* Aliasas */
+        /* Aliases */
         "Night" => scene_icons::NIGHT_LIGHT,
         "Cool" => scene_icons::COOL_BRIGHT,
         "Dim" => scene_icons::DIMMED,
