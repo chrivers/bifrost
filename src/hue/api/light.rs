@@ -3,7 +3,7 @@ use std::ops::{AddAssign, Sub};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::hue::api::{Metadata, ResourceLink};
+use crate::hue::api::{Metadata, MetadataUpdate, ResourceLink};
 use crate::model::types::XY;
 use crate::z2m::api::Expose;
 
@@ -65,7 +65,16 @@ impl Light {
 
 impl AddAssign<LightUpdate> for Light {
     fn add_assign(&mut self, upd: LightUpdate) {
-        if let Some(state) = &upd.on {
+        if let Some(md) = upd.metadata {
+            if let Some(name) = md.name {
+                self.metadata.name = name;
+            }
+            if let Some(archetype) = md.archetype {
+                self.metadata.archetype = archetype;
+            }
+        }
+
+        if let Some(state) = upd.on {
             self.on.on = state.on;
         }
 
@@ -90,16 +99,27 @@ impl AddAssign<LightUpdate> for Light {
     }
 }
 
+#[allow(clippy::if_not_else)]
 impl Sub<&Light> for &Light {
     type Output = LightUpdate;
 
     fn sub(self, rhs: &Light) -> Self::Output {
-        let mut upd = Self::Output {
-            on: None,
-            dimming: None,
-            color: None,
-            color_temperature: None,
-        };
+        let mut upd = Self::Output::default();
+
+        if self.metadata != rhs.metadata {
+            upd.metadata = Some(MetadataUpdate {
+                name: if self.metadata.name != rhs.metadata.name {
+                    Some(rhs.metadata.name.clone())
+                } else {
+                    None
+                },
+                archetype: if self.metadata.archetype != rhs.metadata.archetype {
+                    Some(rhs.metadata.archetype.clone())
+                } else {
+                    None
+                },
+            });
+        }
 
         if self.on != rhs.on {
             upd.on = Some(rhs.on);
@@ -192,6 +212,8 @@ pub struct LightTimedEffects {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct LightUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<MetadataUpdate>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub on: Option<On>,
     #[serde(skip_serializing_if = "Option::is_none")]

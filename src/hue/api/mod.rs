@@ -7,7 +7,7 @@ mod scene;
 mod stubs;
 mod update;
 
-pub use device::{Device, DeviceArchetype, DeviceProductData};
+pub use device::{Device, DeviceArchetype, DeviceProductData, DeviceUpdate};
 pub use grouped_light::{GroupedLight, GroupedLightUpdate};
 pub use light::{
     ColorGamut, ColorTemperature, ColorTemperatureUpdate, ColorUpdate, Delta, Dimming,
@@ -22,8 +22,9 @@ pub use scene::{
 pub use stubs::{
     BehaviorInstance, BehaviorScript, Bridge, BridgeHome, Button, ButtonData, ButtonMetadata,
     ButtonReport, DollarRef, Entertainment, EntertainmentSegment, EntertainmentSegments,
-    GeofenceClient, Geolocation, Homekit, Matter, Metadata, PublicImage, SmartScene, TimeZone,
-    ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery, Zone,
+    GeofenceClient, Geolocation, Homekit, Matter, Metadata, MetadataUpdate, PublicImage,
+    SmartScene, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, ZigbeeDeviceDiscovery,
+    Zone,
 };
 pub use update::{Update, UpdateRecord};
 

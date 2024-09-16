@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::hue::api::{Metadata, RType, ResourceLink};
+use crate::hue::api::{Metadata, MetadataUpdate, RType, ResourceLink};
 use crate::z2m;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -8,6 +8,12 @@ pub struct Device {
     pub product_data: DeviceProductData,
     pub metadata: Metadata,
     pub services: Vec<ResourceLink>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct DeviceUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<MetadataUpdate>,
 }
 
 impl Device {
@@ -67,7 +73,24 @@ impl DeviceProductData {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+impl DeviceUpdate {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub fn with_metadata(self, metadata: Metadata) -> Self {
+        Self {
+            metadata: Some(MetadataUpdate {
+                archetype: Some(metadata.archetype),
+                name: Some(metadata.name),
+            }),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum DeviceArchetype {
     BridgeV2,
