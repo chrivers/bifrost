@@ -42,6 +42,13 @@ pub enum Message {
     BridgeExtensions(Value),
 }
 
+#[derive(Serialize, Deserialize, Clone, Hash, Debug, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum Availability {
+    Online,
+    Offline,
+}
+
 #[derive(Serialize, Deserialize, Clone, Hash)]
 #[serde(transparent)]
 pub struct IeeeAddress(#[serde(deserialize_with = "ieee_address")] u64);
