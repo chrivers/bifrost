@@ -1,3 +1,5 @@
+use std::ops::{AddAssign, Sub};
+
 use serde::{Deserialize, Serialize};
 
 use crate::hue::api::{Metadata, MetadataUpdate, RType, ResourceLink};
@@ -87,6 +89,45 @@ impl DeviceUpdate {
                 name: Some(metadata.name),
             }),
         }
+    }
+}
+
+impl AddAssign<DeviceUpdate> for Device {
+    fn add_assign(&mut self, upd: DeviceUpdate) {
+        if let Some(md) = upd.metadata {
+            if let Some(name) = md.name {
+                self.metadata.name = name;
+            }
+            if let Some(archetype) = md.archetype {
+                self.metadata.archetype = archetype;
+            }
+        }
+    }
+}
+
+#[allow(clippy::if_not_else)]
+impl Sub<&Device> for &Device {
+    type Output = DeviceUpdate;
+
+    fn sub(self, rhs: &Device) -> Self::Output {
+        let mut upd = Self::Output::default();
+
+        if self.metadata != rhs.metadata {
+            upd.metadata = Some(MetadataUpdate {
+                name: if self.metadata.name != rhs.metadata.name {
+                    Some(rhs.metadata.name.clone())
+                } else {
+                    None
+                },
+                archetype: if self.metadata.archetype != rhs.metadata.archetype {
+                    Some(rhs.metadata.archetype.clone())
+                } else {
+                    None
+                },
+            });
+        }
+
+        upd
     }
 }
 
