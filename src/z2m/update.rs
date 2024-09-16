@@ -58,7 +58,13 @@ impl DeviceUpdate {
     #[must_use]
     pub fn with_state(self, state: Option<bool>) -> Self {
         Self {
-            state: state.map(DeviceState::from),
+            state: state.map(|on| {
+                if on {
+                    DeviceState::On
+                } else {
+                    DeviceState::Off
+                }
+            }),
             ..self
         }
     }
@@ -186,34 +192,19 @@ pub enum DeviceColorMode {
     Xy,
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone)]
+#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum DeviceState {
     On,
     Off,
-}
-
-impl From<bool> for DeviceState {
-    fn from(value: bool) -> Self {
-        if value {
-            Self::On
-        } else {
-            Self::Off
-        }
-    }
-}
-
-impl From<DeviceState> for bool {
-    fn from(value: DeviceState) -> Self {
-        match value {
-            DeviceState::On => true,
-            DeviceState::Off => false,
-        }
-    }
+    Lock,
+    Unlock,
 }
 
 impl From<DeviceState> for On {
     fn from(value: DeviceState) -> Self {
-        Self { on: value.into() }
+        Self {
+            on: value == DeviceState::On,
+        }
     }
 }
