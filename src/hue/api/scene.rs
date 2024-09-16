@@ -143,10 +143,10 @@ impl Sub<&SceneMetadata> for &SceneMetadata {
 
         if self != rhs {
             if self.appdata != rhs.appdata {
-                upd.appdata = rhs.appdata.clone();
+                upd.appdata.clone_from(&rhs.appdata);
             }
             if self.image != rhs.image {
-                upd.image = rhs.image.clone();
+                upd.image.clone_from(&rhs.image);
             }
             if self.name != rhs.name {
                 upd.name = Some(rhs.name.clone());
