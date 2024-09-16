@@ -14,7 +14,9 @@ pub struct GroupedLight {
     pub color_temperature: Option<Stub>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color_temperature_delta: Option<Stub>,
+    #[serde(default)]
     pub dimming_delta: Stub,
+    #[serde(default)]
     pub dynamics: Stub,
     pub on: Option<On>,
     pub owner: ResourceLink,

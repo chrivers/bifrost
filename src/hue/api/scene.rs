@@ -45,6 +45,7 @@ pub struct Scene {
     pub palette: Value,
     pub speed: f64,
     pub status: Option<SceneStatus>,
+    #[serde(default)]
     pub recall: SceneRecall,
 }
 
@@ -117,7 +118,7 @@ impl SceneUpdate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SceneRecall {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub action: Option<SceneStatusUpdate>,
