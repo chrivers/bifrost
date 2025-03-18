@@ -34,7 +34,7 @@ To install Bifrost from source, you will need the following:
 First, install a few necessary build dependencies:
 
 ```sh
-sudo apt install build-essential pkg-config libssl-dev
+sudo apt install build-essential pkg-config libssl3 libssl-dev
 ```
 
 When you have these things available, install bifrost:
