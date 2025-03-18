@@ -55,9 +55,11 @@ bridge:
 #
 # Make a sub-section for each zigbee2mqtt server you want to connect
 #
-# The server names ("some-server", "other-server") are used for logging,
-# but have no functional impact. Just be sure to pick different names,
-# if you have more than one server.
+# The server names ("some-server", "other-with-tls") are used for logging,
+# but have no functional impact.
+#
+# NOTE: Be sure to use DIFFERENT names for different servers.
+# Otherwise the yaml parser will consider it the same server!
 z2m:
   some-server:
     # The websocket url for z2m, starting with "ws://".
@@ -103,9 +105,12 @@ z2m:
     # If you specify this parameter, *only* groups with this prefix
     # will be visible from this z2m server. The prefix will be removed.
     #
-    # So with a group_prefix of "bifrost_", the group "bifrost_kitchen"
-    # will be available as "kitchen", but the group "living_room" will
-    # be hidden instead.
+    # Example:
+    #
+    #   With a group_prefix of "bifrost_", the group "bifrost_kitchen"
+    #   will be available as "kitchen", but the group "living_room" will
+    #   be hidden instead.
+    #
     group_prefix: bifrost_
   ...
 
