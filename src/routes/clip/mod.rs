@@ -1,3 +1,4 @@
+pub mod behavior_instance;
 pub mod device;
 pub mod entertainment;
 pub mod entertainment_configuration;
@@ -54,5 +55,6 @@ pub fn router() -> Router<AppState> {
             entertainment_configuration::router(),
         )
         .nest("/entertainment/", entertainment::router())
+        .nest("/behavior_instance", behavior_instance::router())
         .merge(generic::router())
 }

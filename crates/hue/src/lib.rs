@@ -5,6 +5,7 @@ pub mod clamp;
 pub mod colorspace;
 pub mod date_format;
 pub mod devicedb;
+pub mod effect_duration;
 pub mod error;
 pub mod event;
 pub mod flags;

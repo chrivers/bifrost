@@ -314,6 +314,7 @@ dependencies = [
  "tokio-stream",
  "tokio-tungstenite",
  "tokio-util",
+ "tokio_schedule",
  "tower 0.5.2",
  "tower-http",
  "tracing",
@@ -408,8 +409,10 @@ checksum = "7e36cc9d416881d2e24f9a963be5fb1cd90966419ac844274161d10488b3e825"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets",
 ]
 
@@ -2600,6 +2603,16 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
+name = "tokio_schedule"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61c291c554da3518d6ef69c76ea35aabc78f736185a16b6017f6d1c224dac2e0"
+dependencies = [
+ "chrono",
  "tokio",
 ]
 

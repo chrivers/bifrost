@@ -6,11 +6,13 @@ use crate::api::{
     RoomUpdate, SceneUpdate,
 };
 
+use super::BehaviorInstanceUpdate;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Update {
     /* BehaviorScript(BehaviorScriptUpdate), */
-    /* BehaviorInstance(BehaviorInstanceUpdate), */
+    BehaviorInstance(BehaviorInstanceUpdate),
     /* Bridge(BridgeUpdate), */
     /* BridgeHome(BridgeHomeUpdate), */
     Device(DeviceUpdate),
@@ -41,6 +43,7 @@ impl Update {
             Self::Light(_) => RType::Light,
             Self::Room(_) => RType::Room,
             Self::Scene(_) => RType::Scene,
+            Self::BehaviorInstance(_) => RType::BehaviorInstance,
         }
     }
 
@@ -53,6 +56,7 @@ impl Update {
             Self::Device(_) => Some(format!("/device/{id}")),
             Self::Light(_) => Some(format!("/lights/{id}")),
             Self::Scene(_) => Some(format!("/scenes/{uuid}")),
+            Self::BehaviorInstance(_) => Some(format!("/behavior_instance/{uuid}")),
         }
     }
 }

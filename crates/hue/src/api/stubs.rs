@@ -1,9 +1,8 @@
 use std::collections::BTreeSet;
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
 
 use crate::api::{DeviceArchetype, ResourceLink, SceneMetadata};
 use crate::{best_guess_timezone, date_format};
@@ -69,51 +68,6 @@ pub struct DeviceSoftwareUpdate {
     pub owner: ResourceLink,
     pub state: Value,
     pub problems: Vec<Value>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BehaviorScript {
-    pub configuration_schema: DollarRef,
-    pub description: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_number_instances: Option<u32>,
-    pub metadata: Value,
-    pub state_schema: DollarRef,
-    pub supported_features: Vec<String>,
-    pub trigger_schema: DollarRef,
-    pub version: String,
-}
-
-fn deserialize_optional_field<'de, D>(deserializer: D) -> Result<Option<Value>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(Some(Value::deserialize(deserializer)?))
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BehaviorInstance {
-    pub configuration: Value,
-    #[serde(default)]
-    pub dependees: Vec<Value>,
-    pub enabled: bool,
-    pub last_error: Option<String>,
-    pub metadata: BehaviorInstanceMetadata,
-    pub script_id: Uuid,
-    pub status: Option<String>,
-    #[serde(
-        default,
-        deserialize_with = "deserialize_optional_field",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub state: Option<Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub migrated_from: Option<Value>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BehaviorInstanceMetadata {
-    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

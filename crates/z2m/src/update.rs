@@ -112,6 +112,11 @@ impl DeviceUpdate {
             ..self
         }
     }
+
+    #[must_use]
+    pub fn with_transition(self, transition: Option<f64>) -> Self {
+        Self { transition, ..self }
+    }
 }
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone)]

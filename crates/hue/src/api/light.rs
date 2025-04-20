@@ -461,6 +461,7 @@ pub enum LightEffect {
     Cosmos,
     Sunbeam,
     Enchant,
+    Sunrise,
 }
 
 impl LightEffect {
@@ -579,6 +580,9 @@ pub struct LightUpdate {
     pub gradient: Option<LightGradientUpdate>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effects_v2: Option<LightEffectsV2Update>,
+
+    #[serde(skip)]
+    pub transition: Option<f64>,
 }
 
 impl LightUpdate {
@@ -634,6 +638,14 @@ impl LightUpdate {
                 mode: None,
                 points: colors.into_iter().map(LightGradientPoint::xy).collect(),
             }),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn with_transition(self, transition: Option<impl Into<f64>>) -> Self {
+        Self {
+            transition: transition.map(Into::into),
             ..self
         }
     }

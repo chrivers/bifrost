@@ -4,6 +4,7 @@ pub mod certificate;
 pub mod entertainment;
 pub mod http;
 pub mod hueevents;
+pub mod scheduler;
 pub mod updater;
 
 use std::fs::File;
@@ -18,6 +19,7 @@ use axum::routing::IntoMakeService;
 use axum::{Router, ServiceExt};
 
 use camino::Utf8PathBuf;
+use scheduler::Scheduler;
 use tokio::select;
 use tokio::sync::Mutex;
 use tokio::time::{sleep_until, MissedTickBehavior};
@@ -127,5 +129,32 @@ pub async fn version_updater(
             version.clone_from(new_version);
             res.lock().await.update_bridge_version(version.clone());
         }
+    }
+}
+
+pub async fn scheduler(res: Arc<Mutex<Resources>>) -> ApiResult<()> {
+    const STABILIZE_TIME: Duration = Duration::from_secs(1);
+
+    let rx = res.lock().await.state_channel();
+    let mut scheduler = Scheduler::new(res);
+
+    scheduler.update().await;
+
+    loop {
+        /* Wait for change notification */
+        rx.notified().await;
+
+        /* Updates often happen in burst, and we don't want to write the state
+         * file over and over, so ignore repeated update notifications within
+         * STABILIZE_TIME */
+        let deadline = tokio::time::Instant::now() + STABILIZE_TIME;
+        loop {
+            select! {
+                () = rx.notified() => {},
+                () = sleep_until(deadline) => break,
+            }
+        }
+
+        scheduler.update().await;
     }
 }
