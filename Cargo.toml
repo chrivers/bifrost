@@ -88,7 +88,6 @@ clap = { version = "4.5.29", features = ["std", "color", "derive", "help", "usag
 config = { version = "0.15.8", default-features = false, features = ["yaml"] }
 futures = "0.3.31"
 hyper = "1.6.0"
-iana-time-zone = "0.1.61"
 log = "0.4.25"
 mac_address = { version = "1.1.8", features = ["serde"] }
 mdns-sd = "0.13.2"
@@ -134,9 +133,9 @@ tokio-ssdp = { git = "https://github.com/chrivers/tokio-ssdp.git", rev = "00fc29
 udp-stream = { git = "https://github.com/chrivers/udp-stream.git", rev = "da6c76bb" }
 native-tls = "0.2.13"
 tokio-native-tls = "0.3.1"
-tzfile = "0.1.3"
 bifrost-api = { version = "0.1.0", path = "crates/bifrost-api", features = ["mac"] }
 nix = { version = "0.30.0", default-features = false, features = ["socket"] }
+chrono-tz = "0.10.3"
 
 [dev-dependencies]
 clap-stdin = "0.6.0"

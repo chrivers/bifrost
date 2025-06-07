@@ -1,11 +1,12 @@
 use std::collections::BTreeSet;
 
 use chrono::{DateTime, Utc};
+use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::api::{DeviceArchetype, LightFunction, ResourceLink, SceneMetadata};
-use crate::{best_guess_timezone, date_format};
+use crate::date_format;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Bridge {
@@ -210,15 +211,12 @@ pub struct Temperature {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimeZone {
-    pub time_zone: String,
+    pub time_zone: Tz,
 }
 
-impl TimeZone {
-    #[must_use]
-    pub fn best_guess() -> Self {
-        Self {
-            time_zone: best_guess_timezone(),
-        }
+impl From<Tz> for TimeZone {
+    fn from(tz: Tz) -> Self {
+        Self { time_zone: tz }
     }
 }
 

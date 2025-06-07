@@ -27,6 +27,7 @@ hue = { version = "0.1.0", path = "../hue", default-features = false, features =
 svc = { version = "0.1.0", path = "../svc", default-features = false }
 
 mac_address = { version = "1.1.8", optional = true }
+chrono-tz = { version = "0.10.3", features = ["serde"] }
 
 [features]
 default = []

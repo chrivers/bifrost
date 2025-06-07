@@ -34,11 +34,6 @@ pub const HUE_BRIDGE_V2_MODEL_ID: &str = "BSB002";
 pub const HUE_BRIDGE_V2_DEFAULT_SWVERSION: u64 = 1_970_084_010;
 pub const HUE_BRIDGE_V2_DEFAULT_APIVERSION: &str = "1.70.0";
 
-#[must_use]
-pub fn best_guess_timezone() -> String {
-    iana_time_zone::get_timezone().unwrap_or_else(|_| "none".to_string())
-}
-
 #[cfg(feature = "mac")]
 #[must_use]
 pub fn bridge_id_raw(mac: MacAddress) -> [u8; 8] {
@@ -142,13 +137,6 @@ mod tests {
             HUE_BRIDGE_V2_DEFAULT_APIVERSION,
             ver.get_legacy_apiversion()
         );
-    }
-
-    #[test]
-    fn best_guess_timezone() {
-        let res = crate::best_guess_timezone();
-        assert!(!res.is_empty());
-        assert_ne!(res, "none");
     }
 
     #[test]

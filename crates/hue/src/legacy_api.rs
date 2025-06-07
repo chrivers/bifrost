@@ -1,14 +1,15 @@
 use std::{collections::HashMap, net::Ipv4Addr};
 
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
+use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use uuid::Uuid;
 
+use crate::api;
 use crate::api::{ColorGamut, DeviceProductData};
 use crate::date_format;
 use crate::hs::RawHS;
-use crate::{api, best_guess_timezone};
 
 #[cfg(feature = "mac")]
 use crate::version::SwVersion;
@@ -253,12 +254,18 @@ pub struct ApiConfig {
     pub ipaddress: Ipv4Addr,
     pub netmask: Ipv4Addr,
     pub gateway: Ipv4Addr,
-    pub timezone: String,
+    pub timezone: Tz,
     #[serde(with = "date_format::legacy_utc", rename = "UTC")]
     pub utc: DateTime<Utc>,
     #[serde(with = "date_format::legacy_naive")]
     pub localtime: NaiveDateTime,
     pub whitelist: HashMap<String, Whitelist>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct ApiConfigUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timezone: Option<Tz>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -796,7 +803,7 @@ impl Default for ApiConfig {
             ipaddress: Ipv4Addr::UNSPECIFIED,
             netmask: Ipv4Addr::UNSPECIFIED,
             gateway: Ipv4Addr::UNSPECIFIED,
-            timezone: best_guess_timezone(),
+            timezone: Tz::UTC,
             utc: Utc::now(),
             localtime: Local::now().naive_local(),
             whitelist: HashMap::new(),
@@ -899,12 +906,8 @@ impl Capabilities {
                 channels: 20,
             },
             timezones: json!({
-                "values": [
-                    "CET",
-                    "UTC",
-                    "GMT",
-                    "Europe/Copenhagen",
-                ],
+                "values":
+                 chrono_tz::TZ_VARIANTS.iter().collect::<Vec<_>>(),
             }),
         }
     }

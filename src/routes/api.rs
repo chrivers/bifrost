@@ -21,10 +21,10 @@ use hue::api::{
 };
 use hue::error::{HueApiV1Error, HueError, HueResult};
 use hue::legacy_api::{
-    ApiGroup, ApiGroupAction, ApiGroupActionUpdate, ApiGroupClass, ApiGroupNew, ApiGroupState,
-    ApiGroupType, ApiGroupUpdate2, ApiLight, ApiLightStateUpdate, ApiResourceType, ApiScene,
-    ApiSceneAppData, ApiSceneType, ApiSceneVersion, ApiSensor, ApiUserConfig, Capabilities,
-    HueApiResult, NewUser, NewUserReply,
+    ApiConfigUpdate, ApiGroup, ApiGroupAction, ApiGroupActionUpdate, ApiGroupClass, ApiGroupNew,
+    ApiGroupState, ApiGroupType, ApiGroupUpdate2, ApiLight, ApiLightStateUpdate, ApiResourceType,
+    ApiScene, ApiSceneAppData, ApiSceneType, ApiSceneVersion, ApiSensor, ApiUserConfig,
+    Capabilities, HueApiResult, NewUser, NewUserReply,
 };
 
 use crate::error::{ApiError, ApiResult};
@@ -331,12 +331,30 @@ async fn post_api_user_resource(
 }
 
 async fn put_api_user_resource(
-    Path((_username, _resource)): Path<(String, String)>,
+    State(state): State<AppState>,
+    Path((_username, resource)): Path<(String, ApiResourceType)>,
     Json(req): Json<Value>,
 ) -> ApiV1Result<Json<impl Serialize>> {
-    warn!("PUT v1 user resource {req:?}");
-    //Json(format!("user {username} resource {resource}"))
-    Ok(Json(vec![HueApiResult::Success(req)]))
+    let result = match resource {
+        ApiResourceType::Config => {
+            let upd: ApiConfigUpdate = serde_json::from_value(req.clone())?;
+            let mut config = (*state.config()).clone();
+
+            if let Some(timezone) = upd.timezone {
+                config.bridge.timezone = timezone;
+            }
+
+            // todo: persist config
+            state.replace_config(config);
+
+            vec![HueApiResult::Success(req)]
+        }
+        resource => {
+            warn!("PUT v1 user resource {resource:?} {req:?}");
+            vec![HueApiResult::Success(req)]
+        }
+    };
+    Ok(Json(result))
 }
 
 #[allow(clippy::significant_drop_tightening)]

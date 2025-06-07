@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
+use chrono_tz::Tz;
 use itertools::Itertools;
 use maplit::btreeset;
 use serde::Serialize;
@@ -14,7 +15,7 @@ use bifrost_api::backend::BackendRequest;
 use hue::api::{
     Bridge, BridgeHome, Device, DeviceArchetype, DeviceProductData, DimmingUpdate, Entertainment,
     EntertainmentConfiguration, GroupedLight, Light, Metadata, On, RType, Resource, ResourceLink,
-    ResourceRecord, Room, Stub, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus,
+    ResourceRecord, Room, Stub, ZigbeeConnectivity, ZigbeeConnectivityStatus,
     ZigbeeDeviceDiscovery, ZigbeeDeviceDiscoveryAction, ZigbeeDeviceDiscoveryStatus, Zone,
 };
 use hue::error::{HueError, HueResult};
@@ -89,8 +90,8 @@ impl Resources {
         Ok(serde_yml::to_string(&self.state)?)
     }
 
-    pub fn init(&mut self, bridge_id: &str) -> ApiResult<()> {
-        self.add_bridge(bridge_id.to_owned())
+    pub fn init(&mut self, bridge_id: &str, timezone: Tz) -> ApiResult<()> {
+        self.add_bridge(bridge_id.to_owned(), timezone)
     }
 
     pub fn aux_get(&self, link: &ResourceLink) -> ApiResult<&AuxData> {
@@ -271,7 +272,7 @@ impl Resources {
         Ok(())
     }
 
-    pub fn add_bridge(&mut self, bridge_id: String) -> ApiResult<()> {
+    pub fn add_bridge(&mut self, bridge_id: String, timezone: Tz) -> ApiResult<()> {
         let link_bridge = RType::Bridge.deterministic(&bridge_id);
         let link_bridge_home = RType::BridgeHome.deterministic(format!("{bridge_id}HOME"));
         let link_bridge_dev = RType::Device.deterministic(link_bridge.rid);
@@ -292,7 +293,7 @@ impl Resources {
         let bridge = Bridge {
             bridge_id,
             owner: link_bridge_dev,
-            time_zone: TimeZone::best_guess(),
+            time_zone: timezone.into(),
         };
 
         let bridge_home_dev = Device {

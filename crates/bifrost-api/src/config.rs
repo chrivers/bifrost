@@ -2,6 +2,7 @@ use std::net::Ipv4Addr;
 use std::{collections::BTreeMap, num::NonZeroU32};
 
 use camino::Utf8PathBuf;
+use chrono_tz::Tz;
 use hue::api::RoomArchetype;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -23,7 +24,7 @@ pub struct BridgeConfig {
     pub entm_port: u16,
     pub netmask: Ipv4Addr,
     pub gateway: Ipv4Addr,
-    pub timezone: String,
+    pub timezone: Tz,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
