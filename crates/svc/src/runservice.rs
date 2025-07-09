@@ -66,7 +66,9 @@ impl<S: Service> StandardService<S> {
             start_policy: Policy::new()
                 .with_delay(Duration::from_secs(1))
                 .with_retry(Retry::Limit(3)),
-            run_policy: Policy::new().with_delay(Duration::from_secs(1)),
+            run_policy: Policy::new()
+                .with_retry(Retry::Forever)
+                .with_delay(Duration::from_secs(1)),
             stop_policy: Policy::new(),
         }
     }

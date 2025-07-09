@@ -176,7 +176,12 @@ impl Service for Z2mBackend {
                 sanitized_url
             );
         }
+        Ok(())
+    }
 
+    async fn run(&mut self) -> ApiResult<()> {
+        let sanitized_url = self.server.get_sanitized_url();
+        let url = self.server.get_url();
         // if tls verification is disabled, build a TlsConnector that explicitly
         // does not check certificate validity. This is obviously neither safe
         // nor recommended.
@@ -195,28 +200,19 @@ impl Service for Z2mBackend {
         };
 
         log::info!("[{}] Connecting to {}", self.name, &sanitized_url);
-        match connect_async_tls_with_config(url.as_str(), None, false, connector.clone()).await {
-            Ok((socket, _)) => {
-                self.socket = Some(socket);
-                Ok(())
-            }
-            Err(err) => {
-                log::error!("[{}] Connect failed: {err:?}", self.name);
-                Err(err.into())
-            }
-        }
-    }
+        let socket =
+            match connect_async_tls_with_config(url.as_str(), None, false, connector.clone()).await
+            {
+                Ok((socket, _)) => socket,
+                Err(err) => {
+                    log::error!("[{}] Connect failed: {err:?}", self.name);
+                    return Err(err.into());
+                }
+            };
 
-    async fn run(&mut self) -> ApiResult<()> {
-        if let Some(socket) = self.socket.take() {
-            let z2m_socket = Z2mWebSocket::new(self.name.clone(), socket);
-            let mut chan = self.state.lock().await.backend_event_stream();
-            let res = self.event_loop(&mut chan, z2m_socket).await;
-            if let Err(err) = res {
-                log::error!("[{}] Event loop broke: {err}", self.name);
-            }
-        }
-        Ok(())
+        let z2m_socket = Z2mWebSocket::new(self.name.clone(), socket);
+        let mut chan = self.state.lock().await.backend_event_stream();
+        self.event_loop(&mut chan, z2m_socket).await
     }
 
     async fn stop(&mut self) -> ApiResult<()> {
