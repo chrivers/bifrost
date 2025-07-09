@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::api::{DeviceRemove, GroupMemberChange, PermitJoin};
+use crate::api::{DeviceRead, DeviceRemove, GroupMemberChange, PermitJoin};
 use crate::update::DeviceUpdate;
 
 #[derive(Clone, Debug, Serialize)]
@@ -47,6 +47,9 @@ pub enum Z2mRequest<'a> {
 
     #[serde(untagged)]
     Update(&'a DeviceUpdate),
+
+    #[serde(untagged)]
+    DeviceRead(&'a DeviceRead),
 
     // same as Z2mRequest::Raw, but allows us to suppress logging for these
     #[serde(untagged)]

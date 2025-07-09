@@ -6,7 +6,7 @@ use hue::zigbee::{HueZigbeeUpdate, ZigbeeMessage};
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::{self, Message};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
-use z2m::api::{DeviceRemove, GroupMemberChange, PermitJoin};
+use z2m::api::{DeviceRead, DeviceRemove, GroupMemberChange, PermitJoin};
 use z2m::request::Z2mPayload;
 use z2m::update::DeviceUpdate;
 use z2m::{api::RawMessage, request::Z2mRequest};
@@ -55,6 +55,10 @@ impl Z2mWebSocket {
                 topic: "bridge/request/device/remove".into(),
                 payload: serde_json::to_value(dev)?,
             },
+            Z2mRequest::DeviceRead(read) => RawMessage {
+                topic: format!("{topic}/get"),
+                payload: serde_json::to_value(read)?,
+            },
             _ => RawMessage {
                 topic: format!("{topic}/set"),
                 payload: serde_json::to_value(payload)?,
@@ -92,6 +96,12 @@ impl Z2mWebSocket {
 
     pub async fn send_update(&mut self, topic: &str, payload: &DeviceUpdate) -> ApiResult<()> {
         let z2mreq = Z2mRequest::Update(payload);
+
+        self.send(topic, &z2mreq).await
+    }
+
+    pub async fn send_read(&mut self, topic: &str, payload: &DeviceRead) -> ApiResult<()> {
+        let z2mreq = Z2mRequest::DeviceRead(payload);
 
         self.send(topic, &z2mreq).await
     }

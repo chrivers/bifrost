@@ -9,13 +9,14 @@ use uuid::Uuid;
 
 use bifrost_api::backend::BackendRequest;
 use hue::api::{
-    Entertainment, EntertainmentConfiguration, GroupedLight, GroupedLightUpdate, Light,
-    LightEffectsV2Update, LightGradientMode, LightUpdate, RType, Resource, ResourceLink, Room,
-    RoomUpdate, Scene, SceneActive, SceneStatus, SceneStatusEnum, SceneUpdate,
-    ZigbeeDeviceDiscoveryUpdate,
+    ColorTemperatureUpdate, Entertainment, EntertainmentConfiguration, GroupedLight,
+    GroupedLightUpdate, Light, LightEffectsV2Update, LightGradientMode, LightUpdate, RType,
+    Resource, ResourceLink, Room, RoomUpdate, Scene, SceneActive, SceneStatus, SceneStatusEnum,
+    SceneUpdate, ZigbeeDeviceDiscoveryUpdate,
 };
 use hue::error::HueError;
 use hue::stream::HueStreamLightsV2;
+use z2m::api::DeviceRead;
 use z2m::update::{DeviceEffect, DeviceUpdate};
 
 use crate::backend::z2m::Z2mBackend;
@@ -28,6 +29,22 @@ impl Z2mBackend {
     #[allow(clippy::match_same_arms)]
     fn make_hue_specific_update(upd: &LightUpdate) -> ApiResult<HueZigbeeUpdate> {
         let mut hz = HueZigbeeUpdate::new();
+
+        if let Some(on) = &upd.on {
+            hz = hz.with_on_off(on.on);
+        }
+
+        if let Some(br) = &upd.dimming {
+            hz = hz.with_brightness((br.brightness / 100.0).unit_to_u8_clamped_light());
+        }
+
+        if let Some(ColorTemperatureUpdate { mirek: Some(mirek) }) = upd.color_temperature {
+            hz = hz.with_color_mirek(mirek);
+        }
+
+        if let Some(xy) = &upd.color {
+            hz = hz.with_color_xy(xy.xy);
+        }
 
         if let Some(grad) = &upd.gradient {
             hz = hz.with_gradient_colors(
@@ -102,36 +119,17 @@ impl Z2mBackend {
         let hue_effects = lock.get::<Light>(link)?.effects.is_some();
         drop(lock);
 
-        /* step 1: send generic light update */
-        let transition = upd
-            .dynamics
-            .as_ref()
-            .and_then(|d| d.duration.map(|duration| f64::from(duration) / 1000.0))
-            .or_else(|| {
-                if upd.dimming.is_some() || upd.color_temperature.is_some() || upd.color.is_some() {
-                    Some(0.4)
-                } else {
-                    None
-                }
-            });
-        let mut payload = DeviceUpdate::default()
-            .with_state(upd.on.map(|on| on.on))
-            .with_brightness(upd.dimming.map(|dim| dim.brightness / 100.0 * 254.0))
-            .with_color_temp(upd.color_temperature.and_then(|ct| ct.mirek))
-            .with_color_xy(upd.color.map(|col| col.xy))
-            .with_transition(transition);
-
-        // We don't want to send gradient updates twice, but if hue
-        // effects are not supported for this light, this is the best
-        // (and only) way to do it
-        if !hue_effects {
-            payload = payload.with_gradient(upd.gradient.clone());
-        }
+        let mut payload: Option<DeviceUpdate> = None;
 
         // handle "identify" request (light breathing)
         if upd.identify.is_some() {
-            // update immediate payload with breathe effect
-            payload = payload.with_effect(DeviceEffect::Breathe);
+            // handle "identify" request (light breathing)
+
+            payload = Some(
+                payload
+                    .unwrap_or_default()
+                    .with_effect(DeviceEffect::Breathe),
+            );
 
             let tx = self.message_tx.clone();
             let topic = topic.clone();
@@ -145,17 +143,63 @@ impl Z2mBackend {
             });
         }
 
-        z2mws.send_update(topic, &payload).await?;
+        if !hue_effects {
+            /* send generic light update */
+            let transition = upd
+                .dynamics
+                .as_ref()
+                .and_then(|d| d.duration.map(|duration| f64::from(duration) / 1000.0))
+                .or_else(|| {
+                    if upd.dimming.is_some()
+                        || upd.color_temperature.is_some()
+                        || upd.color.is_some()
+                    {
+                        Some(0.4)
+                    } else {
+                        None
+                    }
+                });
+            payload = Some(
+                payload
+                    .unwrap_or_default()
+                    .with_state(upd.on.map(|on| on.on))
+                    .with_brightness(upd.dimming.map(|dim| dim.brightness / 100.0 * 254.0))
+                    .with_color_temp(upd.color_temperature.and_then(|ct| ct.mirek))
+                    .with_color_xy(upd.color.map(|col| col.xy))
+                    .with_transition(transition)
+                    // We don't want to send gradient updates twice, but if hue
+                    // effects are not supported for this light, this is the best
+                    // (and only) way to do it
+                    .with_gradient(upd.gradient.clone()),
+            );
+        };
 
-        /* step 2: if supported (and needed) send hue-specific effects update */
+        if let Some(payload) = payload {
+            z2mws.send_update(topic, &payload).await?;
+        }
 
+        /* if supported send hue-specific effects update */
         if hue_effects {
             let mut hz = Self::make_hue_specific_update(upd)?;
 
             if !hz.is_empty() {
                 hz = hz.with_fade_speed(0x0001);
 
+                let read_payload = DeviceRead::default()
+                    .with_state(
+                        hz.onoff.is_some() || hz.brightness.is_some() || hz.effect_type.is_some(),
+                    )
+                    .with_color(
+                        hz.color_mirek.is_some()
+                            || hz.color_xy.is_some()
+                            || hz.effect_type.is_some(),
+                    )
+                    .with_brightness(hz.brightness.is_some() || hz.effect_type.is_some());
+
                 z2mws.send_hue_effects(topic, hz).await?;
+
+                // Do an explicit attribute read since Hue specific updates do not automatically update z2m state
+                z2mws.send_read(&topic, &read_payload).await?;
             }
         }
 

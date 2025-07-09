@@ -121,6 +121,52 @@ pub struct DeviceRemove {
     pub id: String,
 }
 
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct DeviceRead {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brightness: Option<String>,
+}
+
+impl DeviceRead {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn to_field_value(changed: bool) -> Option<String> {
+        // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-get
+        if changed { Some("".to_string()) } else { None }
+    }
+
+    #[must_use]
+    pub fn with_state(self, on_changed: bool) -> Self {
+        Self {
+            state: Self::to_field_value(on_changed),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn with_color(self, color_changed: bool) -> Self {
+        Self {
+            color: Self::to_field_value(color_changed),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn with_brightness(self, brightness_changed: bool) -> Self {
+        Self {
+            brightness: Self::to_field_value(brightness_changed),
+            ..self
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DeviceRemoveResponse {
     pub id: String,
