@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use hue::clamp::Clamp;
 use hue::effect_duration::EffectDuration;
-use hue::zigbee::{GradientParams, GradientStyle, HueZigbeeUpdate};
+use hue::zigbee::{GradientParams, GradientStyle, HueZigbeeUpdate, LightRecordMode};
 use tokio::time::sleep;
 use uuid::Uuid;
 
@@ -374,6 +374,7 @@ impl Z2mBackend {
         let mut chans = ent.channels.clone();
 
         let mut addrs: BTreeMap<String, Vec<u16>> = BTreeMap::new();
+        let mut channels: BTreeMap<u8, (u16, LightRecordMode)> = BTreeMap::new();
         let mut targets = vec![];
         chans.sort_by_key(|c| c.channel_id);
 
@@ -400,6 +401,13 @@ impl Z2mBackend {
                     .or_default()
                     .push(segment_addr);
 
+                let mode = if ent.segments.as_ref().map_or(0, |s| s.segments.len()) > 1 {
+                    LightRecordMode::Segment
+                } else {
+                    LightRecordMode::Device
+                };
+                channels.insert(chan.channel_id as u8, (segment_addr, mode));
+
                 targets.push(topic);
             }
         }
@@ -407,7 +415,7 @@ impl Z2mBackend {
         drop(lock);
 
         if let Some(target) = targets.first() {
-            let mut es = EntStream::new(self.counter, target, addrs);
+            let mut es = EntStream::new(self.counter, target, addrs, channels);
 
             // Not even a real Philips Hue bridge uses this trick!
             //
