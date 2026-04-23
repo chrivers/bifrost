@@ -199,6 +199,7 @@ impl Z2mBackend {
         #[allow(unused_variables)]
         match &msg {
             Message::BridgeInfo(obj) => { /* println!("{obj:#?}"); */ }
+            Message::BridgeHealth(_obj) => { /* println!("{obj:#?}"); */ }
             Message::BridgeLogging(obj) => { /* println!("{obj:#?}"); */ }
             Message::BridgeExtensions(obj) => { /* println!("{obj:#?}"); */ }
             Message::BridgeEvent(obj) => { /* println!("{obj:#?}"); */ }

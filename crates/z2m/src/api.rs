@@ -88,6 +88,9 @@ pub enum Message {
 
     #[serde(rename = "bridge/response/device/ota_update/check")]
     BridgeDeviceOtaUpdateCheck(Value),
+
+    #[serde(rename = "bridge/health")]
+    BridgeHealth(BridgeHealth),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -727,4 +730,43 @@ pub enum DeviceEndpointBindingTarget {
 pub struct DeviceEndpointClusters {
     pub input: Vec<String>,
     pub output: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BridgeHealth {
+    pub devices: Option<HashMap<String, BridgeHealthDevice>>,
+    pub mqtt: Option<BridgeHealthMqtt>,
+    pub os: Option<BridgeHealthOs>,
+    pub process: Option<BridgeHealthProcess>,
+    pub response_time: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BridgeHealthDevice {
+    pub leave_count: Option<i64>,
+    pub messages: Option<i64>,
+    pub messages_per_sec: Option<f64>,
+    pub network_address_changes: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BridgeHealthMqtt {
+    pub connected: bool,
+    pub published: Option<i64>,
+    pub queued: Option<i64>,
+    pub received: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BridgeHealthOs {
+    pub load_average: Option<Vec<f64>>,
+    pub memory_percent: Option<f64>,
+    pub memory_used_mb: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BridgeHealthProcess {
+    pub memory_percent: Option<f64>,
+    pub memory_used_mb: Option<f64>,
+    pub uptime_sec: Option<f64>,
 }

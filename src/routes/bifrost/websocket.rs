@@ -94,7 +94,10 @@ impl WebSocketTask {
 
         loop {
             let reply = select! {
-                Some(msg) = self.ws.recv() => self.handle_websocket_message(&msg?),
+                msg = self.ws.recv() => match msg {
+                    Some(msg) => self.handle_websocket_message(&msg?),
+                    None => return Ok(()),
+                },
                 backend_event = backend_events.recv() => self.handle_backend_event(&backend_event?),
                 service_event = svc_events.recv() => self.handle_service_event(service_event).await,
                 hue_event = hue_events.recv() => self.handle_hue_event(hue_event?),
