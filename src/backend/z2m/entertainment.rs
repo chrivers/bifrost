@@ -17,39 +17,25 @@ pub struct EntStream {
     pub stream: EntertainmentZigbeeStream,
     pub target: String,
     pub addrs: BTreeMap<String, Vec<u16>>,
-    pub modes: Vec<(u16, LightRecordMode)>,
+    pub channels: BTreeMap<u8, (u16, LightRecordMode)>,
 }
 
 impl EntStream {
     #[must_use]
-    pub fn new(counter: u32, target: &str, addrs: BTreeMap<String, Vec<u16>>) -> Self {
-        let modes = Self::addrs_to_light_modes(&addrs);
+    pub fn new(
+        counter: u32,
+        target: &str,
+        addrs: BTreeMap<String, Vec<u16>>,
+        channels: BTreeMap<u8, (u16, LightRecordMode)>,
+    ) -> Self {
         Self {
             stream: EntertainmentZigbeeStream::new(counter),
             target: target.to_string(),
             addrs,
-            modes,
+            channels,
         }
     }
 
-    #[must_use]
-    pub fn addrs_to_light_modes(addrs: &BTreeMap<String, Vec<u16>>) -> Vec<(u16, LightRecordMode)> {
-        let mut modes = vec![];
-
-        for segments in addrs.values() {
-            let mode = if segments.len() <= 1 {
-                LightRecordMode::Device
-            } else {
-                LightRecordMode::Segment
-            };
-
-            for seg in segments {
-                modes.push((*seg, mode));
-            }
-        }
-
-        modes
-    }
 
     #[must_use]
     pub fn z2m_set_entertainment_brightness(brightness: u8) -> Z2mRequest<'static> {
@@ -75,11 +61,11 @@ impl EntStream {
                     let (xy, bright) = light.rgb.to_xy();
 
                     let brightness = (bright / 255.0 * 2047.0).clamp(1.0, 2047.0) as u16;
-                    let (chan, mode) = self.modes[light.channel as usize % self.modes.len()];
-                    let raw = xy.to_quant();
-                    let lrec = HueEntFrameLightRecord::new(chan, brightness, mode, raw);
-
-                    blks.push(lrec);
+                    if let Some((chan, mode)) = self.channels.get(&light.channel) {
+                        let raw = xy.to_quant();
+                        let lrec = HueEntFrameLightRecord::new(*chan, brightness, *mode, raw);
+                        blks.push(lrec);
+                    }
                 }
             }
             HueStreamLightsV2::Xy(xy) => {
@@ -87,11 +73,11 @@ impl EntStream {
                     let (xy, bright) = light.xy.to_xy();
 
                     let brightness = (bright / 255.0 * 2047.0).clamp(1.0, 2047.0) as u16;
-                    let (chan, mode) = self.modes[light.channel as usize % self.modes.len()];
-                    let raw = xy.to_quant();
-                    let lrec = HueEntFrameLightRecord::new(chan, brightness, mode, raw);
-
-                    blks.push(lrec);
+                    if let Some((chan, mode)) = self.channels.get(&light.channel) {
+                        let raw = xy.to_quant();
+                        let lrec = HueEntFrameLightRecord::new(*chan, brightness, *mode, raw);
+                        blks.push(lrec);
+                    }
                 }
             }
         }
@@ -101,7 +87,7 @@ impl EntStream {
 
     pub async fn start_stream(&mut self, z2mws: &mut Z2mWebSocket) -> ApiResult<()> {
         log::debug!("Entertainment addrs: {:#?}", &self.addrs);
-        log::debug!("Entertainment modes: {:#?}", &self.modes);
+        log::debug!("Entertainment channels: {:#?}", &self.channels);
         for (dev, segments) in &self.addrs {
             let z2mreq = Self::z2m_set_entertainment_brightness(0xFE);
             z2mws.send(dev, &z2mreq).await?;
