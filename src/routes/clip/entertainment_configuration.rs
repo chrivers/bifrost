@@ -128,28 +128,31 @@ fn make_channels(
         let ent: &Entertainment = lock.get(&location.service)?;
 
         if let Some(segs) = &ent.segments {
-            for index in 0..segs.segments.len() {
-                channels.push(EntertainmentConfigurationChannels {
-                    channel_id,
-                    position: POSITIONS[index % POSITIONS.len()].clone(),
-                    members: vec![EntertainmentConfigurationStreamMembers {
-                        service: location.service,
-                        index: u16::try_from(index)?,
-                    }],
-                });
-                channel_id += 1;
+            if segs.segments.len() > 1 {
+                for index in 0..segs.segments.len() {
+                    channels.push(EntertainmentConfigurationChannels {
+                        channel_id,
+                        position: POSITIONS[index % POSITIONS.len()].clone(),
+                        members: vec![EntertainmentConfigurationStreamMembers {
+                            service: location.service,
+                            index: u16::try_from(index)?,
+                        }],
+                    });
+                    channel_id += 1;
+                }
+                continue;
             }
-        } else {
-            channels.push(EntertainmentConfigurationChannels {
-                channel_id,
-                position: pos.clone(),
-                members: vec![EntertainmentConfigurationStreamMembers {
-                    service: location.service,
-                    index: 0,
-                }],
-            });
-            channel_id += 1;
         }
+
+        channels.push(EntertainmentConfigurationChannels {
+            channel_id,
+            position: pos.clone(),
+            members: vec![EntertainmentConfigurationStreamMembers {
+                service: location.service,
+                index: 0,
+            }],
+        });
+        channel_id += 1;
     }
 
     Ok(channels)
