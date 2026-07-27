@@ -245,13 +245,20 @@ impl From<DeviceState> for On {
     }
 }
 
-#[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum DeviceEffect {
+    None,
+    Colorloop,
+    Candle,
+    Fireplace,
     Blink,
     Breathe,
     Okay,
     ChannelChange,
     FinishEffect,
     StopEffect,
+    StopHueEffect,
+    #[serde(other)]
+    Other,
 }
