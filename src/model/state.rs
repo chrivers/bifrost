@@ -167,13 +167,13 @@ impl State {
         log::debug!("Importing aux data from old v0 state..");
         for (key, value) in v0aux {
             log::debug!("  {key:?}: {value:?}");
-            aux.insert(serde_yml::from_value(key)?, serde_yml::from_value(value)?);
+            aux.insert(serde_yml::from_value(serde_yml::Value::String(key))?, serde_yml::from_value(value)?);
         }
 
         log::debug!("Importing res data from old v0 state..");
         for (key, value) in v0res {
             log::debug!("  {key:?}: {value:?}");
-            res.insert(serde_yml::from_value(key)?, serde_yml::from_value(value)?);
+            res.insert(serde_yml::from_value(serde_yml::Value::String(key))?, serde_yml::from_value(value)?);
         }
 
         /* generate all missing id_v1 entries */
